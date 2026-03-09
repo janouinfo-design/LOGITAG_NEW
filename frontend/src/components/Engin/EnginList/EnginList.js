@@ -1,0 +1,1495 @@
+import {DatatableComponent} from '../../../components/shared/DatatableComponent/DataTableComponent'
+import {
+  checkGeneratedFile,
+  fetchEnginListHistory,
+  fetchEngines,
+  fetchStatusHistoric,
+  fetchStatusList,
+  fetchTypesList,
+  generateEngFile,
+  getEngines,
+  getLastEnginsUpdates,
+  getStatusList,
+  getStatusListHistory,
+  removeEngine,
+  saveTagAddress,
+  setEditEngine,
+  setParamCadHis,
+  setSelectedEngine,
+  setSelectedHistory,
+  setShow,
+  setShowHistory,
+  setStatusVisible,
+  setTypeFields,
+} from '../slice/engin.slice'
+import {useAppDispatch, useAppSelector} from '../../../hooks'
+import {Chip} from 'primereact/chip'
+import {Image} from 'primereact/image'
+import {memo, useCallback, useEffect, useRef, useState} from 'react'
+import {OlangItem} from '../../shared/Olang/user-interface/OlangItem/OlangItem'
+import ButtonComponent from '../../shared/ButtonComponent/ButtonComponent'
+import {setAlertParams} from '../../../store/slices/alert.slice'
+import EnginMapLocation from './EnginMapLocation'
+import DynamicInputs from '../EnginEditor/DynamicInputs'
+import {API_BASE_URL_IMAGE} from '../../../api/config'
+import {Button} from 'primereact/button'
+import {DialogComponent} from '../../shared/DialogComponent/DialogComponent'
+import {InputText} from 'primereact/inputtext'
+import {useFormik} from 'formik'
+import {fetchValidator} from '../../Inventory/slice/inventory.slice'
+import moment from 'moment'
+import Loader from '../../shared/Loader/Loader'
+import {fetchStatus, fetchTagsWithEngin} from '../../Tag/slice/tag.slice'
+import _ from 'lodash'
+import {_fetchStatusRapport} from '../../Repports/api'
+import {useLocalStorage, useSessionStorage} from 'primereact/hooks'
+import {MultiSelect} from 'primereact/multiselect'
+import {Dropdown} from 'primereact/dropdown'
+import {Tag} from 'primereact/tag'
+import {Calendar} from 'primereact/calendar'
+import {fetchFamilles} from '../../Famillies/slice/famille.slice'
+import {fetchSites, getSites} from '../../Site/slice/site.slice'
+import {useLocation} from 'react-router-dom'
+import {ProgressSpinner} from 'primereact/progressspinner'
+import { fetchConversationList, setDetailChat } from '../../../_metronic/partials/layout/drawer-messenger/slice/Chat.slice'
+import { DrawerComponent } from '../../../_metronic/assets/ts/components'
+import { Badge } from 'primereact/badge'
+import LastSeenComponent from '../EnginDetail/LastSeenComponent'
+
+const EnginList = () => {
+  const [visible, setVisible] = useState(false)
+  const [dialogVisible, setDialogVisible] = useState(false)
+  const [savePosVisible, setSavePosVisible] = useState(false)
+  const [isLoadingButton, setIsLoadingButton] = useState(false)
+  const [showTag, setShowTag] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [mouvement, setMouvement] = useState('')
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfVisible, setPdfVisible] = useState(false)
+  const [page, setPage] = useState(1)
+  const [rows, setRows] = useState(10)
+  const [pdfIdGenerator, setPdfIdGenerator] = useLocalStorage('pdfIdGen', 0)
+  const [generatedCheck, setGeneratedCheck] = useState([])
+  const [loadingExcel, setLoadingExcel] = useState(false)
+  const [orderBy, setOrderBy] = useState({field: 'lastSeenAt', order: 'DESC'})
+  const [familleTag, setFamilleTag] = useState([])
+  const [familleEngin, setFamilleEngin] = useState([])
+  const [loadingOrder, setLoadingOrder] = useState(false)
+  const [searchInput, setSearchInput] = useState('')
+  const [filters, setFilters] = useState({
+    etat: null,
+    status: null,
+    lastSeen: null,
+    sites: [],
+    marque: null,
+    tagFam: null,
+    engFam: null,
+  })
+  const refFilter = useRef(null)
+
+  const etatData = [
+    {
+      label: 'Entrée',
+      code: 'reception',
+      icon: 'fa-solid fa-down-to-bracket',
+      backgroundColor: '#29bf12',
+    },
+    {
+      label: 'Sortie',
+      code: 'exit',
+      icon: 'fa-solid fa-up-from-bracket',
+      backgroundColor: '#D64B70',
+    },
+  ]
+
+  const intervalPdf = useRef(null)
+
+  const location = useLocation()
+
+  const engines = useAppSelector(getEngines)
+  let enginsLastUpdates = useAppSelector(getLastEnginsUpdates)
+  const enginStatus = useAppSelector(getStatusList)
+  const sites = useAppSelector(getSites)
+  const statusList = useAppSelector(getStatusListHistory)
+  const searchEng = useRef('')
+  const calenderRef = useRef(null)
+  const firstLoading = useRef(true)
+
+  const dispatch = useAppDispatch()
+
+  const displayChatDetail = (selectedEngin) => {
+      let obj = {
+        srcId: selectedEngin.id,
+        srcObject: 'Engin',
+      }
+      dispatch(fetchConversationList(obj)).then((res) => {
+        dispatch(setSelectedEngine(selectedEngin))
+        console.log('res fetchConversationList', res)
+        dispatch(setDetailChat(true))
+      })
+      const drawer = DrawerComponent.getInstance('kt_drawer_chat')
+      if (drawer) {
+        drawer.show()
+        return
+      }
+  
+      // Fallback: trigger the DOM toggle (the one used in Navbar)
+      const toggle = document.getElementById('kt_drawer_chat_toggle')
+      if (toggle) {
+        toggle.click()
+      }
+    }
+
+  let actions = [
+    {
+      label: 'Detail',
+      icon: 'pi pi-eye text-blue-500',
+      command: (e) => {
+        try {
+          dispatch(fetchValidator('engin'))
+          dispatch(setSelectedEngine(e.item.data))
+          dispatch(setShow(false))
+          dispatch(fetchTagsWithEngin(e.item.data.id))
+        } catch (error) {}
+      },
+    },
+    {
+      label: 'Chat',
+      icon: 'pi pi-comment text-green-500',
+      command: (e) => {
+        displayChatDetail(e.item.data)
+      },
+    },
+    {
+      label: 'Supprimer',
+      icon: 'pi pi-trash text-red-500',
+      command: (e) => {
+        try {
+          dispatch(setSelectedEngine(e.item.data))
+          dispatch(
+            setAlertParams({
+              title: 'Supprimer',
+              message: 'Voulez-vous vraiment supprimerce engin?',
+              acceptClassName: 'p-button-danger',
+              visible: true,
+              accept: () => {
+                dispatch(removeEngine({data: e.item.data, page: page, pageSize: rows}))
+              },
+            })
+          )
+        } catch (error) {}
+      },
+    },
+  ]
+
+  const handlePageChange = (newPage, newRows) => {
+    if (firstLoading.current) return
+
+    const params = {
+      search: searchEng.current || undefined,
+      searchLastSeen: filters?.lastSeen
+        ? moment(filters.lastSeen).isValid()
+          ? moment(filters.lastSeen).format('YYYY-MM-DD')
+          : ''
+        : '',
+      searchSituation: filters?.etat || '',
+      searchTag: filters?.tagFam || '',
+      searchStatus: filters?.status || '',
+      searchFamille: filters?.engFam || '',
+      searchSite: filters?.sites?.map((item) => item).join(', ') || '',
+      SortDirection: orderBy?.order || 'DESC',
+      SortColumn: orderBy?.field || '',
+      page: newPage,
+      PageSize: newRows,
+    }
+
+    setPage(newPage)
+    setRows(newRows)
+    dispatch(fetchEngines(params))
+  }
+
+  const splitAction = (item) => {
+    try {
+      dispatch(fetchValidator('engin'))
+      dispatch(setSelectedEngine(item))
+      dispatch(setShow(false))
+    } catch (error) {}
+  }
+  const getPosOfAddress = (data) => {
+    try {
+      let obj = {
+        srcId: data?.id,
+        srcObject: 'Engin',
+        srcMouvement: 'pos',
+      }
+      dispatch(setParamCadHis({title: 'Positions', showList: true}))
+      dispatch(fetchEnginListHistory(obj)).then(() => {
+        dispatch(setShowHistory(true))
+        dispatch(setSelectedEngine(data))
+        setDialogVisible(true)
+      })
+      // dispatch(setSelectedEngine(data))
+      // dispatch(setShowHistory(true))
+      // setMouvement('pos')
+      // setDialogVisible(true)
+    } catch (error) {}
+  }
+
+  const imageTemplate = (rowData) => (
+    <>
+      <Image
+        src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
+        alt='EngineImage'
+        width='60'
+        height='60'
+        preview
+        imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
+      />
+    </>
+  )
+
+  const addresseeTemplate = (rowData) => {
+    return (
+      <div>
+        <Chip
+          label={'Géolocalisation'}
+          className='w-11rem m-1 flex justify-content-center align-items-center cursor-pointer'
+          onClick={() => getPosOfAddress(rowData)}
+          icon='pi pi-map-marker text-blue-500'
+        />
+      </div>
+    )
+  }
+
+  const handleClickType = (rowData) => {
+    try {
+      dispatch(setSelectedEngine(rowData))
+      setVisible(true)
+      //dispatch(setTypeEdit(true))
+    } catch (error) {}
+  }
+
+  const handleType = (e) => {
+    try {
+      setVisible(true)
+      dispatch(setSelectedEngine(e))
+    } catch (error) {}
+  }
+
+  const onClickStatus = (rowData) => {
+    let objInfo = {
+      srcId: rowData?.uid,
+      srcObject: 'engin',
+    }
+    dispatch(setSelectedEngine(rowData))
+    dispatch(fetchStatusHistoric(objInfo)).then(() => {
+      dispatch(setStatusVisible(true))
+    })
+  }
+
+  const typeTemplate = (rowData) => {
+    let typesArray
+    try {
+      // if(rowData.type)
+      typesArray = JSON.parse(rowData.types)
+    } catch (error) {
+      console.error('Error parsing JSON data:', error)
+
+      typesArray = []
+    }
+    return (
+      <>
+        {rowData.types === '' ? (
+          <ButtonComponent
+            label={<OlangItem olang='ADD.Type' />}
+            onClick={() => handleClickType(rowData)}
+          />
+        ) : (
+          <div className='flex'>
+            {typesArray?.slice(0, 2).map((o, index) => {
+              return (
+                <div>
+                  <Chip key={index} label={`${o?.type}`} className='ml-2' />
+                </div>
+              )
+            })}
+            {typesArray?.length >= 3 ? <Chip label='...' className='ml-2' /> : null}
+            <i
+              className='ml-2 pi pi-window-maximize cursor-pointer hover:text-700'
+              onClick={() => handleType(rowData)}
+            ></i>
+          </div>
+        )}
+      </>
+    )
+  }
+
+  const statusTemplate = (rowData) => {
+    if (rowData?.iconName) {
+      return (
+        <i
+          title={rowData?.statuslabel}
+          className={`${rowData?.iconName} text-2xl rounded p-2 cursor-pointer`}
+          style={{color: `${rowData.statusbgColor}`}}
+          onClick={() => onClickStatus(rowData)}
+        ></i>
+      )
+    }
+    return (
+      <Chip
+        label={rowData?.statuslabel}
+        style={
+          {
+            // background: `${rowData.statusbgColor}`,
+            // color: rowData.color ?? '',
+          }
+        }
+        title={`${rowData?.statusDate}`}
+      />
+    )
+  }
+
+  //etatengin
+  const iconTemplate = (rowData) => {
+    let icon = ''
+    let color = ''
+    if (rowData?.etatenginname == 'exit') {
+      icon = 'fa-solid fa-up-from-bracket'
+      color = '#D64B70'
+    } else if (rowData?.etatenginname == 'reception') {
+      icon = 'fa-solid fa-down-to-bracket'
+      color = 'green'
+    } else if (rowData?.etatenginname == 'nonactive') {
+      icon = 'fa-solid fa-octagon-exclamation'
+      color = 'red'
+    }
+    return (
+      <div>
+        <i
+          style={{color}}
+          className={`${icon} text-2xl rounded p-2 cursor-pointer`}
+          // title={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
+          // alt={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
+          onClick={() => handleShowMap(rowData, null)}
+        ></i>
+      </div>
+    )
+  }
+
+  const onClear = () => {
+    setSearchInput('')
+    searchEng.current = ''
+    setFilters({
+      etat: null,
+      status: null,
+      lastSeen: null,
+      sites: [],
+      marque: null,
+      tagFam: null,
+      engFam: null,
+    })
+    dispatch(
+      fetchEngines({
+        SortDirection: 'DESC',
+        SortColumn: 'lastSeenAt',
+        page: 1,
+        rows: rows,
+      })
+    ).then(({payload}) => {
+      if (payload) {
+        setTotalRecords(payload[0]?.TotalEngins || 0)
+        setPage(1)
+      }
+    })
+  }
+
+  const extraActionTemplate = () => {
+    return (
+      <Button
+        className='font-semibold p-border-circle text-gray-800 bg-transparent hover:text-red-700 hover:bg-gray-100'
+        label={<OlangItem olang='clear' />}
+        icon='pi pi-filter-slash'
+        onClick={onClear}
+        text
+        rounded
+      />
+    )
+  }
+
+  const handleShowMap = (rowData, srcMouv = '') => {
+    try {
+      let obj = {
+        srcId: rowData?.uid,
+        srcObject: 'Engin',
+      }
+      dispatch(setParamCadHis({title: 'Enter_Exit', showList: true}))
+      dispatch(fetchEnginListHistory(obj)).then(() => {
+        dispatch(setShowHistory(true))
+        dispatch(setSelectedEngine(rowData))
+        setDialogVisible(true)
+      })
+    } catch (error) {}
+  }
+
+  const handleOrderClick = (field) => {
+    try {
+      setLoadingOrder(true)
+      const newOrder = orderBy?.order === 'ASC' ? 'DESC' : 'ASC'
+
+      const params = {
+        page: page,
+        PageSize: rows,
+        SortColumn: field,
+        SortDirection: newOrder,
+        search: searchEng.current || undefined,
+        searchLastSeen: filters?.lastSeen
+          ? moment(filters.lastSeen).isValid()
+            ? moment(filters.lastSeen).format('YYYY-MM-DD')
+            : ''
+          : '',
+        searchSituation: filters?.etat || '',
+        searchTag: filters?.tagFam || '',
+        searchStatus: filters?.status || '',
+        searchFamille: filters?.engFam || '',
+        searchSite: filters?.sites?.map((item) => item).join(', ') || '',
+      }
+
+      setOrderBy({
+        field: field,
+        order: newOrder,
+      })
+
+      dispatch(fetchEngines(params)).then(({payload}) => {
+        if (payload) {
+          setTotalRecords(payload[0]?.TotalEngins || 0)
+          setLoadingOrder(false)
+        }
+      })
+    } catch (error) {
+      console.error('Error handling order click:', error)
+      setLoadingOrder(false)
+    }
+  }
+
+  const familleTagTemplate = (rowData) => {
+    return (
+      <Chip
+        label={rowData.familleTag}
+        title={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
+        alt={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
+        icon={rowData.familleIconTag}
+        style={{background: rowData.familleTagIconBgcolor, color: rowData.familleTagIconColor}}
+        className='cursor-pointer'
+        onClick={() => showTagById(rowData)}
+      />
+    )
+  }
+
+  const showTagById = (rowData) => {
+    if (showTag?.includes(rowData?.uid)) {
+      let update = showTag?.filter((x) => x !== rowData?.uid)
+      setShowTag(update)
+      return
+    }
+    setShowTag([...showTag, rowData?.uid])
+  }
+
+  const tagTemplate = (rowData) => {
+    return (
+      <div className='flex flex-column'>
+        <div className='flex justify-content-center'>
+          {rowData.tagId ? (
+            familleTagTemplate(rowData)
+          ) : (
+            <Chip label='Untagged' className='cursor-pointer' />
+          )}
+        </div>
+        {showTag.includes(rowData?.uid) ? (
+          <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+            <Chip
+              label={
+                rowData?.labeltag === null ||
+                rowData?.labeltag === '' ||
+                rowData?.labeltag == undefined
+                  ? rowData?.tagname
+                  : rowData?.labeltag
+              }
+              className='m-2'
+              style={{background: rowData?.familleTagIconBgcolor || '#D64B70', color: 'white'}}
+            />
+          </div>
+        ) : null}
+      </div>
+    )
+  }
+
+  const BatteryStatus = ({batteries, locationDate}) => {
+    let batteryIcon
+    let textColor
+    let alt
+    if (batteries === '' || batteries === null || batteries === undefined) {
+      batteryIcon = 'fas fa-battery-empty'
+      textColor = 'text-700'
+      alt = 'No data'
+    } else {
+      const batteryValue = parseInt(batteries, 10)
+      alt = locationDate ?? 'No date'
+      if (batteryValue >= 80) {
+        batteryIcon = 'fas fa-battery-full'
+        textColor = 'text-success'
+      } else if (batteryValue >= 50) {
+        batteryIcon = 'fas fa-battery-three-quarters'
+        textColor = 'text-success'
+      } else if (batteryValue >= 20) {
+        batteryIcon = 'fas fa-battery-half'
+        textColor = 'text-warning'
+      } else if (batteryValue > 0) {
+        batteryIcon = 'fas fa-battery-quarter'
+        textColor = 'text-danger'
+      } else {
+        batteryIcon = 'fas fa-battery-empty'
+        textColor = 'text-danger'
+      }
+    }
+
+    return (
+      <div className='flex items-center justify-center'>
+        <div className='p-4 rounded-lg text-center'>
+          <i title={alt} alt={alt} className={`text-4xl ${batteryIcon} ${textColor}`}></i>
+          <span className={`block mt-2 font-bold text-lg ${textColor}`}>
+            {batteries > 100 ? '100%' : batteries + '%'}
+          </span>
+        </div>
+      </div>
+    )
+  }
+
+  const tagIdTemplate = ({tagId}) => {
+    return tagId == null || tagId === '' || tagId === undefined || tagId === 0 ? 'No Tag' : tagId
+  }
+
+  const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
+    return (
+      <Chip
+        label={famille}
+        icon={familleIcon}
+        style={{background: familleBgcolor, color: 'white'}}
+      />
+    )
+  }
+
+  const representativesItemTemplate = (option) => {
+    return (
+      <div className='flex align-items-center gap-2'>
+        <img
+          alt={option?.name || ''}
+          src={`https://primefaces.org/cdn/primereact/images/avatar/${option?.image}`}
+          width='32'
+        />
+        <span>{option?.name || ''}</span>
+      </div>
+    )
+  }
+
+  const selectedTemplate = (option, props) => {
+    if (option) {
+      return (
+        <Tag
+          className='cursor-pointer gap-2'
+          value={option?.label || option?.name}
+          style={{background: option?.backgroundColor}}
+          icon={option?.icon}
+        />
+      )
+    }
+
+    return <span>{props.placeholder}</span>
+  }
+
+  const etatItemTemplate = (option) => {
+    return (
+      <Tag
+        className='cursor-pointer gap-2'
+        value={option?.label || option?.name}
+        style={{background: option?.backgroundColor}}
+        icon={option?.icon}
+      />
+    )
+  }
+
+  const tagFamItemTemplate = (option, props) => {
+    if (option) {
+      return (
+        <Chip
+          className='cursor-pointer text-white'
+          label={option?.label || option?.name}
+          style={{background: option?.backgroundColor}}
+          icon={option?.icon}
+        />
+      )
+    }
+
+    return <span>{props.placeholder}</span>
+  }
+
+  const filterTemplateEtat = () => {
+    return (
+      <Dropdown
+        showClear
+        value={filters.etat}
+        options={etatData}
+        optionLabel='name'
+        placeholder={'Etat'}
+        optionValue='code'
+        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+        onChange={(e) => setFilters({...filters, etat: e.value})}
+        maxSelectedLabels={1}
+        itemTemplate={etatItemTemplate}
+        valueTemplate={selectedTemplate}
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+      />
+    )
+  }
+
+  const filterTemplateFamTag = () => {
+    return (
+      <Dropdown
+        showClear
+        value={filters.tagFam}
+        options={familleTag}
+        optionLabel='label'
+        placeholder='Filter'
+        optionValue='value'
+        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+        onChange={(e) => setFilters({...filters, tagFam: e.value})}
+        maxSelectedLabels={1}
+        itemTemplate={tagFamItemTemplate}
+        valueTemplate={tagFamItemTemplate}
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+      />
+    )
+  }
+
+  const filterTemplateFamEng = () => {
+    return (
+      <Dropdown
+        showClear
+        value={filters.engFam}
+        options={familleEngin}
+        optionLabel='label'
+        placeholder='Filter'
+        optionValue='label'
+        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+        onChange={(e) => setFilters({...filters, engFam: e.value})}
+        maxSelectedLabels={1}
+        itemTemplate={tagFamItemTemplate}
+        valueTemplate={tagFamItemTemplate}
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+      />
+    )
+  }
+
+  const filterSiteTemplate = () => {
+    return (
+      <MultiSelect
+        value={refFilter?.current?.sites}
+        options={sites}
+        placeholder='Site'
+        optionLabel='label'
+        optionValue='id'
+        filter
+        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+        onChange={(e) => {
+          refFilter.current.sites = e.value
+          setFilters({...filters, sites: e.value})
+        }}
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+      />
+    )
+  }
+
+  const filterTemplateStatus = () => {
+    return (
+      <Dropdown
+        showClear
+        value={filters.status}
+        options={enginStatus}
+        optionLabel='label'
+        placeholder='Any'
+        optionValue='name'
+        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+        onChange={(e) => setFilters({...filters, status: e.value})}
+        maxSelectedLabels={1}
+        valueTemplate={selectedTemplate}
+        itemTemplate={etatItemTemplate}
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+      />
+    )
+  }
+
+  const customBottomBar = () => {
+    return (
+      <div className='flex flex-row align-items-center justify-content-between px-2'>
+        <Button
+          label='Clear'
+          severity='danger'
+          onClick={() => {
+            calenderRef.current.hide()
+            setFilters({...filters, lastSeen: ''})
+          }}
+        />
+        <Button label='Ok' severity='success' onClick={() => calenderRef.current.hide()} />
+      </div>
+    )
+  }
+  const lastSeenFilter = () => {
+    return (
+      <Calendar
+        ref={calenderRef}
+        value={filters.lastSeen}
+        onChange={(e) => setFilters({...filters, lastSeen: e.value})}
+        hourFormat='24'
+        placeholder='DD/MM/YYYY'
+        footerTemplate={customBottomBar}
+        className='p-column-filter border-1 border-blue-300 border-round-lg'
+        style={{minWidth: '8rem', maxWidth: '12rem'}}
+      />
+    )
+  }
+
+  const filterTemplateSearch = (field) => {
+    return (
+      <InputText
+        type='search'
+        placeholder={`${field}`}
+        className='p-column-filter border-1 border-blue-300 border-round-lg'
+        style={{minWidth: '8rem', maxWidth: '10rem'}}
+        name={field}
+        value={filters[field]}
+        onChange={(e) => setFilters({...filters, [field]: e.target.value})}
+      />
+    )
+  }
+
+  const lastSeenTemplate = (data) => {
+    return <LastSeenComponent data={data} />
+    if (!data.lastSeenAt || typeof data.lastSeenAt != 'string') return '_'
+    let formated = data.lastSeenAt.includes('+') ? moment(data.lastSeenAt).format('DD/MM/YYYY HH:mm') :
+    moment.utc(data.lastSeenAt).format('DD/MM/YYYY HH:mm')
+    return (
+      <div className='flex flex-column'>
+        <strong>{formated}</strong>
+        <span className='text-sm text-gray-600'>{data.lastSeenLocationName}</span>
+        <div  className='text-sm text-gray-600 flex gap-1 align-items-center'>
+          <span>{data.lastSeenDevice}</span>
+          {data.lastSeenRssi && <Badge  title="force du signal" value={data.lastSeenRssi} severity="warning"></Badge>}
+        </div>
+      </div>
+    )
+  }
+
+  const columns = [
+    {
+      header: 'Photo',
+      field: 'image',
+      olang: 'Photo',
+      body: imageTemplate,
+    },
+    {
+      header: 'Référence',
+      field: 'reference',
+      olang: 'Reference',
+      // filter: true,
+      // filterElement: filterBySearchTemplate('reference'),
+      // showFilterMenu: false,
+    },
+    // {
+    //   header: 'TagId',
+    //   field: 'tagId',
+    //   olang: 'tagId',
+    //   body: tagIdTemplate,
+    // },
+    {
+      header: 'Label',
+      field: 'label',
+      olang: 'label',
+      filter: true,
+      filterElement: filterTemplateSearch('label'),
+      showFilterMenu: false,
+      width: '15rem',
+    },
+    {
+      header: 'Vin',
+      field: 'vin',
+      olang: 'vin',
+      // filter: true,
+      // filterElement: filterBySearchTemplate('vin'),
+      // showFilterMenu: false,
+    },
+    {
+      header: 'Etat',
+      field: 'etatenginname',
+      olang: 'Etat',
+      body: iconTemplate,
+      filterElement: filterTemplateEtat,
+      showFilterMenu: false,
+      filter: true,
+    },
+    {
+      header: 'Tag',
+      field: 'tagname',
+      olang: 'Tag',
+      body: tagTemplate,
+      filterElement: filterTemplateFamTag,
+      showFilterMenu: false,
+      filter: true,
+    },
+    {
+      header: 'Status',
+      olang: 'status',
+      field: 'statuslabel',
+      body: statusTemplate,
+      filterElement: filterTemplateStatus,
+      showFilterMenu: false,
+      filter: true,
+    },
+    {
+      header: 'Dernière vue',
+      olang: 'lastSeen',
+      field: 'lastSeenAt',
+      body: lastSeenTemplate,
+
+      filterElement: lastSeenFilter,
+      showFilterMenu: false,
+      filter: true,
+    },
+    {
+      header: 'Battery status',
+      olang: 'BatteryStatus',
+      field: 'batteries',
+      body: BatteryStatus,
+    },
+    {
+      header: 'Famille',
+      field: 'famille',
+      olang: 'Famille',
+      visible: true,
+      body: familleTemplate,
+      filterElement: filterTemplateFamEng,
+      showFilterMenu: false,
+      filter: true,
+    },
+
+    {
+      header: 'Marque',
+      field: 'brand',
+      olang: 'marque',
+      // filter: true,
+      // filterElement: filterBySearchTemplate('brand'),
+      // showFilterMenu: false,
+    },
+    {
+      header: 'Matricule',
+      field: 'model',
+      olang: 'Matricule',
+      // filter: true,
+      // filterElement: filterBySearchTemplate('model'),
+      // showFilterMenu: false,
+    },
+    {
+      header: 'Worksite',
+      field: 'LocationObjectname',
+      olang: 'Worksite',
+      filterElement: filterSiteTemplate,
+      showFilterMenu: false,
+      filter: true,
+    },
+
+    {
+      header: 'Addressee',
+      olang: 'Addressee',
+      field: 'latlng',
+      body: addresseeTemplate,
+    },
+  ]
+
+  const exportFields = [
+    {
+      label: 'Référence',
+      column: 'reference',
+    },
+    {
+      label: 'Marque',
+      column: 'brand',
+    },
+    {
+      label: 'TagId',
+      column: 'tagId',
+    },
+    {
+      label: 'Label',
+      column: 'label',
+    },
+    {
+      label: 'Vin',
+      column: 'vin',
+    },
+    {
+      label: 'Etat',
+      column: 'etatenginname',
+    },
+    {
+      label: 'Tag',
+      column: 'tagname',
+    },
+    {
+      label: 'Status',
+      column: 'statuslabel',
+    },
+    {
+      label: 'Battery status',
+      column: 'batteries',
+    },
+    {
+      label: 'Famille',
+      column: 'famille',
+    },
+    {
+      label: 'IMMATRICULATION',
+      column: 'immatriculation',
+    },
+    {
+      label: 'Matricule',
+      column: 'model',
+    },
+    {
+      label: 'Worksite',
+      column: 'LocationObjectname',
+    },
+  ]
+
+  const rowGroupTemplates = {
+    reference: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.reference} />
+    ),
+    tagId: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.tagId} />
+    ),
+    field: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.field} />
+    ),
+    label: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.label} />
+    ),
+    vin: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.vin} />
+    ),
+    etatenginname: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.etatenginname} />
+    ),
+    tagname: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.tagname} />
+    ),
+    statuslabel: (rowData) => (
+      <Chip
+        style={{backgroundColor: rowData.statusbgColor, color: 'white'}}
+        label={rowData?.statuslabel}
+      />
+    ),
+    batteries: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.batteries} />
+    ),
+    famille: (rowData) => familleTemplate(rowData),
+    brand: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.brand} />
+    ),
+    immatriculation: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.immatriculation} />
+    ),
+    model: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.model} />
+    ),
+    LocationObjectname: (rowData) => (
+      <Chip
+        style={{backgroundColor: '#D64B70', color: 'white'}}
+        label={rowData?.LocationObjectname}
+      />
+    ),
+    Addresse: (rowData) => (
+      <Chip
+        style={{backgroundColor: '#D64B70', color: 'white'}}
+        label={addresseeTemplate(rowData)}
+      />
+    ),
+  }
+
+  const allowedGroupFields = [
+    'famille',
+    'statuslabel',
+    'LocationObjectname',
+    'etatenginname',
+    'tagname',
+    'batteries',
+  ]
+
+  const fetchAndSetEngines = (searchTerm, rows) => {
+    let params = {
+      search: searchTerm || undefined,
+      searchLastSeen: filters?.lastSeen
+        ? moment(filters.lastSeen).isValid()
+          ? moment(filters.lastSeen).format('YYYY-MM-DD')
+          : ''
+        : '',
+      searchSituation: filters?.etat || '',
+      searchTag: filters?.tagFam || '',
+      searchStatus: filters?.status || '',
+      searchFamille: filters?.engFam || '',
+      searchSite: filters?.sites?.map((item) => item).join(', ') || '',
+      SortDirection: orderBy?.order || 'DESC',
+      SortColumn: orderBy?.field || '',
+      searchLabel: filters?.label || '',
+      page: page,
+      PageSize: rows,
+    }
+    dispatch(fetchEngines(params))
+      .then(({payload}) => {
+        if (payload) {
+          setTotalRecords(payload[0]?.TotalEngins || 0)
+          setPage(page)
+          setRows(rows)
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching engines:', error)
+      })
+  }
+
+  const debouncedSearch = useCallback(
+    _.debounce((searchTerm, rows) => {
+      fetchAndSetEngines(searchTerm.trim(), rows)
+    }, 300),
+    []
+  )
+
+  const handleSearch = (event) => {
+    searchEng.current = event.target.value
+    setSearchInput(event.target.value)
+    debouncedSearch(event.target.value, rows)
+  }
+
+  const formik = useFormik({
+    initialValues: {
+      locationId: '',
+      latitude: '',
+      longitude: '',
+      macAddress: '',
+    },
+    onSubmit: (data) => {
+      dispatch(saveTagAddress(data))
+    },
+  })
+
+  const getStatusOfPdf = async () => {
+    try {
+      let idPdf = JSON.parse(localStorage.getItem('idPdf') || '{}')
+      const res = await _fetchStatusRapport({id: +idPdf?.id})
+      if (res?.data?.[0]?.status == 1) {
+        setPdfLoading(false)
+        window.open(idPdf.path, '_blank')
+        if (intervalPdf.current) clearInterval(intervalPdf.current)
+        localStorage.setItem('idPdf', JSON.stringify({path: '', id: 0}))
+        setPdfIdGenerator(0)
+        return
+      }
+      if (!intervalPdf.current) {
+        handlePdfClick('pdf', true)
+      }
+    } catch (error) {
+      console.error(error)
+    }
+  }
+
+  const handlePdfClick = async (type, onlyInterval) => {
+    if (type === 'pdf') {
+      setPdfVisible(false)
+      setPdfLoading(true)
+    }
+
+    const obj = {
+      templatename: 'enginList',
+      Filetype: type === 'pdf' ? 'pdf' : 'xls',
+      src: 'engin',
+    }
+
+    const clearPdfLoading = () => {
+      setPdfLoading(false)
+      setPdfIdGenerator(0)
+      localStorage.setItem('idPdf', JSON.stringify({path: '', id: 0}))
+      clearInterval(intervalPdf.current)
+      intervalPdf.current = null
+    }
+
+    const openFile = (filePath) => {
+      if (filePath) {
+        window.open(filePath, '_blank')
+      } else {
+        console.error('File path is missing.')
+      }
+    }
+
+    try {
+      let payloadVar = null
+      if (!onlyInterval) {
+        const {payload} = await dispatch(generateEngFile(obj))
+        if (!payload || payload.length === 0) {
+          console.error('No payload data received.')
+          clearPdfLoading()
+          return
+        }
+
+        setPdfIdGenerator(payload[0].ID)
+        localStorage.setItem('idPdf', JSON.stringify({path: payload[0].path, id: payload[0].ID}))
+        payloadVar = payload
+      }
+      intervalPdf.current = setInterval(async () => {
+        if (!payloadVar) return
+        try {
+          const resStatus = await _fetchStatusRapport({id: payloadVar[0]?.ID})
+          if (resStatus?.data?.[0]?.status === 1) {
+            setPdfLoading(false)
+            clearPdfLoading()
+            openFile(payloadVar[0].path)
+          }
+        } catch (error) {
+          console.error('Error fetching report status:', error)
+        }
+      }, 5000)
+    } catch (error) {
+      console.error('Error generating file:', error)
+      setPdfLoading(false)
+    }
+  }
+
+  const checkPdf = async () => {
+    let obj = {
+      Filetype: 'pdf',
+      src: 'engin',
+    }
+    const {payload} = await dispatch(checkGeneratedFile(obj))
+    setGeneratedCheck(payload?.[0] || null)
+    setPdfVisible(true)
+  }
+
+  const onClickExcel = () => {
+    setLoadingExcel(true)
+    handlePdfClick('xls')
+  }
+
+  const savePosFooter = (
+    <div>
+      <Button
+        label='Save'
+        icon='pi pi-check'
+        onClick={() => {
+          formik.handleSubmit()
+        }}
+      />
+    </div>
+  )
+
+  const checkPdfFunc = async () => {
+    try {
+      const storedIdPdf = localStorage.getItem('idPdf')
+      let idPdf = storedIdPdf ? JSON.parse(storedIdPdf) : null
+
+      // Check if idPdf is valid and contains an 'id' property
+      if (!idPdf || typeof idPdf.id === 'undefined') {
+        if (pdfLoading) setPdfLoading(false)
+        return // Exit early if idPdf is not valid
+      }
+
+      // idPdf is valid, proceed with additional checks
+      if (idPdf.id !== 0) {
+        getStatusOfPdf()
+      } else if (idPdf.id === 0 && pdfLoading) {
+        setPdfLoading(false)
+      }
+    } catch (error) {}
+  }
+
+  const hideShowDialog = () => {
+    dispatch(setSelectedHistory(null))
+    setMouvement(null)
+    setDialogVisible((prev) => !prev)
+  }
+
+  const mapFamillePayload = (payload, isEnginType = false) =>
+    payload.map((item) => ({
+      label: item.label,
+      value: isEnginType ? item.id : item.label,
+      backgroundColor: item.bgColor,
+      icon: item.icon,
+    }))
+
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      // let pageGp = 1
+      refFilter.current = filters
+      setLoadingOrder(true)
+      const localFirst = localStorage.getItem('engin-table-configs')
+      const parcedDt = JSON.parse(localFirst)
+      // if (parcedDt) {
+      //   const page = parcedDt?.first / 10 + 1
+      //   pageGp = 4
+      // }
+      const enginesResponse = await dispatch(
+        fetchEngines({
+          SortDirection: 'DESC',
+          SortColumn: 'lastSeenAt',
+          page: parcedDt?.first / 10 + 1 || 1,
+        })
+      ).unwrap()
+
+      setPage(1)
+      setTotalRecords(enginesResponse?.[0]?.TotalEngins || 0)
+      setRows(rows)
+
+      await Promise.all([
+        dispatch(fetchSites()),
+        dispatch(fetchTypesList()),
+        dispatch(fetchStatusList()),
+        dispatch(fetchStatus()),
+      ])
+
+      const [tagResponse, enginResponse] = await Promise.all([
+        dispatch(fetchFamilles({src: 'tagType'})).unwrap(),
+        dispatch(fetchFamilles({src: 'enginType'})).unwrap(),
+      ])
+
+      if (tagResponse?.length > 0) {
+        setFamilleTag(mapFamillePayload(tagResponse))
+      }
+
+      if (enginResponse?.length > 0) {
+        setFamilleEngin(mapFamillePayload(enginResponse, true))
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      firstLoading.current = false
+      setLoading(false)
+    }
+  }
+
+  const areFiltersEmpty = (filters) => {
+    return Object.values(filters).every((value) => {
+      if (Array.isArray(value)) return value.length === 0
+      return value === null
+    })
+  }
+
+  let create = () => {
+    setIsLoadingButton(true)
+    dispatch(fetchValidator('engin'))
+      .then(() => {
+        dispatch(setEditEngine(true))
+        dispatch(setSelectedEngine(null))
+        dispatch(setTypeFields([]))
+      })
+      .finally(() => setIsLoadingButton(false))
+  }
+
+  useEffect(() => {
+    if (loading) return
+    checkPdfFunc()
+    fetchData()
+  }, [])
+
+  useEffect(() => {
+    const localFirst = localStorage.getItem('engin-table-configs')
+    const parcedDt = JSON.parse(localFirst)
+    if (parcedDt) {
+      let page = parcedDt?.first / 10 + 1
+    }
+  }, [page])
+
+  useEffect(() => {
+    let obj = {
+      search: searchEng.current,
+      searchLastSeen:
+        moment(filters?.lastSeen).format('YYYY-MM-DD') === 'Invalid date'
+          ? ''
+          : moment(filters?.lastSeen).format('YYYY-MM-DD'),
+      searchSituation: filters?.etat || '',
+      searchTag: filters?.tagFam || '',
+      searchStatus: filters?.status || '',
+      searchFamille: filters?.engFam || '',
+      searchSite: filters?.sites?.map((item) => item).join(', ') || '',
+      SortDirection: orderBy?.order || 'DESC',
+      SortColumn: orderBy?.field || '',
+      page: 1,
+      PageSize: rows,
+    }
+    dispatch(fetchEngines(obj)).then(({payload}) => {
+      setPage(1)
+      setTotalRecords(payload?.[0]?.TotalEngins)
+      setRows(rows)
+      setLoadingOrder(false)
+    })
+  }, [filters])
+
+  // useEffect(() => {
+  //   // Effect with cleanup to reset state when component unmounts
+  //   return () => {
+  //   }
+  // }, [location])
+
+  const onHide = () => {
+    setVisible(false)
+    setSelectedEngine(null)
+  }
+
+  console.log('engines', engines)
+
+  return (
+    <div>
+      <DialogComponent
+        visible={savePosVisible}
+        header={'Save Pos'}
+        onHide={() => setSavePosVisible(false)}
+        className='w-11 md:w-6'
+        footer={savePosFooter}
+      >
+        <InputText
+          placeholder='Enter LocationId'
+          id='locationId'
+          name='locationId'
+          value={formik.values.locationId}
+          onChange={(e) => {
+            formik.setFieldValue('locationId', e.target.value)
+          }}
+        />
+        <InputText
+          placeholder='Enter latitude'
+          id='latitude'
+          name='latitude'
+          value={formik.values.latitude}
+          onChange={(e) => {
+            formik.setFieldValue('latitude', e.target.value)
+          }}
+        />
+        <InputText
+          placeholder='Enter longitude'
+          id='longitude'
+          name='longitude'
+          value={formik.values.longitude}
+          onChange={(e) => {
+            formik.setFieldValue('longitude', e.target.value)
+          }}
+        />
+        <InputText
+          placeholder='Enter MacAddress'
+          id='macAddress'
+          name='macAddress'
+          value={formik.values.macAddress}
+          onChange={(e) => {
+            formik.setFieldValue('macAddress', e.target.value)
+          }}
+        />
+      </DialogComponent>
+      <DialogComponent visible={pdfVisible} onHide={() => setPdfVisible(false)}>
+        <div className='w-full flex flex-row align-items-center justify-content-between mt-2'>
+          <h1>
+            <OlangItem olang={'gnrt.pdf'} />: {moment(generatedCheck.dateFile).format('DD-MM-YYYY')}
+          </h1>
+          <div className='flex flex-row align-items-center gap-2'>
+            <Button
+              label='pdf'
+              icon='pi pi-file-pdf'
+              className='p-button-sm'
+              onClick={() => window.open(generatedCheck.filePath, '_blank')}
+              severity='danger'
+              outlined
+            />
+            <Button
+              label='Generate'
+              icon='pi pi-sync'
+              className='p-button-sm'
+              severity='success'
+              onClick={() => handlePdfClick('pdf')}
+              loading={pdfLoading}
+            />
+          </div>
+        </div>
+      </DialogComponent>
+      <DynamicInputs visible={visible} setVisible={setVisible} onHide={onHide} />
+      {/* <TypesEditor visible={visible} setVisible={setVisible} /> */}
+      <div
+        // style={{backgroundColor: '#53408C'}}
+        className='flex flex-row pb-3 align-items-center gap-3'
+      >
+        <div className='text-3xl text-700 font-bold'>
+          <OlangItem olang={'engin.list'} />
+        </div>
+        <div>
+          {!loading && loadingOrder ? (
+            <ProgressSpinner
+              style={{width: '30px', height: '30px'}}
+              strokeWidth='6'
+              fill='var(--surface-ground)'
+              animationDuration='.5s'
+            />
+          ) : null}
+        </div>
+      </div>
+      <EnginMapLocation
+        dialogVisible={dialogVisible}
+        setDialogVisible={hideShowDialog}
+        // historySrc={{
+        //   srcId: selectedEngin?.id,
+        //   srcObject: 'engin',
+        //   srcMovement: mouvement,
+        // }}
+      />
+      {loading ? (
+        <Loader />
+      ) : (
+        <DatatableComponent
+          tableId='engin-table'
+          data={engines}
+          splitAction={splitAction}
+          columns={columns}
+          onNew={create}
+          serverSearched={true}
+          onSearchServer={handleSearch}
+          searchServ={searchInput}
+          exportFields={exportFields}
+          rowGroupTemplates={rowGroupTemplates}
+          allowedGroupFields={allowedGroupFields}
+          rowActions={actions}
+          sortField={'id'}
+          sortOrder={-1}
+          isLoading={isLoadingButton}
+          totalRecords={totalRecords}
+          rows={rows}
+          page={page}
+          onPageChange={handlePageChange}
+          onPdfClick={checkPdf}
+          loadingPdf={pdfLoading}
+          onExcelClick={onClickExcel}
+          loadingExcel={loadingExcel}
+          lazy={true}
+          onOrderClick={handleOrderClick}
+          orderBy={orderBy}
+          extraActionTemplate={extraActionTemplate}
+          notSortedColumns={['image', 'latlng']}
+          isDataSelectable={false}
+        />
+      )}
+    </div>
+  )
+}
+
+export default memo(EnginList)

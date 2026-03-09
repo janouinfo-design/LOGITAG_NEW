@@ -1,0 +1,17 @@
+.zoom-animation {
+  animation: zoomAnimate 3s infinite;
+
+}
+
+@keyframes zoomAnimate {
+    0% {
+        width: 300px;
+    }
+    50% {
+        width: 200px;
+    }
+
+    100% {
+        width: 300px;
+    }
+}

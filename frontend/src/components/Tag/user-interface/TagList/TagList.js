@@ -1,0 +1,418 @@
+import {memo, useCallback, useEffect, useState} from 'react'
+import {DatatableComponent} from '../../../shared/DatatableComponent/DataTableComponent'
+import {useAppDispatch, useAppSelector} from '../../../../hooks'
+
+import {SplitButton} from 'primereact/splitbutton'
+import {
+  fetchTags,
+  getSelectedTag,
+  getTags,
+  setEditTag,
+  setSelectedTag,
+  removeTag,
+  fetchStatus,
+  getStatus,
+  setShow,
+  setTagLocationShow,
+  setTagLocation,
+  fetchTagHistory,
+  setTagHistoryShow,
+} from '../../slice/tag.slice'
+import {Chip} from 'primereact/chip'
+import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
+import {useNavigate} from 'react-router-dom'
+import {setAlertParams} from '../../../../store/slices/alert.slice'
+import GeocodingComponent from '../../../shared/GeocodingComponent/GeocodingComponent'
+import {fetchValidator} from '../../../Inventory/slice/inventory.slice'
+import {ProgressSpinner} from 'primereact/progressspinner'
+import {setToastParams} from '../../../../store/slices/ui.slice'
+import Loader from '../../../shared/Loader/Loader'
+import {fetchFamilles} from '../../../Famillies/slice/famille.slice'
+import _ from 'lodash'
+import {DialogComponent} from '../../../shared/DialogComponent'
+import moment from 'moment'
+import {checkGeneratedFile, generateEngFile} from '../../../Engin/slice/engin.slice'
+import {Button} from 'primereact/button'
+import {_fetchStatusRapport} from '../../../Repports/api'
+
+const TagList = ({titleShow, detailView, tags}) => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingButton, setIsLoadingButton] = useState(false)
+  const [rows, setRows] = useState(10)
+  const [page, setPage] = useState(0)
+  const [totalRecords, setTotalRecords] = useState(0)
+  const [pdfLoading, setPdfLoading] = useState(false)
+  const [pdfVisible, setPdfVisible] = useState(false)
+  const [loadingExcel, setLoadingExcel] = useState(false)
+  const [generatedCheck, setGeneratedCheck] = useState([])
+  const [searchInput, setSearchInput] = useState('')
+
+  const status = useAppSelector(getStatus)
+
+  const dispatch = useAppDispatch()
+  const navigate = useNavigate()
+
+  let icon = detailView === 'Detail' ? 'pi-eye' : 'pi-sliders-v'
+  let actions = [
+    {
+      label: `${detailView}`,
+      icon: `pi ${icon} text-blue-500`,
+      command: (e) => {
+        if (detailView === 'Detail' || !detailView) {
+          setIsLoading(true)
+          dispatch(fetchValidator('tagupdate'))
+            .then(() => {
+              dispatch(setSelectedTag(e.item.data))
+              dispatch(setShow(false))
+            })
+            .finally(() => {
+              setIsLoading(false)
+            })
+        } else if (detailView === 'Edit') {
+          dispatch(setSelectedTag(e.item.data))
+          dispatch(setEditTag(true))
+        }
+      },
+    },
+    {
+      label: 'Supprimer',
+      icon: 'pi pi-trash text-red-500',
+      confirm: 'test',
+      command: (e) => {
+        dispatch(setSelectedTag(e.item.data))
+        dispatch(
+          setAlertParams({
+            title: 'Supprimer',
+            message: 'Voulez-vous vraiment supprimerce tag?',
+            acceptClassName: 'p-button-danger',
+            visible: true,
+            accept: () => {
+              dispatch(removeTag(e.item.data))
+            },
+          })
+        )
+      },
+    },
+  ]
+
+  const showLocationAddress = (rowData) => {
+    if (!rowData?.lat || !rowData?.lng) {
+      dispatch(
+        setToastParams({
+          show: true,
+          severity: 'error',
+          summary: 'Warning',
+          detail: 'No Location Found',
+          position: 'top-right',
+        })
+      )
+      return
+    }
+    // dispatch(setTagHistoryShow(true))
+    dispatch(fetchTagHistory(rowData?.id))
+    let obj = {
+      enginName: rowData?.enginName || '',
+      image: rowData?.image || 'import/uploads/nopicture.png',
+      tagName: rowData?.name,
+      latitude: rowData?.lat,
+      longitude: rowData?.lng,
+      icon: rowData?.familleIcon,
+      iconBgColor: rowData?.familleBgcolor,
+      famille: rowData?.famille,
+    }
+    dispatch(setTagLocation(obj))
+    dispatch(setTagLocationShow(true))
+  }
+
+  const fetchAndSetTags = (searchTerm) => {
+    const params = {search: searchTerm || undefined, page: 1, All: 1}
+    dispatch(fetchTags(params))
+      .then(({payload}) => {
+        if (payload) {
+          setTotalRecords(payload[0]?.TotalTags || 0)
+          setPage(0)
+        }
+      })
+      .catch((error) => {
+        console.error('Error fetching Tags:', error)
+      })
+  }
+
+  const debouncedSearch = useCallback(
+    _.debounce((searchTerm) => {
+      fetchAndSetTags(searchTerm.trim())
+    }, 300),
+    []
+  )
+
+  const handleSearch = (event) => {
+    setSearchInput(event.target.value)
+    debouncedSearch(event.target.value)
+  }
+
+  const activeTemplate = (rowData) => (
+    <Chip
+      label={rowData?.active == 1 ? 'Actif' : 'Inactif'}
+      icon={rowData?.active == 1 ? 'pi pi-check' : 'pi pi-times'}
+      style={{backgroundColor: `${rowData?.activeColor}`, color: 'white'}}
+    />
+  )
+  const statusTemplate = (rowData) => {
+    if (rowData?.iconName) {
+      return (
+        <i
+          title={rowData?.status}
+          className={`${rowData?.iconName} text-2xl rounded p-2`}
+          style={{color: `${rowData.statusbgColor}`}}
+        ></i>
+      )
+    }
+    return (
+      <Chip
+        label={rowData?.status}
+        style={{background: `${rowData.statusbgColor}`, color: rowData.color ?? 'white'}}
+        title={`${rowData?.statusDate}`}
+      />
+    )
+  }
+
+  const handlePageChange = (newPage, rows) => {
+    setPage(newPage)
+    dispatch(fetchTags({page: newPage, PageSize: rows, All: 1}))
+  }
+
+  const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
+    return (
+      <Chip
+        label={famille}
+        icon={familleIcon}
+        style={{background: familleBgcolor, color: 'white'}}
+      />
+    )
+  }
+
+  const checkPdf = async () => {
+    let obj = {
+      Filetype: 'pdf',
+      src: 'tag',
+    }
+    const {payload} = await dispatch(checkGeneratedFile(obj))
+    setGeneratedCheck(payload?.[0] || null)
+    setPdfVisible(true)
+  }
+
+  const handlePdfClick = async (type) => {
+    if (type === 'pdf') {
+      setPdfVisible(false)
+      setPdfLoading(true)
+    }
+    const obj = {
+      templatename: 'tagList',
+      Filetype: type === 'pdf' ? 'pdf' : 'xls',
+      src: 'tag',
+    }
+
+    try {
+      const {payload} = await dispatch(generateEngFile(obj))
+
+      if (!payload || payload.length === 0) {
+        console.error('No payload data received.')
+        setPdfLoading(false)
+        return
+      }
+      // setPdfIdGenerator(payload[0].ID)
+
+      const intervalWait = setInterval(async () => {
+        try {
+          const resStatus = await _fetchStatusRapport({id: payload[0].ID})
+          if (resStatus?.data?.[0]?.status == 1) {
+            if (type === 'pdf') {
+              setPdfLoading(false)
+            }
+            // setPdfIdGenerator(0)
+            clearInterval(intervalWait)
+            if (type === 'xls') {
+              setLoadingExcel(false)
+            }
+
+            const filePath = payload[0].path
+            if (filePath) {
+              window.open(filePath, '_blank')
+            } else {
+              console.error('File path is missing.')
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching report status:', error)
+        }
+      }, 5000)
+    } catch (error) {
+      console.error('Error generating file:', error)
+      setPdfLoading(false)
+    }
+  }
+
+  const addresseeTemplate = (rowData) => {
+    const {tagAddress} = rowData
+    return (
+      <>
+        {
+          <div>
+            {tagAddress ? (
+              <Chip
+                label={tagAddress}
+                className='w-11rem m-1 flex justify-content-center align-items-center cursor-pointer'
+                onClick={() => showLocationAddress(rowData)}
+              />
+            ) : (
+              'No address found.'
+            )}
+          </div>
+        }
+      </>
+    )
+  }
+
+  const columns = [
+    {
+      header: 'ID Tag',
+      field: 'name',
+      olang: 'ID Tag',
+      filter: true,
+    },
+    {
+      header: 'Label',
+      field: 'label',
+      olang: 'label',
+    },
+    {
+      header: 'Famille',
+      field: 'famille',
+      olang: 'Famille',
+      visible: true,
+      body: familleTemplate,
+    },
+    {
+      header: 'ADRESSE',
+      olang: 'ADRESSE',
+      field: 'adresse',
+      body: addresseeTemplate,
+    },
+    {
+      header: 'Satus',
+      olang: 'Status',
+      field: 'status',
+      body: statusTemplate,
+    },
+
+    {header: 'ACTIF', field: 'ACTIF', olang: 'ACTIF', body: activeTemplate},
+  ]
+
+  const exportFields = [
+    {label: 'Nom', column: 'name'},
+    {label: 'Label', column: 'label'},
+    {label: 'Famille', column: 'famille'},
+    //{label: 'Adresse', column: 'adresse'},
+    {label: 'Satus', column: 'status'},
+  ]
+
+  const allowedGroupFields = ['famille', 'status']
+
+  const rowGroupTemplates = {
+    famille: (rowData) => familleTemplate(rowData),
+    status: (rowData) => (
+      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.status} />
+    ),
+  }
+
+  let create = () => {
+    setIsLoadingButton(true)
+    dispatch(fetchValidator('tagadd'))
+      .then(() => {
+        dispatch(setEditTag(true))
+        dispatch(setSelectedTag(null))
+      })
+      .finally(() => {
+        setIsLoadingButton(false)
+      })
+  }
+
+  useEffect(() => {
+    dispatch(fetchFamilles({src: 'tagType'}))
+    setIsLoading(true)
+    dispatch(fetchStatus())
+    dispatch(fetchTags({page: 1, All: 1})).then(({payload}) => {
+      setPage(0)
+      setTotalRecords(payload?.[0]?.TotalTags)
+      setRows(10)
+      setIsLoading(false)
+    })
+  }, [])
+
+  return (
+    <>
+      <DialogComponent visible={pdfVisible} onHide={() => setPdfVisible(false)}>
+        <div className='w-full flex flex-row align-items-center justify-content-between mt-2'>
+          <h1>
+            <OlangItem olang={'gnrt.pdf'} />: {moment(generatedCheck.dateFile).format('DD-MM-YYYY')}
+          </h1>
+          <div className='flex flex-row align-items-center gap-2'>
+            <Button
+              label='pdf'
+              icon='pi pi-file-pdf'
+              className='p-button-sm'
+              onClick={() => window.open(generatedCheck.filePath, '_blank')}
+              severity='danger'
+              outlined
+            />
+            <Button
+              label='Generate'
+              icon='pi pi-sync'
+              className='p-button-sm'
+              severity='success'
+              onClick={() => handlePdfClick('pdf')}
+              loading={pdfLoading}
+            />
+          </div>
+        </div>
+      </DialogComponent>
+      <div className='py-3 flex flex-row align-items-center'>
+        <h1 className='text-700'>
+          <OlangItem olang={'tag.list'} />
+        </h1>
+      </div>
+      {isLoading ? (
+        <Loader />
+      ) : (
+        <DatatableComponent
+          tableId='tag-table'
+          data={tags}
+          columns={columns}
+          exportFields={exportFields}
+          onNew={create}
+          isLoading={isLoadingButton}
+          rowGroupTemplates={rowGroupTemplates}
+          contextMenuModel={actions}
+          allowedGroupFields={allowedGroupFields}
+          rowActions={actions}
+          sortField={'id'}
+          sortOrder={-1}
+          rows={rows}
+          page={page}
+          onPageChange={handlePageChange}
+          totalRecords={totalRecords}
+          onSearchServer={handleSearch}
+          searchServ={searchInput}
+          serverSearched={true}
+          onPdfClick={checkPdf}
+          loadingPdf={pdfLoading}
+          // onExcelClick={onClickExcel}
+          loadingExcel={loadingExcel}
+          lazy={true}
+        />
+      )}
+    </>
+  )
+}
+
+export default memo(TagList)

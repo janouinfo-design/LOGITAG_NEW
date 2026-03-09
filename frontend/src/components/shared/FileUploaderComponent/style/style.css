@@ -1,0 +1,5 @@
+.p-fileupload-content > div:last-of-type {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}

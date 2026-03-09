@@ -1,0 +1,1 @@
+export const API_BASE_URL_IMAGE = process.env.REACT_APP_IMAGE_BASE_URL

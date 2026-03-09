@@ -1,0 +1,29 @@
+.map-container {
+   height: 80vh;
+}
+
+.sr-only {
+   display: none;
+ }
+
+.leaflet-draw.leaflet-control , 
+.leaflet-draw .leaflet-draw-section .leaflet-draw-toolbar
+{
+   display: flex;
+   gap: 4
+}
+
+.leaflet-draw-toolbar.leaflet-bar{
+   margin-top: 0;
+}
+
+.leaflet-draw-toolbar a{
+   border-right: 1px solid #eee;
+   border-bottom: 0;
+   border-radius: 50% !important;
+   margin: 0 0.3rem
+}
+
+.leaflet-draw-toolbar.leaflet-bar {
+   border: none !important
+}
