@@ -1,0 +1,188 @@
+{
+  "typography": {
+    "font_family": {
+      "heading": "Manrope, sans-serif",
+      "body": "Inter, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "scale": {
+      "h1": "text-4xl md:text-5xl font-bold tracking-tight leading-none",
+      "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
+      "h3": "text-2xl md:text-3xl font-semibold",
+      "h4": "text-xl md:text-2xl font-medium",
+      "body_lg": "text-lg leading-relaxed",
+      "body_base": "text-base leading-relaxed text-slate-600 dark:text-slate-300",
+      "body_sm": "text-sm leading-normal text-slate-500 dark:text-slate-400",
+      "caption": "text-xs font-medium uppercase tracking-wider text-slate-400"
+    },
+    "weights": {
+      "light": 300,
+      "normal": 400,
+      "medium": 500,
+      "semibold": 600,
+      "bold": 700
+    }
+  },
+  "colors": {
+    "palette": {
+      "primary": {
+        "DEFAULT": "#2563EB",
+        "foreground": "#FFFFFF",
+        "50": "#EFF6FF",
+        "100": "#DBEAFE",
+        "200": "#BFDBFE",
+        "300": "#93C5FD",
+        "400": "#60A5FA",
+        "500": "#3B82F6",
+        "600": "#2563EB",
+        "700": "#1D4ED8",
+        "800": "#1E40AF",
+        "900": "#1E3A8A"
+      },
+      "secondary": {
+        "DEFAULT": "#F97316",
+        "foreground": "#FFFFFF",
+        "50": "#FFF7ED",
+        "100": "#FFEDD5",
+        "200": "#FED7AA",
+        "300": "#FDBA74",
+        "400": "#FB923C",
+        "500": "#F97316",
+        "600": "#EA580C",
+        "700": "#C2410C",
+        "800": "#9A3412",
+        "900": "#7C2D12"
+      },
+      "neutral": {
+        "50": "#F8FAFC",
+        "100": "#F1F5F9",
+        "200": "#E2E8F0",
+        "300": "#CBD5E1",
+        "400": "#94A3B8",
+        "500": "#64748B",
+        "600": "#475569",
+        "700": "#334155",
+        "800": "#1E293B",
+        "900": "#0F172A",
+        "950": "#020617"
+      },
+      "success": {
+        "DEFAULT": "#10B981",
+        "foreground": "#FFFFFF"
+      },
+      "warning": {
+        "DEFAULT": "#F59E0B",
+        "foreground": "#FFFFFF"
+      },
+      "danger": {
+        "DEFAULT": "#EF4444",
+        "foreground": "#FFFFFF"
+      },
+      "background": {
+        "light": "#FFFFFF",
+        "dark": "#0F172A"
+      },
+      "surface": {
+        "light": "#F8FAFC",
+        "dark": "#1E293B"
+      }
+    }
+  },
+  "layout": {
+    "grid": {
+      "base": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
+      "bento": "grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6",
+      "dashboard": "grid grid-cols-12 gap-6"
+    },
+    "spacing": {
+      "page_padding": "p-6 md:p-8 lg:p-10",
+      "card_padding": "p-6",
+      "section_gap": "gap-8 md:gap-12"
+    },
+    "container": {
+      "max_width": "max-w-7xl mx-auto"
+    }
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-primary text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 rounded-lg shadow-sm hover:shadow-md px-6 py-2.5 font-medium",
+      "secondary": "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-primary active:scale-95 transition-all duration-200 rounded-lg shadow-sm px-6 py-2.5 font-medium",
+      "ghost": "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 rounded-lg px-4 py-2 font-medium",
+      "destructive": "bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-lg px-4 py-2 font-medium"
+    },
+    "cards": {
+      "base": "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden",
+      "glass": "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg rounded-xl",
+      "interactive": "cursor-pointer hover:border-primary/50 hover:ring-2 hover:ring-primary/10 transition-all duration-200"
+    },
+    "inputs": {
+      "base": "w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
+    },
+    "sidebar": {
+      "container": "fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-50 transition-transform duration-300",
+      "link": "flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200 mb-1",
+      "link_active": "flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg font-medium shadow-lg shadow-primary/20 mb-1"
+    },
+    "header": {
+      "container": "sticky top-0 z-40 w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60"
+    }
+  },
+  "visual_enhancers": {
+    "shadows": {
+      "sm": "shadow-sm",
+      "md": "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]",
+      "lg": "shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]",
+      "glow": "shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+    },
+    "borders": {
+      "subtle": "border border-slate-200 dark:border-slate-800",
+      "focus": "ring-2 ring-primary ring-offset-2"
+    },
+    "radius": {
+      "default": "rounded-lg",
+      "card": "rounded-xl",
+      "full": "rounded-full"
+    }
+  },
+  "motion": {
+    "hover": "transition-all duration-200 ease-in-out hover:-translate-y-0.5",
+    "fade_in": "animate-in fade-in duration-300",
+    "slide_up": "animate-in slide-in-from-bottom-4 duration-500"
+  },
+  "accessibility": {
+    "contrast": "Ensure text contrast ratio of at least 4.5:1 against background.",
+    "focus": "All interactive elements must have a visible focus state.",
+    "aria": "Use aria-labels for icon-only buttons."
+  },
+  "images": {
+    "logo_dark": "https://images.unsplash.com/photo-1614036417651-efe4e56b67dd?auto=format&fit=crop&q=80&w=200",
+    "logo_light": "https://images.unsplash.com/photo-1614036417651-efe4e56b67dd?auto=format&fit=crop&q=80&w=200",
+    "login_bg": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000",
+    "map_placeholder": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000",
+    "avatar_placeholder": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
+    "dashboard_widget_bg": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
+  },
+  "instructions_to_main_agent": [
+    "Install 'lucide-react' for modern icons to replace FontAwesome/Metronic icons where possible.",
+    "Update 'tailwind.config.js' with the new colors and font families.",
+    "Add the 'Manrope' font to 'public/index.html' via Google Fonts.",
+    "Redesign the 'LoginComponent.js' using the new 'Glassmorphism' style with the provided login background.",
+    "Create a new 'DashboardLayout' component that uses the 'Sidebar' and 'Header' styles defined above.",
+    "Refactor 'DashboardNew/user-interface/DashboardNewComponent.js' to use the 'Bento Grid' layout.",
+    "For tables (PrimeReact), override the default styles to remove heavy borders and add more padding.",
+    "Ensure all new components use functional components with hooks.",
+    "Use 'clsx' or 'tailwind-merge' for conditional class application.",
+    "When modifying existing files, verify that imports are correct and do not break the build.",
+    "For the Map view (Leaflet), try to apply a custom tile layer if possible, or at least clean up the controls.",
+    "Implement 'Dark Mode' support using Tailwind's 'dark:' classes."
+  ],
+  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
+    "Do not use gradients for backgrounds unless specified.",
+    "Use 'Inter' for body text and 'Manrope' for headings.",
+    "Ensure all interactive elements have a 'data-testid'.",
+    "Avoid using 'style' prop for CSS; use Tailwind classes.",
+    "Keep the UI clean and avoid clutter. Use whitespace generously.",
+    "Ensure the application is responsive and works well on mobile devices.",
+    "Use 'sonner' for toast notifications instead of 'react-toastify' or others if applicable."
+  ]
+}
