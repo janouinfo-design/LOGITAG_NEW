@@ -78,7 +78,7 @@ const EnginList = () => {
   const [loadingOrder, setLoadingOrder] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
-    etat: null,
+    etat: 'all',
     status: null,
     lastSeen: null,
     sites: [],
@@ -91,7 +91,7 @@ const EnginList = () => {
   const etatData = [
     {
       label: 'Tous',
-      code: '',
+      code: 'all',
       icon: 'pi pi-list',
       backgroundColor: '#2563EB',
     },
@@ -199,7 +199,7 @@ const EnginList = () => {
           ? moment(filters.lastSeen).format('YYYY-MM-DD')
           : ''
         : '',
-      searchSituation: filters?.etat || '',
+      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
       searchTag: filters?.tagFam || '',
       searchStatus: filters?.status || '',
       searchFamille: filters?.engFam || '',
@@ -454,7 +454,7 @@ const EnginList = () => {
             ? moment(filters.lastSeen).format('YYYY-MM-DD')
             : ''
           : '',
-        searchSituation: filters?.etat || '',
+        searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
         searchTag: filters?.tagFam || '',
         searchStatus: filters?.status || '',
         searchFamille: filters?.engFam || '',
@@ -642,10 +642,9 @@ const EnginList = () => {
   const filterTemplateEtat = () => {
     return (
       <Dropdown
-        showClear
         value={filters.etat}
         options={etatData}
-        optionLabel='name'
+        optionLabel='label'
         placeholder={'Etat'}
         optionValue='code'
         className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
@@ -1047,7 +1046,7 @@ const EnginList = () => {
           ? moment(filters.lastSeen).format('YYYY-MM-DD')
           : ''
         : '',
-      searchSituation: filters?.etat || '',
+      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
       searchTag: filters?.tagFam || '',
       searchStatus: filters?.status || '',
       searchFamille: filters?.engFam || '',
@@ -1328,7 +1327,7 @@ const EnginList = () => {
         moment(filters?.lastSeen).format('YYYY-MM-DD') === 'Invalid date'
           ? ''
           : moment(filters?.lastSeen).format('YYYY-MM-DD'),
-      searchSituation: filters?.etat || '',
+      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
       searchTag: filters?.tagFam || '',
       searchStatus: filters?.status || '',
       searchFamille: filters?.engFam || '',
