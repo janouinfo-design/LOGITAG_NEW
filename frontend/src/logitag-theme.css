@@ -155,12 +155,124 @@ h1, h2, h3, h4, h5, h6,
 /* === PAGE TITLES - Universal override for all pages === */
 .text-3xl.text-700.font-bold,
 .text-3xl.font-bold,
-div > .text-3xl {
+div > .text-3xl,
+div.text-3xl {
   font-family: var(--lt-font-heading) !important;
   font-weight: 800 !important;
   color: var(--lt-text) !important;
   font-size: 1.65rem !important;
   letter-spacing: -0.03em !important;
+  line-height: 1.2 !important;
+}
+
+/* === PAGE WRAPPER (content area around tables) === */
+.app-content .app-container,
+#kt_app_content > .app-container {
+  padding: 24px !important;
+}
+
+/* Page header row (title + loading spinner) */
+.flex.flex-row.pb-3.align-items-center.gap-3,
+div[class*="flex"][class*="flex-row"][class*="pb-3"][class*="align-items-center"] {
+  padding-bottom: 20px !important;
+  margin-bottom: 4px !important;
+}
+
+/* === CHIPS IN TABLE ROWS === */
+.p-chip {
+  border-radius: 8px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  font-family: var(--lt-font-heading) !important;
+  padding: 4px 12px !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Green chips (BLE, active status) */
+.p-chip[class*="bg-green"],
+.bg-green-500.p-chip {
+  background: #ECFDF5 !important;
+  color: #059669 !important;
+}
+
+/* Blue chips */
+.p-chip[class*="bg-blue"],
+.bg-blue-500.p-chip,
+.bg-blue-800.p-chip {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+}
+
+/* Orange/Yellow chips */
+.p-chip[class*="bg-orange"],
+.p-chip[class*="bg-yellow"],
+.bg-orange-500.p-chip {
+  background: #FFF7ED !important;
+  color: #EA580C !important;
+}
+
+/* Red chips */
+.p-chip[class*="bg-red"],
+.bg-red-500.p-chip {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+}
+
+/* Gray chips */
+.p-chip[class*="bg-gray"],
+.bg-gray-500.p-chip {
+  background: #F1F5F9 !important;
+  color: #475569 !important;
+}
+
+/* Purple chips */
+.p-chip[class*="bg-purple"],
+.bg-purple-500.p-chip {
+  background: #F5F3FF !important;
+  color: #7C3AED !important;
+}
+
+/* Tags (PrimeReact) */
+.p-tag {
+  border-radius: 6px !important;
+  font-size: 0.72rem !important;
+  font-weight: 700 !important;
+  font-family: var(--lt-font-heading) !important;
+  letter-spacing: 0.03em !important;
+  padding: 4px 10px !important;
+}
+
+.p-tag.p-tag-success { background: #ECFDF5 !important; color: #059669 !important; }
+.p-tag.p-tag-danger { background: #FEF2F2 !important; color: #DC2626 !important; }
+.p-tag.p-tag-warning { background: #FFF7ED !important; color: #EA580C !important; }
+.p-tag.p-tag-info { background: #EFF6FF !important; color: #2563EB !important; }
+
+/* === IMAGES IN TABLE === */
+.p-image img,
+.p-datatable img {
+  border-radius: 10px !important;
+  object-fit: cover !important;
+}
+
+/* Image preview overlay */
+.p-image-preview-indicator {
+  border-radius: 10px !important;
+  background: rgba(0,0,0,0.4) !important;
+  backdrop-filter: blur(4px) !important;
+}
+
+/* === LOADER === */
+.p-progress-spinner-circle {
+  stroke: var(--lt-primary) !important;
+}
+
+/* Custom loader wrapper */
+div[class*="Loader"] {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-height: 300px !important;
 }
 
 /* === CARDS === */
