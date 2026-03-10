@@ -3,21 +3,20 @@
 ## Date: 2026-03-10
 
 ## Problem Statement
-App LOGITAG depuis GitHub. Design propre et moderne sur TOUTES les pages avec un nouveau modèle d'affichage.
+App LOGITAG depuis GitHub. Design propre et moderne, nouveau modèle d'affichage pour toutes pages et panel de sélection colonnes.
 
-## Architecture
-- Frontend: React 18 + Metronic + Redux Toolkit + PrimeReact + Leaflet + Socket.IO
-- Backend: External API (omniyat.is-certified.com)
-- Auth: admin / user@1234
-
-## Implemented - ALL pages redesigned
-- [x] Login: split-panel dark/white, Manrope fonts, animations
-- [x] Dashboard: KPI cards modernes, progress bars, percentage badges
-- [x] logitag-theme.css: sidebar dark, header glass, cards, buttons, forms, chips, tags, badges, maps, calendar, tabview, accordion, sweetalert2, fullcalendar, dropdowns, menus, breadcrumbs, scrollbar, animations
-- [x] logitag-datatable.css: DataTable complet (toolbar, headers, filter row, body rows, paginator, splitbutton, overlay panel, search, export buttons, settings panel)
-- [x] Pages testées: Dashboard, Engins, Tags, Inventory - toutes modernisées
-- [x] Tests: 100% design implementation, 95% overall (6 iterations)
+## Implemented
+- [x] Login: split-panel dark/white
+- [x] Dashboard: KPI cards modernes
+- [x] Global CSS: sidebar dark, header glass, buttons, forms, chips, tags
+- [x] DataTable CSS: toolbar, headers, rows, paginator, export buttons
+- [x] **Settings Panel redesigné**: toggle switches remplacés par chips cliquables
+  - Visibilité colonnes: chips bleus avec checkmark
+  - Colonnes à exporter: chips verts avec checkmark
+  - Groupage: chips violets radio-style
+  - Autre config: custom toggles animés
+- Tests: 100% code implementation (7 iterations)
 
 ## Backlog
-- P1: Fix React dev warnings (key props, non-boolean attributes)
+- P1: Fix React dev warnings
 - P2: Dark mode toggle, mobile optimization
