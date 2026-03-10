@@ -1,7 +1,6 @@
 import {useEffect} from 'react'
 import {useDashboardController} from '../controllers/DashboardController'
 import DashboardContent from './dashboard/DashboardContent'
-import {fetchGrafanaDashboards, fetchStatisticDash} from '../../Dashboard/slice/dashboard.slice'
 import {useAppDispatch} from '../../../hooks'
 
 const DashboardNewComponent = () => {
@@ -17,14 +16,7 @@ const DashboardNewComponent = () => {
   } = useDashboardController()
 
   return (
-    // <DashboardLayout>
-    <div className='flex flex-col space-y-6'>
-      {/* <DashboardHeader
-        title={dashboardTitle}
-        selectedDashboard={selectedDashboard}
-        onDashboardChange={handleDashboardChange}
-      /> */}
-
+    <div data-testid="dashboard-new" style={{ padding: '4px' }}>
       <DashboardContent
         activeTab={activeTab}
         setActiveTab={setActiveTab}
@@ -33,7 +25,6 @@ const DashboardNewComponent = () => {
         errorMessage={errorMessage}
       />
     </div>
-    // </DashboardLayout>
   )
 }
 
