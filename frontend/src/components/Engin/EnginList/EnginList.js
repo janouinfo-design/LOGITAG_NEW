@@ -90,6 +90,12 @@ const EnginList = () => {
 
   const etatData = [
     {
+      label: 'Tous',
+      code: '',
+      icon: 'pi pi-list',
+      backgroundColor: '#2563EB',
+    },
+    {
       label: 'Entrée',
       code: 'reception',
       icon: 'fa-solid fa-down-to-bracket',
