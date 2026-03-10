@@ -4,7 +4,6 @@ import DashboardList from './DashboardList/DashboardList'
 import DashboardDetail from './DashboardDetail/DashboardDetail'
 import DashboardListCards from './DashboardCards/DashboardListCards'
 import DashboardTable from './DashboardTable/DashboardTable'
-import DashboardCharts from './DashboardCharts/DashboardCharts'
 
 const DashboardComponent = () => {
   const isEdit = useAppSelector(getEditDashboard)
@@ -12,11 +11,21 @@ const DashboardComponent = () => {
   const selectedMod = useAppSelector(getSelectedMode)
 
   return (
-    <div className='bg-gray-100 flex flex-1 flex-column justify-content-center align-items-center p-2'>
+    <div
+      data-testid="dashboard-component"
+      style={{
+        display: 'flex',
+        flex: 1,
+        flexDirection: 'column',
+        padding: '16px',
+        minHeight: 'calc(100vh - 100px)',
+        background: '#F8FAFC',
+        borderRadius: '16px',
+      }}
+    >
       {selectedMod === 'card' ? <DashboardListCards /> : !isEdit && <DashboardList />}
       {isEdit && <DashboardDetail />}
       {selectedCard != null ? <DashboardTable /> : null}
-      {/* <DashboardCharts /> */}
     </div>
   )
 }
