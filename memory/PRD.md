@@ -1,50 +1,34 @@
-# LOGITAG - PRD (Product Requirements Document)
+# LOGITAG - PRD
 
 ## Date: 2026-03-10
 
 ## Problem Statement
-Faire une app LOGITAG à partir de code existant sur GitHub https://github.com/janouinfo-design/LOGITAG_NEW
-Récupérer le code, installer les packages, fournir la visualisation, et redesigner avec un design propre et moderne.
+App LOGITAG depuis GitHub LOGITAG_NEW. Design propre et moderne sur TOUTES les pages.
 
 ## Architecture
-- **Frontend**: React 18 + TypeScript + Metronic UI + Redux Toolkit + PrimeReact + Leaflet + Socket.IO
-- **Backend**: External API at https://omniyat.is-certified.com:82/logitag_node/
-- **Auth**: admin / user@1234
-- **Build**: CRA with Craco, SCSS/Sass, Tailwind CSS
+- Frontend: React 18 + Metronic + Redux Toolkit + PrimeReact + Leaflet + Socket.IO
+- Backend: External API (omniyat.is-certified.com)
+- Auth: admin / user@1234
 
-## What's Been Implemented
+## Implemented
+- [x] Cloned repo, installed 90+ packages, fixed 4 compilation errors
+- [x] Login page: modern split-panel (dark left / white right)
+- [x] SplashScreen: dark theme with animated spinner
+- [x] Dashboard KPI Cards (CardDashboard.jsx): colored icon boxes, progress bars, percentage badges
+- [x] Dashboard layout (DashboardListCards.jsx): Manrope title, subtitle, Mode button
+- [x] Global CSS theme (logitag-theme.css): comprehensive override for ALL components
+  - Sidebar: dark (#0F172A), blue active states, submenu borders
+  - Header: backdrop blur glass
+  - DataTable: rounded, uppercase headers, hover highlight
+  - Buttons: rounded 10px, colored shadows
+  - Inputs/Dropdowns: focus glow, rounded
+  - Dialogs: rounded 16px, shadow
+  - Chips/Tags/Badges: rounded, consistent
+  - Maps: rounded container
+  - Calendar, TabView, Accordion, SplitButton: all modernized
+  - Animations: fade-in on page load
+- [x] Tests: 100% (5 iterations, 8 test suites passed)
 
-### Session 1 - Setup (2026-03-09)
-- [x] Cloned LOGITAG_NEW, installed ~90+ packages, fixed compilation errors
-
-### Session 2 - Login Redesign (2026-03-09)
-- [x] Modern split-panel login + SplashScreen
-
-### Session 3 - Global Theme (2026-03-09)
-- [x] logitag-theme.css: sidebar dark, header glass, cards, buttons, forms, tables, maps
-
-### Session 4 - Dashboard Redesign (2026-03-10)
-- [x] Identified correct components (Dashboard/ not DashboardNew/)
-- [x] CardDashboard.jsx: modern cards with colored icon boxes, progress bars, percentage badges
-- [x] DashboardListCards.jsx: modern header, subtitle, clean Mode button, flex grid
-- [x] DashboardList.jsx: circle mode with modern circular progress, clean cards
-- [x] DashboardComponent.jsx: clean wrapper with F8FAFC background
-- [x] Tests: 95% pass (17 tests passed, 2 minor LOW priority warnings)
-
-## Prioritized Backlog
-### P0
-- None (all critical features working)
-
-### P1
-- Redesign other pages (Engins list, Tags, Map, Facturation) with same modern style
-- Fix React console warnings (missing key props, non-boolean attributes)
-
-### P2
-- Dark mode toggle
-- Mobile responsiveness tuning
-- Dashboard chart integration
-
-## Next Tasks
-1. Redesign Engins/Tags list pages with modern tables
-2. Redesign Map page
-3. Add more dashboard widgets if needed
+## Backlog
+- P1: WebSocket real-time features
+- P2: Dark mode toggle, mobile optimization
