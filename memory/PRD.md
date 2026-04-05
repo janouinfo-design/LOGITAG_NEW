@@ -16,9 +16,9 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 ├── PremiumSidebar.jsx           # 11 nav items + logout
 ├── PremiumBottomNav.jsx         # Mobile bottom nav
 ├── PremiumDashboard.jsx         # KPIs, mini map, alerts, activity
-├── PremiumAssets.jsx            # Card/list views, search, filters, detail modal
-├── PremiumAssetDetail.jsx       # Stripe-style detail: map, timeline, battery, tag BLE
-├── PremiumMap.jsx               # Fullscreen Leaflet, clustering, filters
+├── PremiumAssets.jsx            # Card/list views, search, filters, edit modal, pagination
+├── PremiumAssetDetail.jsx       # Stripe-style detail: map, timeline, battery, tag BLE, edit modal, photo upload
+├── PremiumMap.jsx               # Fullscreen Leaflet, clustering, filters, sidebar pagination
 ├── PremiumActivity.jsx          # Timeline, stats, search, filter chips
 ├── PremiumAlerts.jsx            # Severity, stats, resolve buttons
 ├── PremiumZones.jsx             # Leaflet polygons, zone panel
@@ -49,22 +49,18 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - Dashboard, Assets, Map, Activity, Alerts, Zones pages - ALL DONE
 
 ### Phase 7 - Users, Settings, Reports, Gateway (DONE - Apr 5, 2026)
-- **Utilisateurs**: 15 users, stats, table, avatars, search, export
-- **Paramètres**: 4 internal tabs (Entreprise/Familles/Statuts/Corbeille)
-- **Rapports**: 3 report type cards, 214 reports with actions
-- **Gateway**: Stats, Leaflet map, gateway panel, event timeline
+- Utilisateurs, Paramètres, Rapports, Gateway pages
 
 ### Phase 8 - Asset Detail Page Stripe-style (DONE - Apr 5, 2026)
-- 2-column layout: Main (map + timeline) + Sidebar (details, battery, tag, zone)
-- Breadcrumb navigation ← Assets > [Reference]
-- Hero with asset photo, name, status badges
-- Leaflet mini-map with real GPS coordinates
-- Activity timeline from LogsTracking slice
-- Battery card with % + progress bar + 7-day chart
-- Tag BLE card with ID, reference, movement status
-- Localisation card with zone name + address
-- Back button returns to Assets list
-- Testing: 100% (iteration_15.json)
+- 2-column layout, breadcrumb, hero, Leaflet mini-map, activity timeline, battery, tag BLE, zone cards
+
+### Phase 9 - Asset Editing, Tag Labels, Map Pagination, Photo Upload (DONE - Apr 5, 2026)
+- **Edit Modal (Assets page)**: Click pencil icon on card -> modal with 6 editable fields (reference, label, brand, model, VIN, immatriculation) using `createOrUpdateEngine` Redux thunk -> saves via `engin/save` API
+- **Edit Modal (Asset Detail page)**: "Modifier" button in hero + "Éditer" button on details card -> same 6-field edit modal
+- **Tag Label Display**: Changed from "ID Tag" to "Label Tag" in Asset Detail Tag BLE card. Uses `labeltag` field instead of `tagname` across all views
+- **Map Sidebar Pagination**: 15 items per page with prev/next buttons in the Map sidebar. Resets to page 1 on filter/search change
+- **Photo Upload Modal**: Camera overlay on asset photo in Asset Detail. Opens popup with current photo preview + FileUploadeComponent for upload (engin source, profile desc, 1MB limit)
+- Testing: 100% (iteration_16.json)
 
 ## Pending/Future Tasks
 
@@ -79,6 +75,8 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 
 ### P3 - Extended
 - Multi-tenant B2B (Settings, Clients)
+- Column presets for datatables
+- GPS map widget on dashboard
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_15.json`
+- `/app/test_reports/iteration_1.json` through `iteration_16.json`
