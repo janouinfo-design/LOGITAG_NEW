@@ -3,7 +3,7 @@ import {useLayoutCtx} from './PremiumLayout'
 import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
   ChevronLeft, ChevronRight, MapPin, Users, LogOut,
-  Radio, FileBarChart, UserCircle
+  Radio, FileBarChart, UserCircle, CalendarDays
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   {id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/tagdashboard/index'},
   {id: 'map', label: 'Carte', icon: Map, path: '/tour/index'},
   {id: 'assets', label: 'Assets', icon: Box, path: '/view/engin/index'},
+  {id: 'planning', label: 'Planning', icon: CalendarDays, path: '/timeline/index'},
   {id: 'zones', label: 'Zones', icon: MapPin, path: '/Geofence/index'},
   {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
   {id: 'alerts', label: 'Alertes', icon: Bell, path: '/alert/index'},

@@ -15,6 +15,7 @@ import PremiumSettings from './premium/PremiumSettings'
 import PremiumReports from './premium/PremiumReports'
 import PremiumGateway from './premium/PremiumGateway'
 import PremiumAssetDetail from './premium/PremiumAssetDetail'
+import PremiumPlanning from './premium/PremiumPlanning'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -99,7 +100,7 @@ const components = {
   'sommairerftags/index': RFEngineComponent,
   'equipmentInventory/index': RFLocationTag,
   // "equipmentInventory/index": DashboardTest,
-  'timeline/index': CalendarView,
+  'timeline/index': PremiumPlanning,
   'Status/index': StatusComponent,
   'tagdashboard/index': PremiumDashboard,
   'famille/index': FamillesComponent,

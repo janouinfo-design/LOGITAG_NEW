@@ -4,7 +4,7 @@
 Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS (style Samsara/Stripe/Uber Fleet). React + connexion API externe Omniyat.
 
 ## Tech Stack
-- **Frontend**: React 18, Redux Toolkit, TailwindCSS, Lucide React, Leaflet
+- **Frontend**: React 18, Redux Toolkit, TailwindCSS, Shadcn/Lucide-react, Leaflet, FullCalendar
 - **Backend**: FastAPI proxy vers API externe
 - **External API**: omniyat.is-certified.com:82/logitag_node/ (via /api/proxy/)
 - **Auth**: admin / user@1234
@@ -13,12 +13,13 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 ```
 /app/frontend/src/components/premium/
 ├── PremiumLayout.jsx            # Layout (sidebar + main, fullscreen map)
-├── PremiumSidebar.jsx           # 11 nav items + logout
+├── PremiumSidebar.jsx           # 12 nav items + logout
 ├── PremiumBottomNav.jsx         # Mobile bottom nav
 ├── PremiumDashboard.jsx         # KPIs, mini map, alerts, activity
 ├── PremiumAssets.jsx            # Card/list views, search, filters, edit modal, pagination
 ├── PremiumAssetDetail.jsx       # Stripe-style detail: map, timeline, battery, tag BLE, edit modal, photo upload
 ├── PremiumMap.jsx               # Fullscreen Leaflet, clustering, filters, sidebar pagination
+├── PremiumPlanning.jsx          # NEW: Gantt/timeline with FullCalendar resource-timeline
 ├── PremiumActivity.jsx          # Timeline, stats, search, filter chips
 ├── PremiumAlerts.jsx            # Severity, stats, resolve buttons
 ├── PremiumZones.jsx             # Leaflet polygons, zone panel
@@ -32,6 +33,7 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - `/tagdashboard/index` -> PremiumDashboard
 - `/tour/index` -> PremiumMap (fullscreen)
 - `/view/engin/index` -> PremiumAssets
+- `/timeline/index` -> PremiumPlanning (NEW)
 - `/asset/detail` -> PremiumAssetDetail (from Assets click)
 - `/Geofence/index` -> PremiumZones
 - `/LOGS/index` -> PremiumActivity
@@ -39,28 +41,35 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - `/view/staff/index` -> PremiumUsers
 - `/gateway/index` -> PremiumGateway
 - `/rapport/index` -> PremiumReports
-- `/menu/setup` -> PremiumSettings (internal tabs)
-- `/customer/index` -> Clients (legacy)
+- `/menu/setup` -> PremiumSettings
+- `/customer/index` -> Clients
 
 ## Completed Features
 
-### Phase 1-6 (Previous forks)
+### Phase 1-8 (Previous forks)
 - Environment setup, FastAPI proxy, Premium Layout/Sidebar
-- Dashboard, Assets, Map, Activity, Alerts, Zones pages - ALL DONE
+- Dashboard, Assets, Map, Activity, Alerts, Zones, Users, Settings, Reports, Gateway
+- Stripe-style Asset Detail page with map, timeline, battery, tag BLE
+- Asset editing modals (13 fields), Tag Label display fix, Map sidebar pagination, Photo upload
 
-### Phase 7 - Users, Settings, Reports, Gateway (DONE - Apr 5, 2026)
-- Utilisateurs, Paramètres, Rapports, Gateway pages
+### Phase 9 - Planning/Calendar Page (DONE - Apr 5, 2026)
+- **Full Gantt/Timeline view** using FullCalendar resource-timeline plugin
+- **Engin/Worksite toggle** for switching between asset and site views
+- **Filters**: Status dropdown, Movement dropdown (Entrée/Sortie)
+- **Search**: Debounced search across assets
+- **Pagination**: Page numbers (1-5), prev/next, record count display
+- **Date Navigation**: "Aujourd'hui" button, days selector (1/2/5/10), prev/next arrows, date range display
+- **Timeline Zoom**: +/- buttons to adjust slot duration (5-min increments), current slot badge
+- **Asset Rows**: Photo, reference, tag ID, movement/status icons
+- **Event Rendering**: Color-coded (blue for entrée, red for sortie), tooltips with dates
+- **Sidebar Integration**: CalendarDays icon added to premium sidebar
+- Testing: Screenshot verified
 
-### Phase 8 - Asset Detail Page Stripe-style (DONE - Apr 5, 2026)
-- 2-column layout, breadcrumb, hero, Leaflet mini-map, activity timeline, battery, tag BLE, zone cards
-
-### Phase 9 - Asset Editing, Tag Labels, Map Pagination, Photo Upload (DONE - Apr 5, 2026)
-- **Edit Modal (Assets page)**: Click pencil icon on card -> modal with 6 editable fields (reference, label, brand, model, VIN, immatriculation) using `createOrUpdateEngine` Redux thunk -> saves via `engin/save` API
-- **Edit Modal (Asset Detail page)**: "Modifier" button in hero + "Éditer" button on details card -> same 6-field edit modal
-- **Tag Label Display**: Changed from "ID Tag" to "Label Tag" in Asset Detail Tag BLE card. Uses `labeltag` field instead of `tagname` across all views
-- **Map Sidebar Pagination**: 15 items per page with prev/next buttons in the Map sidebar. Resets to page 1 on filter/search change
-- **Photo Upload Modal**: Camera overlay on asset photo in Asset Detail. Opens popup with current photo preview + FileUploadeComponent for upload (engin source, profile desc, 1MB limit)
-- Testing: 100% (iteration_16.json)
+### Phase 9b - Edit Modal Enhancement (DONE - Apr 5, 2026)
+- Added 7 new fields: Tag, Famille, Situation, Statut, Site, Adresse, Infos additionnelles
+- 2-column grid layout, scrollable, full-width for address fields
+- Applied to both Assets page and Asset Detail page modals
+- Fix: Activity log timeout (8s) + Redux setLogList dispatch
 
 ## Pending/Future Tasks
 
