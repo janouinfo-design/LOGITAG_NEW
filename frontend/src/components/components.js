@@ -5,6 +5,7 @@ import CompanyDepositForm from './CompanyDeposit/CompanyDepositForm'
 import CustomerComponent from './Customer/CustomerComponent'
 import ClientDetail from './Customer/CustomerList/ClientDetail'
 import PremiumDashboard from './premium/PremiumDashboard'
+import PremiumAssets from './premium/PremiumAssets'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -71,7 +72,7 @@ const components = {
   geofencing: GeofencingComponent,
 
   /** zakaria */
-  'view/engin/index': EngineComponent,
+  'view/engin/index': PremiumAssets,
   'tag/index': TagComponent,
   'customer/index': CustomerComponent,
   'view/staff/index': TeamComponent,
