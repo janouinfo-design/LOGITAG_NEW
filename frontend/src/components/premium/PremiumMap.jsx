@@ -6,7 +6,7 @@ import {MapContainer, TileLayer, Marker, Popup, Tooltip, useMap} from 'react-lea
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
-  Search, X, Filter, Layers, MapPin, Battery,
+  Search, X, Filter, Layers, MapPin, Battery, Clock, Calendar,
   Crosshair, Truck, ChevronLeft, ChevronRight, Eye, Navigation
 } from 'lucide-react'
 import {useNavigate} from 'react-router-dom'
@@ -129,9 +129,37 @@ const PremiumMap = () => {
   const getBat = (b) => {
     if (!b && b !== 0) return {color: '#94A3B8', pct: 0, label: 'N/A'}
     const v = parseInt(b, 10)
+    if (isNaN(v)) return {color: '#94A3B8', pct: 0, label: 'N/A'}
     if (v >= 50) return {color: '#059669', pct: v, label: `${v}%`}
     if (v >= 20) return {color: '#F59E0B', pct: v, label: `${v}%`}
-    return {color: '#EF4444', pct: v, label: `${v}%`}
+    return {color: '#EF4444', pct: Math.max(v, 0), label: `${v}%`}
+  }
+
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return null
+    try {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return null
+      const now = new Date()
+      const diffMs = now - d
+      const mins = Math.floor(diffMs / 60000)
+      if (mins < 1) return "A l'instant"
+      if (mins < 60) return `Il y a ${mins}min`
+      const hrs = Math.floor(mins / 60)
+      if (hrs < 24) return `Il y a ${hrs}h${mins % 60 > 0 ? String(mins % 60).padStart(2, '0') : ''}`
+      const days = Math.floor(hrs / 24)
+      if (days < 30) return `Il y a ${days}j`
+      return d.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short', year: 'numeric'})
+    } catch { return null }
+  }
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return '—'
+    try {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      return d.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'})
+    } catch { return dateStr }
   }
 
   const getEtat = (item) => {
@@ -335,6 +363,22 @@ const PremiumMap = () => {
                           <MapPin size={11} /> {item.LocationObjectname || item.enginAddress || '—'}
                         </div>
 
+                        {/* Time info - MOST IMPORTANT */}
+                        {item.lastSeenAt && (
+                          <div className="ltmap-popup-time-section">
+                            <div className="ltmap-popup-time-row">
+                              <Clock size={11} />
+                              <span className="ltmap-popup-time-label">Dernière activité</span>
+                              <span className="ltmap-popup-time-val">{formatTimeAgo(item.lastSeenAt) || '—'}</span>
+                            </div>
+                            <div className="ltmap-popup-time-row">
+                              <Calendar size={11} />
+                              <span className="ltmap-popup-time-label">Arrivée</span>
+                              <span className="ltmap-popup-time-val">{formatDateTime(item.lastSeenAt)}</span>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Coordinates */}
                         <div className="ltmap-popup-coords">
                           {lat.toFixed(5)}, {lng.toFixed(5)}
@@ -535,6 +579,12 @@ const MAP_STYLES = `
 
   .ltmap-popup-loc { display: flex; align-items: center; gap: 4px; padding: 4px 14px; font-family: 'Inter', sans-serif; font-size: .68rem; color: #94A3B8; }
   .ltmap-popup-coords { padding: 0 14px 4px; font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: #CBD5E1; }
+
+  .ltmap-popup-time-section { padding: 6px 14px; background: #F8FAFC; border-top: 1px solid #F1F5F9; }
+  .ltmap-popup-time-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-family: 'Inter', sans-serif; font-size: .72rem; color: #64748B; }
+  .ltmap-popup-time-label { flex: 1; }
+  .ltmap-popup-time-val { font-weight: 700; color: #0F172A; font-family: 'Manrope', sans-serif; font-size: .72rem; }
+
   .ltmap-popup-actions { padding: 10px 14px; border-top: 1px solid #F1F5F9; }
   .ltmap-popup-btn {
     display: inline-flex; align-items: center; gap: 5px;

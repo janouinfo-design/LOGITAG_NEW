@@ -51,7 +51,49 @@ const PremiumAssets = () => {
   const [detailItem, setDetailItem] = useState(null)
   const [mapDialogVisible, setMapDialogVisible] = useState(false)
   const [mouvement, setMouvement] = useState('')
+  const [sortCol, setSortCol] = useState('reference')
+  const [sortDir, setSortDir] = useState('asc')
   const searchRef = useRef(null)
+
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '—'
+    try {
+      const d = new Date(dateStr)
+      if (isNaN(d.getTime())) return dateStr
+      const now = new Date()
+      const diffMs = now - d
+      const mins = Math.floor(diffMs / 60000)
+      if (mins < 1) return "A l'instant"
+      if (mins < 60) return `Il y a ${mins}min`
+      const hrs = Math.floor(mins / 60)
+      if (hrs < 24) return `Il y a ${hrs}h`
+      const days = Math.floor(hrs / 24)
+      if (days < 30) return `Il y a ${days}j`
+      return d.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'})
+    } catch { return dateStr }
+  }
+
+  const handleSort = (col) => {
+    if (sortCol === col) {
+      setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortCol(col)
+      setSortDir('asc')
+    }
+    setPage(1)
+  }
+
+  const getSortValue = (item, col) => {
+    switch (col) {
+      case 'reference': return (item.reference || item.label || '').toLowerCase()
+      case 'zone': return (item.LocationObjectname || item.enginAddress || '').toLowerCase()
+      case 'battery': return parseInt(item.batteries, 10) || 0
+      case 'etat': return (item.etatenginname || '').toLowerCase()
+      case 'status': return (item.statuslabel || '').toLowerCase()
+      case 'lastSeen': return item.lastSeenAt ? new Date(item.lastSeenAt).getTime() : 0
+      default: return ''
+    }
+  }
 
   const ETAT_OPTIONS = [
     {label: 'Tous', code: 'all', color: '#2563EB', bg: '#EFF6FF'},
@@ -99,12 +141,19 @@ const PremiumAssets = () => {
     window.scrollTo({top: 0, behavior: 'smooth'})
   }
 
-  /* Client-side search */
+  /* Client-side search + sort */
   const filteredItems = allData.filter(item => {
     if (!search) return true
     const t = search.toLowerCase()
     return [item.reference, item.label, item.vin, item.brand, item.model, item.labeltag, item.tagname, item.LocationObjectname, item.customername]
       .some(f => f && f.toLowerCase().includes(t))
+  }).sort((a, b) => {
+    const dir = sortDir === 'asc' ? 1 : -1
+    const valA = getSortValue(a, sortCol)
+    const valB = getSortValue(b, sortCol)
+    if (valA < valB) return -1 * dir
+    if (valA > valB) return 1 * dir
+    return 0
   })
 
   const totalFiltered = filteredItems.length
@@ -192,7 +241,7 @@ const PremiumAssets = () => {
     const bat = getBattery(item.batteries)
     const etat = getEtat(item)
     return (
-      <div className="lta-row" key={item.id || i} data-testid={`asset-row-${i}`} onClick={() => setDetailItem(item)}>
+      <div className="lta-row" key={item.id || i} data-testid={`asset-row-${i}`} onClick={() => handleViewDetail(item)}>
         <div className="lta-row-img">
           {item.image ? (
             <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
@@ -219,7 +268,7 @@ const PremiumAssets = () => {
           {item.statuslabel || '—'}
         </span>
         <span className="lta-row-lastseen">
-          <Clock size={12} /> {item.lastSeenAt || '—'}
+          <Clock size={12} /> {formatTimeAgo(item.lastSeenAt)}
         </span>
       </div>
     )
@@ -375,12 +424,24 @@ const PremiumAssets = () => {
           <div className="lta-list" data-testid="assets-list">
             <div className="lta-list-head">
               <span style={{width: 56}} />
-              <span className="lta-lh-col lta-lh-col--main">Asset</span>
-              <span className="lta-lh-col">Zone</span>
-              <span className="lta-lh-col">Batterie</span>
-              <span className="lta-lh-col">État</span>
-              <span className="lta-lh-col">Status</span>
-              <span className="lta-lh-col">Dernière vue</span>
+              <span className="lta-lh-col lta-lh-col--main lta-lh-sort" onClick={() => handleSort('reference')} data-testid="sort-reference">
+                Asset {sortCol === 'reference' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
+              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('zone')} data-testid="sort-zone">
+                Zone {sortCol === 'zone' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
+              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('battery')} data-testid="sort-battery">
+                Batterie {sortCol === 'battery' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
+              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('etat')} data-testid="sort-etat">
+                État {sortCol === 'etat' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
+              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('status')} data-testid="sort-status">
+                Status {sortCol === 'status' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
+              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('lastSeen')} data-testid="sort-lastseen">
+                Dernière vue {sortCol === 'lastSeen' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
+              </span>
             </div>
             {data.map((item, i) => renderListRow(item, i))}
           </div>
@@ -534,6 +595,9 @@ const STYLES = `
 .lta-list-head { display:flex; align-items:center; gap:12px; padding:12px 20px; background:#FAFBFC; border-bottom:1px solid #F1F5F9; }
 .lta-lh-col { flex:1; font-family:'Inter',sans-serif; font-size:.7rem; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:.04em; }
 .lta-lh-col--main { flex:2; }
+.lta-lh-sort { cursor:pointer; display:flex; align-items:center; gap:4px; transition:color .15s; user-select:none; }
+.lta-lh-sort:hover { color:#2563EB; }
+.lta-sort-desc { transform:rotate(180deg); }
 
 .lta-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid #F8FAFC; cursor:pointer; transition:background .1s; }
 .lta-row:hover { background:#FAFBFC; }
