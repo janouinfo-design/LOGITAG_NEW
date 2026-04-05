@@ -4,7 +4,7 @@ import CompanyComponent from './Company/user-interface/Company.component'
 import CompanyDepositForm from './CompanyDeposit/CompanyDepositForm'
 import CustomerComponent from './Customer/CustomerComponent'
 import ClientDetail from './Customer/CustomerList/ClientDetail'
-import DashboardComponent from './Dashboard/user-interface/DashboardComponent'
+import PremiumDashboard from './premium/PremiumDashboard'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -91,7 +91,7 @@ const components = {
   // "equipmentInventory/index": DashboardTest,
   'timeline/index': CalendarView,
   'Status/index': StatusComponent,
-  'tagdashboard/index': DashboardComponent,
+  'tagdashboard/index': PremiumDashboard,
   'famille/index': FamillesComponent,
   // 'situationtags/index': RfTag,
   'vehicule/index': VehList,
