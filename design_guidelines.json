@@ -1,188 +1,137 @@
 {
+  "app_name": "LOGITAG Premium SaaS",
+  "theme": {
+    "mode": "Light",
+    "dark_mode_support": "planned",
+    "description": "Premium, clean, and professional dashboard heavily inspired by Samsara, Stripe, and Uber Fleet. Prioritizes data visibility, clear visual hierarchy, and functional beauty."
+  },
   "typography": {
     "font_family": {
-      "heading": "Manrope, sans-serif",
-      "body": "Inter, sans-serif",
-      "mono": "JetBrains Mono, monospace"
+      "headings": "'Manrope', sans-serif",
+      "body": "'Inter', sans-serif",
+      "mono": "'JetBrains Mono', monospace"
     },
-    "scale": {
-      "h1": "text-4xl md:text-5xl font-bold tracking-tight leading-none",
-      "h2": "text-3xl md:text-4xl font-semibold tracking-tight",
-      "h3": "text-2xl md:text-3xl font-semibold",
-      "h4": "text-xl md:text-2xl font-medium",
-      "body_lg": "text-lg leading-relaxed",
-      "body_base": "text-base leading-relaxed text-slate-600 dark:text-slate-300",
-      "body_sm": "text-sm leading-normal text-slate-500 dark:text-slate-400",
-      "caption": "text-xs font-medium uppercase tracking-wider text-slate-400"
-    },
-    "weights": {
-      "light": 300,
-      "normal": 400,
-      "medium": 500,
-      "semibold": 600,
-      "bold": 700
+    "rules": {
+      "headings": "MUST use tracking-tight (e.g., tracking-tight or tracking-tighter) for text-2xl and above to create a premium, compact feel.",
+      "body": "Use leading-relaxed for body paragraphs, but leading-snug for data tables and list items.",
+      "overline": "Labels and small KPIs MUST be uppercase, text-xs, font-semibold, and tracking-wider (tracking-[0.05em] or tracking-[0.1em]).",
+      "anti_pattern": "Do NOT use default Inter for massive display headings. Differentiate hierarchy with font weight (e.g., font-medium vs font-semibold)."
     }
   },
   "colors": {
-    "palette": {
-      "primary": {
-        "DEFAULT": "#2563EB",
-        "foreground": "#FFFFFF",
-        "50": "#EFF6FF",
-        "100": "#DBEAFE",
-        "200": "#BFDBFE",
-        "300": "#93C5FD",
-        "400": "#60A5FA",
-        "500": "#3B82F6",
-        "600": "#2563EB",
-        "700": "#1D4ED8",
-        "800": "#1E40AF",
-        "900": "#1E3A8A"
-      },
-      "secondary": {
-        "DEFAULT": "#F97316",
-        "foreground": "#FFFFFF",
-        "50": "#FFF7ED",
-        "100": "#FFEDD5",
-        "200": "#FED7AA",
-        "300": "#FDBA74",
-        "400": "#FB923C",
-        "500": "#F97316",
-        "600": "#EA580C",
-        "700": "#C2410C",
-        "800": "#9A3412",
-        "900": "#7C2D12"
-      },
-      "neutral": {
-        "50": "#F8FAFC",
-        "100": "#F1F5F9",
-        "200": "#E2E8F0",
-        "300": "#CBD5E1",
-        "400": "#94A3B8",
-        "500": "#64748B",
-        "600": "#475569",
-        "700": "#334155",
-        "800": "#1E293B",
-        "900": "#0F172A",
-        "950": "#020617"
-      },
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "primary": {
+      "DEFAULT": "#2563EB",
+      "hover": "#1D4ED8",
+      "subtle": "#EFF6FF"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#475569",
+      "tertiary": "#94A3B8"
+    },
+    "status": {
       "success": {
-        "DEFAULT": "#10B981",
-        "foreground": "#FFFFFF"
+        "text": "#166534",
+        "bg": "#DCFCE7",
+        "border": "#BBF7D0"
       },
       "warning": {
-        "DEFAULT": "#F59E0B",
-        "foreground": "#FFFFFF"
+        "text": "#9A3412",
+        "bg": "#FFEDD5",
+        "border": "#FED7AA"
       },
-      "danger": {
-        "DEFAULT": "#EF4444",
-        "foreground": "#FFFFFF"
+      "error": {
+        "text": "#991B1B",
+        "bg": "#FEE2E2",
+        "border": "#FECACA"
       },
-      "background": {
-        "light": "#FFFFFF",
-        "dark": "#0F172A"
-      },
-      "surface": {
-        "light": "#F8FAFC",
-        "dark": "#1E293B"
+      "info": {
+        "text": "#1E40AF",
+        "bg": "#DBEAFE",
+        "border": "#BFDBFE"
       }
-    }
+    },
+    "borders": "#E2E8F0",
+    "rules": "Never use pure #000000 or #808080. Use the Slate color palette for neutral grays. Backgrounds should feel expansive."
   },
-  "layout": {
-    "grid": {
-      "base": "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
-      "bento": "grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 auto-rows-[minmax(180px,auto)] gap-4 md:gap-6",
-      "dashboard": "grid grid-cols-12 gap-6"
-    },
-    "spacing": {
-      "page_padding": "p-6 md:p-8 lg:p-10",
-      "card_padding": "p-6",
-      "section_gap": "gap-8 md:gap-12"
-    },
-    "container": {
-      "max_width": "max-w-7xl mx-auto"
-    }
-  },
-  "components": {
-    "buttons": {
-      "primary": "bg-primary text-white hover:bg-primary-700 active:scale-95 transition-all duration-200 rounded-lg shadow-sm hover:shadow-md px-6 py-2.5 font-medium",
-      "secondary": "bg-white text-slate-700 border border-slate-200 hover:bg-slate-50 hover:text-primary active:scale-95 transition-all duration-200 rounded-lg shadow-sm px-6 py-2.5 font-medium",
-      "ghost": "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors duration-200 rounded-lg px-4 py-2 font-medium",
-      "destructive": "bg-red-50 text-red-600 hover:bg-red-100 transition-colors duration-200 rounded-lg px-4 py-2 font-medium"
-    },
-    "cards": {
-      "base": "bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden",
-      "glass": "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-white/10 shadow-lg rounded-xl",
-      "interactive": "cursor-pointer hover:border-primary/50 hover:ring-2 hover:ring-primary/10 transition-all duration-200"
-    },
-    "inputs": {
-      "base": "w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 px-4 py-2.5 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200"
-    },
-    "sidebar": {
-      "container": "fixed left-0 top-0 h-full w-64 bg-slate-900 text-white z-50 transition-transform duration-300",
-      "link": "flex items-center gap-3 px-4 py-3 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors duration-200 mb-1",
-      "link_active": "flex items-center gap-3 px-4 py-3 bg-primary text-white rounded-lg font-medium shadow-lg shadow-primary/20 mb-1"
-    },
-    "header": {
-      "container": "sticky top-0 z-40 w-full border-b border-slate-200/50 dark:border-slate-800/50 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl supports-[backdrop-filter]:bg-white/60"
-    }
+  "spacing_and_layout": {
+    "philosophy": "Generous Spacing Philosophy. Use large padding (p-6 to p-8) inside major containers to let data breathe.",
+    "border_radius": "rounded-xl (12px) for main cards, rounded-lg for buttons and inner elements, rounded-2xl for main app layout shells.",
+    "shadows": "Soft, diffuse ambient shadows. Use shadow-sm for default cards, shadow-md for hover states, and shadow-[0_8px_30px_rgb(0,0,0,0.04)] for floating elements.",
+    "grid_system": "MODE B: High Density Grid. grid-cols-1 md:grid-cols-4 or grid-cols-12 for precise widget alignment.",
+    "responsive": "Mobile-first. Stacking columns on mobile, structured bento grid on desktop."
   },
   "visual_enhancers": {
-    "shadows": {
-      "sm": "shadow-sm",
-      "md": "shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)]",
-      "lg": "shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)]",
-      "glow": "shadow-[0_0_15px_rgba(37,99,235,0.3)]"
+    "glassmorphism": "Use sparingly for sticky headers or bottom nav (mobile): bg-white/80 backdrop-blur-xl border-b or border-t border-slate-200.",
+    "neumorphism": "Not recommended for this style. Stick to flat surfaces with 1px borders and soft shadows (Stripe/Samsara aesthetic).",
+    "micro_interactions": "All interactive cards and buttons MUST have hover states (e.g., hover:-translate-y-0.5 hover:shadow-md transition-all duration-200 ease-in-out)."
+  },
+  "components": {
+    "sidebar": {
+      "desktop": "Collapsible vertical sidebar on the left. bg-white border-r border-slate-200. Active state: bg-blue-50 text-blue-600 font-medium rounded-lg. Icons: lucide-react.",
+      "mobile": "Bottom fixed navigation bar. bg-white/90 backdrop-blur-md border-t border-slate-200 pb-safe."
     },
-    "borders": {
-      "subtle": "border border-slate-200 dark:border-slate-800",
-      "focus": "ring-2 ring-primary ring-offset-2"
+    "kpi_cards": {
+      "layout": "Top row of dashboard. grid-cols-2 md:grid-cols-4 gap-4 or gap-6.",
+      "style": "bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md cursor-pointer transition-all. Clickable for auto-filtering.",
+      "content": "Overline label, large bold number (text-3xl tracking-tight), and a visual trend indicator or status icon.",
+      "items": [
+        "Assets actifs (Primary/Success)",
+        "Assets en mouvement (Info)",
+        "Hors zone (Warning)",
+        "Batterie faible (Error)"
+      ]
     },
-    "radius": {
-      "default": "rounded-lg",
-      "card": "rounded-xl",
-      "full": "rounded-full"
+    "mini_map": {
+      "layout": "col-span-1 md:col-span-8 lg:col-span-8 row-span-2 min-h-[400px].",
+      "style": "bg-slate-100 rounded-xl border border-slate-200 overflow-hidden relative.",
+      "content": "Interactive map container. Use placeholder image if map component not ready, but design overlay controls (zoom, layers) to look native."
+    },
+    "alerts_feed": {
+      "layout": "col-span-1 md:col-span-4 lg:col-span-4 row-span-1 h-full.",
+      "style": "bg-white rounded-xl border border-slate-200 p-0 shadow-sm flex flex-col.",
+      "content": "Header with 'Alertes en temps réel' and badge count. Scrollable list (overflow-y-auto). Each item needs an icon (lucide), title, time (text-xs text-slate-400), and soft bottom border."
+    },
+    "activity_timeline": {
+      "layout": "col-span-1 md:col-span-4 lg:col-span-4 row-span-1 h-full.",
+      "style": "bg-white rounded-xl border border-slate-200 p-6 shadow-sm.",
+      "content": "Vertical timeline. Use a left border with absolute positioned dots to represent recent asset movements or status changes."
     }
   },
-  "motion": {
-    "hover": "transition-all duration-200 ease-in-out hover:-translate-y-0.5",
-    "fade_in": "animate-in fade-in duration-300",
-    "slide_up": "animate-in slide-in-from-bottom-4 duration-500"
-  },
   "accessibility": {
-    "contrast": "Ensure text contrast ratio of at least 4.5:1 against background.",
-    "focus": "All interactive elements must have a visible focus state.",
-    "aria": "Use aria-labels for icon-only buttons."
+    "contrast": "Text must meet APCA or WCAG AA standards. No light gray text on white backgrounds (min text-slate-500).",
+    "testing": "All interactive elements MUST include data-testid (e.g., data-testid='sidebar-nav-dashboard', data-testid='kpi-card-actifs').",
+    "focus": "focus:ring-2 focus:ring-blue-500 focus:outline-none focus:ring-offset-1 on all buttons and inputs."
   },
-  "images": {
-    "logo_dark": "https://images.unsplash.com/photo-1614036417651-efe4e56b67dd?auto=format&fit=crop&q=80&w=200",
-    "logo_light": "https://images.unsplash.com/photo-1614036417651-efe4e56b67dd?auto=format&fit=crop&q=80&w=200",
-    "login_bg": "https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&q=80&w=2000",
-    "map_placeholder": "https://images.unsplash.com/photo-1524661135-423995f22d0b?auto=format&fit=crop&q=80&w=1000",
-    "avatar_placeholder": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200",
-    "dashboard_widget_bg": "https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&q=80&w=1000"
+  "media_and_icons": {
+    "icons": "Use lucide-react. Stroke width 2 or 1.5 depending on size. Keep sizes consistent (w-5 h-5 for sidebar).",
+    "images": [
+      {
+        "url": "https://images.unsplash.com/photo-1722082840073-909aea44803f?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NTY2NzZ8MHwxfHNlYXJjaHwxfHxzYXRlbGxpdGUlMjBtYXAlMjB2aWV3JTIwdXJiYW58ZW58MHx8fHwxNzc1Mzg5MDg4fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Aerial view map placeholder",
+        "category": "mini_map_fallback"
+      }
+    ]
   },
   "instructions_to_main_agent": [
-    "Install 'lucide-react' for modern icons to replace FontAwesome/Metronic icons where possible.",
-    "Update 'tailwind.config.js' with the new colors and font families.",
-    "Add the 'Manrope' font to 'public/index.html' via Google Fonts.",
-    "Redesign the 'LoginComponent.js' using the new 'Glassmorphism' style with the provided login background.",
-    "Create a new 'DashboardLayout' component that uses the 'Sidebar' and 'Header' styles defined above.",
-    "Refactor 'DashboardNew/user-interface/DashboardNewComponent.js' to use the 'Bento Grid' layout.",
-    "For tables (PrimeReact), override the default styles to remove heavy borders and add more padding.",
-    "Ensure all new components use functional components with hooks.",
-    "Use 'clsx' or 'tailwind-merge' for conditional class application.",
-    "When modifying existing files, verify that imports are correct and do not break the build.",
-    "For the Map view (Leaflet), try to apply a custom tile layer if possible, or at least clean up the controls.",
-    "Implement 'Dark Mode' support using Tailwind's 'dark:' classes."
+    "CRITICAL: Retain the existing React (CRA) architecture. Do not attempt to migrate to Next.js or change build tools (Craco/Tailwind are already configured).",
+    "CRITICAL: Maintain the external API connection to 'omniyat.is-certified.com' via proxy. Do not break existing login/auth flows.",
+    "Use raw HTML/Tailwind for custom layouts (like the bento grid dashboard) to ensure perfect control over spacing and responsiveness.",
+    "For components like Select, Dialog, or DropdownMenu, use the existing Shadcn UI primitives at /app/frontend/src/components/ui/. Customize them to fit the 12px border-radius and Slate color palette.",
+    "Ensure the sidebar is fully responsive: it should be a vertical collapsible sidebar on desktop, and cleanly convert to a fixed bottom navigation bar on mobile (hidden on desktop).",
+    "Do not use generic generic 'card' components if they restrict layout. Build flexible cards using raw div and tailwind classes.",
+    "Do not apply global transitions like 'transition: all' as it breaks transform-based animations.",
+    "For KPI cards, implement onClick handlers that will eventually connect to list filtering.",
+    "Ensure dark mode is planned by using semantic Tailwind color variables if possible, or mapping strictly to Tailwind's slate/blue palette so it can be easily inverted later."
   ],
-  "UNIVERSAL_GUIDELINES_FOR_MAIN_AGENT": [
-    "Do not use gradients for backgrounds unless specified.",
-    "Use 'Inter' for body text and 'Manrope' for headings.",
-    "Ensure all interactive elements have a 'data-testid'.",
-    "Avoid using 'style' prop for CSS; use Tailwind classes.",
-    "Keep the UI clean and avoid clutter. Use whitespace generously.",
-    "Ensure the application is responsive and works well on mobile devices.",
-    "Use 'sonner' for toast notifications instead of 'react-toastify' or others if applicable."
+  "universal_guidelines": [
+    "You tend to converge toward generic, 'on distribution' outputs. Avoid the 'AI slop' aesthetic.",
+    "Create depth through layered design elements with z-index hierarchy and soft shadows.",
+    "Do not center-align the app container. Preserve normal document flow.",
+    "Use modern pill-shaped or softly rounded (12px) buttons with precise interaction animations.",
+    "NEVER use emojis for icons. Always use lucide-react.",
+    "Every interaction needs micro-animations - hover states, transitions. Static = dead."
   ]
 }
