@@ -14,9 +14,23 @@ import {Dialog} from 'primereact/dialog'
 import EnginMapLocation from '../Engin/EnginList/EnginMapLocation'
 import {
   Search, Filter, LayoutList, LayoutGrid, MapIcon, Download,
-  ChevronLeft, ChevronRight, Battery, MapPin, Clock, Tag,
+  ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Battery, MapPin, Clock, Tag,
   Truck, X, Eye, Wifi, WifiOff, ArrowUpDown
 } from 'lucide-react'
+
+/* Generate page numbers with ellipsis */
+function getPageNumbers(current, total) {
+  if (total <= 7) return Array.from({length: total}, (_, i) => i + 1)
+  const pages = []
+  pages.push(1)
+  if (current > 3) pages.push('...')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
+}
 
 const PremiumAssets = () => {
   const dispatch = useAppDispatch()
@@ -28,8 +42,9 @@ const PremiumAssets = () => {
   const [viewMode, setViewMode] = useState('cards')
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
-  const [rows] = useState(20)
+  const rows = 15
   const [totalRecords, setTotalRecords] = useState(0)
+  const [allData, setAllData] = useState([])
   const [loading, setLoading] = useState(true)
   const [activeFilters, setActiveFilters] = useState({etat: 'all', status: null})
   const [showFilterPanel, setShowFilterPanel] = useState(false)
@@ -44,26 +59,25 @@ const PremiumAssets = () => {
     {label: 'Sortie', code: 'exit', color: '#D64B70', bg: '#FDF2F8', icon: 'fa-solid fa-up-from-bracket'},
   ]
 
-  /* Fetch data */
-  const loadData = useCallback((p = page, s = search, f = activeFilters) => {
+  /* Fetch all data once */
+  const loadData = useCallback((f = activeFilters) => {
     setLoading(true)
     const params = {
-      page: p,
-      PageSize: rows,
-      search: s || undefined,
+      page: 1,
+      PageSize: 500,
       searchSituation: f.etat !== 'all' ? f.etat : '',
       searchStatus: f.status || '',
     }
     dispatch(fetchEngines(params)).then((res) => {
-      if (res?.payload) {
-        setTotalRecords(res.payload.totalCount || res.payload.length || 0)
-      }
+      const items = Array.isArray(res?.payload) ? res.payload : []
+      setAllData(items)
+      setTotalRecords(items.length)
       setLoading(false)
     })
-  }, [dispatch, page, rows, search, activeFilters])
+  }, [dispatch, activeFilters])
 
   useEffect(() => {
-    loadData(1)
+    loadData()
     dispatch(fetchStatusList())
     dispatch(fetchSites())
   }, [])
@@ -71,20 +85,31 @@ const PremiumAssets = () => {
   const handleSearch = (val) => {
     setSearch(val)
     setPage(1)
-    loadData(1, val, activeFilters)
   }
 
   const handleFilterEtat = (code) => {
     const newFilters = {...activeFilters, etat: code}
     setActiveFilters(newFilters)
     setPage(1)
-    loadData(1, search, newFilters)
+    loadData(newFilters)
   }
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
-    loadData(newPage, search, activeFilters)
+    window.scrollTo({top: 0, behavior: 'smooth'})
   }
+
+  /* Client-side search */
+  const filteredItems = allData.filter(item => {
+    if (!search) return true
+    const t = search.toLowerCase()
+    return [item.reference, item.label, item.vin, item.brand, item.model, item.labeltag, item.tagname, item.LocationObjectname, item.customername]
+      .some(f => f && f.toLowerCase().includes(t))
+  })
+
+  const totalFiltered = filteredItems.length
+  const totalPages = Math.ceil(totalFiltered / rows)
+  const data = filteredItems.slice((page - 1) * rows, page * rows)
 
   const handleViewDetail = (item) => {
     dispatch(fetchValidator('engin'))
@@ -112,9 +137,6 @@ const PremiumAssets = () => {
     if (item?.etatenginname === 'reception') return {label: 'Réception', color: '#059669', bg: '#ECFDF5', icon: 'fa-solid fa-down-to-bracket'}
     return {label: item?.etatengin || 'Inconnu', color: '#94A3B8', bg: '#F1F5F9', icon: 'fas fa-circle-question'}
   }
-
-  const data = engines?.data || engines || []
-  const totalPages = Math.ceil((totalRecords || data.length) / rows)
 
   /* ── CARD VIEW ── */
   const renderCard = (item, i) => {
@@ -287,7 +309,7 @@ const PremiumAssets = () => {
         <div className="lta-header">
           <div>
             <h1 className="lta-title" data-testid="assets-title">Assets</h1>
-            <p className="lta-subtitle">{totalRecords || data.length} engins au total</p>
+            <p className="lta-subtitle">{totalFiltered} engin{totalFiltered > 1 ? 's' : ''}{search ? ` (recherche "${search}")` : ''}</p>
           </div>
           <div className="lta-header-right">
             <button className="lta-export-btn" data-testid="assets-export-btn">
@@ -367,13 +389,37 @@ const PremiumAssets = () => {
         {/* PAGINATION */}
         {totalPages > 1 && (
           <div className="lta-pagination" data-testid="assets-pagination">
-            <button className="lta-pg-btn" disabled={page <= 1} onClick={() => handlePageChange(page - 1)}>
-              <ChevronLeft size={16} />
-            </button>
-            <span className="lta-pg-info">Page {page} sur {totalPages}</span>
-            <button className="lta-pg-btn" disabled={page >= totalPages} onClick={() => handlePageChange(page + 1)}>
-              <ChevronRight size={16} />
-            </button>
+            <div className="lta-pg-info-left">
+              {((page - 1) * rows) + 1}–{Math.min(page * rows, totalFiltered)} sur {totalFiltered}
+            </div>
+            <div className="lta-pg-btns">
+              <button className="lta-pg-btn" disabled={page <= 1} onClick={() => handlePageChange(1)} title="Première page" data-testid="pg-first">
+                <ChevronsLeft size={15} />
+              </button>
+              <button className="lta-pg-btn" disabled={page <= 1} onClick={() => handlePageChange(page - 1)} title="Précédent" data-testid="pg-prev">
+                <ChevronLeft size={15} />
+              </button>
+              {getPageNumbers(page, totalPages).map((p, i) =>
+                p === '...' ? (
+                  <span key={`dot-${i}`} className="lta-pg-dots">...</span>
+                ) : (
+                  <button
+                    key={p}
+                    className={`lta-pg-num ${p === page ? 'lta-pg-num--active' : ''}`}
+                    onClick={() => handlePageChange(p)}
+                    data-testid={`pg-num-${p}`}
+                  >
+                    {p}
+                  </button>
+                )
+              )}
+              <button className="lta-pg-btn" disabled={page >= totalPages} onClick={() => handlePageChange(page + 1)} title="Suivant" data-testid="pg-next">
+                <ChevronRight size={15} />
+              </button>
+              <button className="lta-pg-btn" disabled={page >= totalPages} onClick={() => handlePageChange(totalPages)} title="Dernière page" data-testid="pg-last">
+                <ChevronsRight size={15} />
+              </button>
+            </div>
           </div>
         )}
       </div>
@@ -504,11 +550,17 @@ const STYLES = `
 .lta-row-lastseen { flex:1; display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.7rem; color:#94A3B8; white-space:nowrap; }
 
 /* Pagination */
-.lta-pagination { display:flex; align-items:center; justify-content:center; gap:16px; margin-top:24px; }
-.lta-pg-btn { display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; color:#475569; cursor:pointer; transition:all .15s; }
-.lta-pg-btn:hover:not(:disabled) { border-color:#2563EB; color:#2563EB; }
-.lta-pg-btn:disabled { opacity:.4; cursor:not-allowed; }
-.lta-pg-info { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; }
+.lta-pagination { display:flex; align-items:center; justify-content:space-between; margin-top:28px; padding:16px 20px; background:#FFF; border-radius:12px; border:1px solid #E2E8F0; }
+.lta-pg-info-left { font-family:'Inter',sans-serif; font-size:.78rem; color:#94A3B8; font-weight:500; }
+.lta-pg-btns { display:flex; align-items:center; gap:4px; }
+.lta-pg-btn { display:flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; color:#475569; cursor:pointer; transition:all .15s; }
+.lta-pg-btn:hover:not(:disabled) { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.lta-pg-btn:disabled { opacity:.3; cursor:not-allowed; }
+.lta-pg-num { display:flex; align-items:center; justify-content:center; min-width:34px; height:34px; border-radius:8px; border:none; background:transparent; color:#64748B; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; padding:0 4px; }
+.lta-pg-num:hover { background:#F1F5F9; color:#0F172A; }
+.lta-pg-num--active { background:#2563EB !important; color:#FFF !important; box-shadow:0 2px 6px rgba(37,99,235,.25); }
+.lta-pg-dots { font-family:'Inter',sans-serif; font-size:.82rem; color:#CBD5E1; padding:0 2px; }
+@media(max-width:640px) { .lta-pg-info-left { display:none; } .lta-pagination { justify-content:center; } }
 
 /* ── DETAIL MODAL ── */
 .lta-modal-overlay .p-dialog-header { display:none !important; }
