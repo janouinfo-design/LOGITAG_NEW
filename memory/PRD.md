@@ -1,79 +1,96 @@
 # LOGITAG - Product Requirements Document
 
 ## Original Problem Statement
-Créer/améliorer une application LOGITAG à partir de code existant sur le dépôt GitHub `https://github.com/janouinfo-design/LOGITAG_NEW` (ReactJS). L'utilisateur a demandé plusieurs refontes UI/UX globales (login, dashboard, datatables, filtres) pour rendre l'interface plus propre et moderne.
+Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS. L'application doit ressembler à Samsara, Uber Fleet, Stripe Dashboard. L'utilisateur veut garder React existant et la connexion API externe Omniyat.
 
 ## Tech Stack
-- **Frontend**: React 18, PrimeReact, Redux Toolkit, Metronic UI, Tailwind CSS, Leaflet
-- **Backend**: EXTERNAL API (omniyat.is-certified.com:82/logitag_node/) - no local backend
+- **Frontend**: React 18, PrimeReact, Redux Toolkit, TailwindCSS, ShadCN UI, Lucide React
+- **Backend**: FastAPI + MongoDB (proxy vers API externe)
+- **External API**: omniyat.is-certified.com:82/logitag_node/ (proxied via /api/proxy/)
 - **Auth**: admin / user@1234
 
 ## Architecture
 ```
 /app/frontend/src/
 ├── components/
-│   ├── Dashboard/          # ACTIVE Dashboard (KPI cards, detail views)
-│   ├── DashboardNew/       # INACTIVE/Legacy - DO NOT USE
-│   ├── Engin/              # Engins list and details
-│   ├── Tag/                # Tags list
-│   ├── User/               # Authentication (LoginComponent)
-│   └── shared/             # Shared UI (DatatableComponent)
-├── logitag-theme.css       # Global modern styling
-├── logitag-datatable.css   # Datatable specific styling
-└── api/                    # Axios instances for external API
+│   ├── premium/                # NEW Premium SaaS components
+│   │   ├── PremiumLayout.jsx   # Main layout (sidebar + main area)
+│   │   ├── PremiumSidebar.jsx  # Collapsible sidebar
+│   │   ├── PremiumBottomNav.jsx # Mobile bottom navigation
+│   │   └── PremiumDashboard.jsx # Dashboard with KPIs + widgets
+│   ├── Dashboard/              # Dashboard detail views (cards, table, modal)
+│   ├── DashboardNew/           # INACTIVE - DO NOT USE
+│   ├── Engin/                  # Engins list
+│   ├── Tag/                    # Tags list
+│   ├── User/                   # Authentication
+│   └── shared/                 # Shared UI (DatatableComponent)
+├── app/routing/
+│   └── PrivateRoutes.jsx       # Uses PremiumLayout (replaces MasterLayout)
+└── configs/index.js            # Default route: tagdashboard/index
 ```
 
 ## Completed Features
 
 ### Phase 1 - Environment Setup (DONE)
-- Cloned and configured React environment from LOGITAG_NEW repo
-- Fixed Craco, Webpack, TS/JS conflicts, and ESLint compilation errors
+- Cloned React environment, fixed Craco/Webpack/ESLint
+- API proxy created on backend to avoid CORS/cookie issues
 
 ### Phase 2 - UI/UX Overhaul (DONE)
-- Redesigned Login Page (modern split-panel design)
-- Created global modern UI themes: logitag-theme.css, logitag-datatable.css
-- Redesigned main Dashboard KPI cards (DashboardListCards, CardDashboard)
-- Replaced toggle switches with modern chips in column selector (DataTableComponent)
-- Added default "Tous" (All) filter option to EnginList filters
+- Login page modern split-panel
+- Global CSS themes (logitag-theme.css, logitag-datatable.css)
+- DataTable column chips, "Tous" filter
 
-### Phase 3 - Dashboard Detail Hybrid View (DONE - Feb 25, 2026)
-- **Option D implemented**: Hybrid Toggle Table/Cartes for Dashboard Detail
-- Toggle button in header to switch between Table and Card Grid views
-- Initial card grid with basic layout - Testing: 100% (iteration_8.json)
+### Phase 3 - Dashboard Detail Hybrid View (DONE)
+- Toggle Tableau/Cartes, 5-column card grid, detail modals
 
-### Phase 4 - Car-Rental Style Card Redesign + Detail Modal (DONE - Feb 25, 2026)
-- **5-column grid** layout inspired by car rental website design
-- **New card design**: Header (REF + "Détails →" button), large photo/icon area, famille in colored text, status chips, location footer
-- **Detail Modal** when clicking "Détails →":
-  - Tag modal: STATUT pills (Actif/Inactif), fields (ID Tag, Label, Famille, Status, Adresse)
-  - Engin modal: Photo, STATUT pills (Réception/Sortie/Non actif), 12 fields, battery bar with visual indicator, "Voir sur la carte" button
-- **Responsive grid**: 5 cols → 4 → 3 → 2 → 1 based on viewport
-- Search bar with live filtering and result count
-- Testing: 100% pass rate (iteration_9.json)
+### Phase 4 - Premium SaaS Layout (DONE - Apr 5, 2026)
+- **PremiumLayout**: Replaces Metronic MasterLayout
+- **PremiumSidebar**: Collapsible (260px → 72px), 8 nav items + logout
+  - Dashboard, Carte, Assets, Zones, Activité, Alertes, Clients, Paramètres
+  - Active state highlighting, smooth transitions
+- **PremiumBottomNav**: Mobile bottom navigation (5 items)
+- **PremiumDashboard**: 
+  - 4 KPI cards with real API data, progress bars, click-to-filter
+  - Mini map widget placeholder
+  - Alerts feed (3 mock alerts)
+  - Activity timeline (4 mock events)
+- Default route changed to tagdashboard/index
+- Testing: 100% pass rate (iteration_10.json)
 
 ## Pending/Future Tasks
 
-### P2 - Grid/Card View for Other Pages
-- Implement grid/card view options on Engins and Tags list pages (same style)
+### P0 - Phase 2: Core Pages
+- Page Assets: fusion Engins + Tags, vues liste/cartes/map, recherche intelligente, filtres
+- Page Détail Asset: style Stripe (infos, batterie, mini map, historique, zones)
+- Page Map: fullscreen avec Mapbox GL JS, clustering, filtres
 
-### P2 - Column Configuration Presets
-- Add "Presets" for the column configuration panel (e.g., "Full view", "Simple view")
+### P1 - Phase 3: Fonctionnalités avancées
+- Alerts center (alertes dynamiques depuis API, pas mock)
+- Activity timeline (événements depuis API, pas mock)
+- Zones management (création zone polygon, règles)
+- WebSocket temps réel
 
-### P3 - Real-time GPS Map Widget
-- Add a GPS map widget directly on the dashboard
+### P2 - Phase 4: Polish
+- Dark mode
+- Mobile responsive complet
+- Performance optimisation
+- Mode Scan BLE, Mode proximité
 
 ## Known Issues
 - External API slowness (omniyat.is-certified.com) - out of control
-- Browser caching issues for user - advise incognito/hard refresh
-- Minor React warnings (non-boolean attributes, missing keys) - LOW priority
+- WebSocket connection to external API fails (not proxied yet)
+- Alerts feed & Activity timeline use static/mock data
+- Minor React warnings (non-boolean attributes, missing keys)
 
 ## Key Files
-1. `/app/frontend/src/logitag-theme.css` - Global modern theme
-2. `/app/frontend/src/logitag-datatable.css` - Datatable styling
-3. `/app/frontend/src/components/Dashboard/user-interface/DashboardDetail/DashboardDetail.jsx` - Car-rental style cards + detail modal
-4. `/app/frontend/src/components/Dashboard/user-interface/DashboardTable/DashboardTable.jsx` - Toggle container
-5. `/app/frontend/src/components/shared/DatatableComponent/DataTableComponent.jsx` - Core shared datatable
-6. `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Engin filters
+1. `/app/frontend/src/components/premium/PremiumLayout.jsx`
+2. `/app/frontend/src/components/premium/PremiumSidebar.jsx`
+3. `/app/frontend/src/components/premium/PremiumDashboard.jsx`
+4. `/app/frontend/src/components/premium/PremiumBottomNav.jsx`
+5. `/app/frontend/src/components/Dashboard/user-interface/DashboardDetail/DashboardDetail.jsx`
+6. `/app/frontend/src/components/Dashboard/user-interface/DashboardTable/DashboardTable.jsx`
+7. `/app/frontend/src/app/routing/PrivateRoutes.jsx`
+8. `/app/backend/server.py` (proxy route)
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_9.json`
+- `/app/test_reports/iteration_1.json` through `iteration_10.json`
