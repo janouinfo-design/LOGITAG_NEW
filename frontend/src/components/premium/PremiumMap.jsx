@@ -351,28 +351,28 @@ const PremiumMap = () => {
 
                         {/* Battery bar */}
                         <div className="ltmap-popup-bat">
-                          <Battery size={13} style={{color: bat.color}} />
+                          <Battery size={11} style={{color: bat.color}} />
                           <div className="ltmap-popup-bat-bar">
                             <div className="ltmap-popup-bat-fill" style={{width: `${bat.pct}%`, background: bat.color}} />
                           </div>
-                          <span style={{color: bat.color, fontWeight: 700, fontSize: '.72rem'}}>{bat.label}</span>
+                          <span style={{color: bat.color, fontWeight: 700, fontSize: '.65rem'}}>{bat.label}</span>
                         </div>
 
                         {/* Location */}
                         <div className="ltmap-popup-loc">
-                          <MapPin size={11} /> {item.LocationObjectname || item.enginAddress || '—'}
+                          <MapPin size={9} /> {item.LocationObjectname || item.enginAddress || '—'}
                         </div>
 
                         {/* Time info - MOST IMPORTANT */}
                         {item.lastSeenAt && (
                           <div className="ltmap-popup-time-section">
                             <div className="ltmap-popup-time-row">
-                              <Clock size={11} />
+                              <Clock size={9} />
                               <span className="ltmap-popup-time-label">Dernière activité</span>
                               <span className="ltmap-popup-time-val">{formatTimeAgo(item.lastSeenAt) || '—'}</span>
                             </div>
                             <div className="ltmap-popup-time-row">
-                              <Calendar size={11} />
+                              <Calendar size={9} />
                               <span className="ltmap-popup-time-label">Arrivée</span>
                               <span className="ltmap-popup-time-val">{formatDateTime(item.lastSeenAt)}</span>
                             </div>
@@ -390,7 +390,7 @@ const PremiumMap = () => {
                             dispatch(setSelectedEngine(item))
                             navigate('/asset/detail')
                           }} className="ltmap-popup-btn">
-                            <Eye size={13} /> Voir détails
+                            <Eye size={11} /> Voir détails
                           </button>
                         </div>
                       </div>
@@ -554,43 +554,43 @@ const MAP_STYLES = `
 
   /* Popup */
   .ltmap-popup .leaflet-popup-content-wrapper {
-    border-radius: 14px !important; padding: 0 !important;
-    box-shadow: 0 8px 30px rgba(0,0,0,.12) !important;
+    border-radius: 12px !important; padding: 0 !important;
+    box-shadow: 0 6px 20px rgba(0,0,0,.12) !important;
     border: 1px solid #E2E8F0;
   }
-  .ltmap-popup .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
+  .ltmap-popup .leaflet-popup-content { margin: 0 !important; width: 220px !important; }
   .ltmap-popup .leaflet-popup-tip { display: none; }
   .ltmap-popup-content { padding: 0; }
-  .ltmap-popup-img { width: 100%; height: 130px; object-fit: cover; border-radius: 14px 14px 0 0; }
-  .ltmap-popup-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 0; gap: 8px; }
-  .ltmap-popup-ref { font-family: 'Manrope', sans-serif; font-size: .92rem; font-weight: 800; color: #0F172A; }
-  .ltmap-popup-etat { display: inline-flex; padding: 3px 10px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: .65rem; font-weight: 700; flex-shrink: 0; }
-  .ltmap-popup-label { font-family: 'Inter', sans-serif; font-size: .72rem; color: #64748B; padding: 2px 14px 0; }
+  .ltmap-popup-img { width: 100%; height: 80px; object-fit: cover; border-radius: 12px 12px 0 0; }
+  .ltmap-popup-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px 0; gap: 6px; }
+  .ltmap-popup-ref { font-family: 'Manrope', sans-serif; font-size: .78rem; font-weight: 800; color: #0F172A; }
+  .ltmap-popup-etat { display: inline-flex; padding: 2px 7px; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: .58rem; font-weight: 700; flex-shrink: 0; }
+  .ltmap-popup-label { font-family: 'Inter', sans-serif; font-size: .65rem; color: #64748B; padding: 1px 10px 0; }
 
-  .ltmap-popup-info { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 0; }
-  .ltmap-popup-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #F8FAFC; }
+  .ltmap-popup-info { padding: 4px 10px 2px; display: flex; flex-direction: column; gap: 0; }
+  .ltmap-popup-row { display: flex; justify-content: space-between; align-items: center; padding: 3px 0; border-bottom: 1px solid #F8FAFC; }
   .ltmap-popup-row:last-child { border-bottom: none; }
-  .ltmap-popup-row-l { font-family: 'Inter', sans-serif; font-size: .68rem; color: #94A3B8; }
-  .ltmap-popup-row-v { font-family: 'Manrope', sans-serif; font-size: .75rem; font-weight: 600; color: #0F172A; text-align: right; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ltmap-popup-row-l { font-family: 'Inter', sans-serif; font-size: .62rem; color: #94A3B8; }
+  .ltmap-popup-row-v { font-family: 'Manrope', sans-serif; font-size: .65rem; font-weight: 600; color: #0F172A; text-align: right; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .ltmap-popup-bat { display: flex; align-items: center; gap: 8px; padding: 8px 14px 4px; }
-  .ltmap-popup-bat-bar { flex: 1; height: 6px; background: #F1F5F9; border-radius: 3px; overflow: hidden; }
-  .ltmap-popup-bat-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+  .ltmap-popup-bat { display: flex; align-items: center; gap: 6px; padding: 4px 10px 2px; }
+  .ltmap-popup-bat-bar { flex: 1; height: 4px; background: #F1F5F9; border-radius: 2px; overflow: hidden; }
+  .ltmap-popup-bat-fill { height: 100%; border-radius: 2px; transition: width .3s; }
 
-  .ltmap-popup-loc { display: flex; align-items: center; gap: 4px; padding: 4px 14px; font-family: 'Inter', sans-serif; font-size: .68rem; color: #94A3B8; }
-  .ltmap-popup-coords { padding: 0 14px 4px; font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: #CBD5E1; }
+  .ltmap-popup-loc { display: flex; align-items: center; gap: 3px; padding: 2px 10px; font-family: 'Inter', sans-serif; font-size: .62rem; color: #94A3B8; }
+  .ltmap-popup-coords { padding: 0 10px 2px; font-family: monospace; font-size: .55rem; color: #CBD5E1; }
 
-  .ltmap-popup-time-section { padding: 6px 14px; background: #F8FAFC; border-top: 1px solid #F1F5F9; }
-  .ltmap-popup-time-row { display: flex; align-items: center; gap: 6px; padding: 4px 0; font-family: 'Inter', sans-serif; font-size: .72rem; color: #64748B; }
+  .ltmap-popup-time-section { padding: 4px 10px; background: #F8FAFC; border-top: 1px solid #F1F5F9; }
+  .ltmap-popup-time-row { display: flex; align-items: center; gap: 4px; padding: 2px 0; font-family: 'Inter', sans-serif; font-size: .62rem; color: #64748B; }
   .ltmap-popup-time-label { flex: 1; }
-  .ltmap-popup-time-val { font-weight: 700; color: #0F172A; font-family: 'Manrope', sans-serif; font-size: .72rem; }
+  .ltmap-popup-time-val { font-weight: 700; color: #0F172A; font-family: 'Manrope', sans-serif; font-size: .62rem; }
 
-  .ltmap-popup-actions { padding: 10px 14px; border-top: 1px solid #F1F5F9; }
+  .ltmap-popup-actions { padding: 6px 10px; border-top: 1px solid #F1F5F9; }
   .ltmap-popup-btn {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 7px 16px; border-radius: 8px; border: none;
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 12px; border-radius: 6px; border: none;
     background: #2563EB; color: #FFF;
-    font-family: 'Inter', sans-serif; font-size: .75rem; font-weight: 600;
+    font-family: 'Inter', sans-serif; font-size: .65rem; font-weight: 600;
     cursor: pointer; transition: all .15s; width: 100%; justify-content: center;
   }
   .ltmap-popup-btn:hover { background: #1D4ED8; }

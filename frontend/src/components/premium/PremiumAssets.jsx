@@ -246,7 +246,7 @@ const PremiumAssets = () => {
           {item.image ? (
             <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
           ) : (
-            <div className="lta-row-img-ph"><Truck size={18} strokeWidth={1.5} /></div>
+            <div className="lta-row-img-ph"><Truck size={14} strokeWidth={1.5} /></div>
           )}
         </div>
         <div className="lta-row-main">
@@ -254,21 +254,21 @@ const PremiumAssets = () => {
           <span className="lta-row-label">{item.label || ''}</span>
         </div>
         <div className="lta-row-zone">
-          <MapPin size={13} />
+          <MapPin size={11} />
           <span>{item.LocationObjectname || '—'}</span>
         </div>
         <div className="lta-row-bat">
           <div className="lta-bat-bar lta-bat-bar--sm"><div className="lta-bat-fill" style={{width: `${bat.pct}%`, background: bat.color}} /></div>
-          <span style={{color: bat.color, fontSize: '.72rem', fontWeight: 600}}>{bat.label}</span>
+          <span style={{color: bat.color, fontSize: '.68rem', fontWeight: 600}}>{bat.label}</span>
         </div>
-        <span className="lta-chip lta-chip--sm" style={{background: etat.bg, color: etat.color}}>
+        <span className="lta-chip lta-chip--sm" style={{background: etat.bg, color: etat.color, fontSize: '.65rem', padding: '2px 8px'}}>
           {etat.label}
         </span>
-        <span className="lta-chip lta-chip--sm" style={{background: item.statusbgColor || '#94A3B8', color: item.color || '#FFF'}}>
+        <span className="lta-chip lta-chip--sm" style={{background: item.statusbgColor || '#94A3B8', color: item.color || '#FFF', fontSize: '.65rem', padding: '2px 8px'}}>
           {item.statuslabel || '—'}
         </span>
         <span className="lta-row-lastseen">
-          <Clock size={12} /> {formatTimeAgo(item.lastSeenAt)}
+          <Clock size={10} /> {formatTimeAgo(item.lastSeenAt)}
         </span>
       </div>
     )
@@ -592,26 +592,26 @@ const STYLES = `
 
 /* ── LIST VIEW ── */
 .lta-list { background:#FFF; border-radius:14px; border:1px solid #E2E8F0; overflow:hidden; }
-.lta-list-head { display:flex; align-items:center; gap:12px; padding:12px 20px; background:#FAFBFC; border-bottom:1px solid #F1F5F9; }
-.lta-lh-col { flex:1; font-family:'Inter',sans-serif; font-size:.7rem; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:.04em; }
+.lta-list-head { display:flex; align-items:center; gap:8px; padding:8px 16px; background:#FAFBFC; border-bottom:1px solid #F1F5F9; }
+.lta-lh-col { flex:1; font-family:'Inter',sans-serif; font-size:.65rem; font-weight:600; color:#94A3B8; text-transform:uppercase; letter-spacing:.04em; }
 .lta-lh-col--main { flex:2; }
 .lta-lh-sort { cursor:pointer; display:flex; align-items:center; gap:4px; transition:color .15s; user-select:none; }
 .lta-lh-sort:hover { color:#2563EB; }
 .lta-sort-desc { transform:rotate(180deg); }
 
-.lta-row { display:flex; align-items:center; gap:12px; padding:14px 20px; border-bottom:1px solid #F8FAFC; cursor:pointer; transition:background .1s; }
+.lta-row { display:flex; align-items:center; gap:8px; padding:8px 16px; border-bottom:1px solid #F8FAFC; cursor:pointer; transition:background .1s; }
 .lta-row:hover { background:#FAFBFC; }
 .lta-row:last-child { border-bottom:none; }
-.lta-row-img { width:44px; height:44px; border-radius:10px; overflow:hidden; flex-shrink:0; background:#F1F5F9; }
+.lta-row-img { width:32px; height:32px; border-radius:6px; overflow:hidden; flex-shrink:0; background:#F1F5F9; }
 .lta-row-img img { width:100%; height:100%; object-fit:cover; }
 .lta-row-img-ph { width:100%; height:100%; display:flex; align-items:center; justify-content:center; color:#CBD5E1; }
-.lta-row-main { flex:2; display:flex; flex-direction:column; gap:2px; min-width:0; }
-.lta-row-ref { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; color:#0F172A; }
-.lta-row-label { font-family:'Inter',sans-serif; font-size:.7rem; color:#94A3B8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.lta-row-zone { flex:1; display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.75rem; color:#64748B; min-width:0; }
+.lta-row-main { flex:2; display:flex; flex-direction:column; gap:1px; min-width:0; }
+.lta-row-ref { font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:700; color:#0F172A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.lta-row-label { font-family:'Inter',sans-serif; font-size:.65rem; color:#94A3B8; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.lta-row-zone { flex:1; display:flex; align-items:center; gap:3px; font-family:'Inter',sans-serif; font-size:.72rem; color:#64748B; min-width:0; }
 .lta-row-zone span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.lta-row-bat { flex:1; display:flex; align-items:center; gap:6px; }
-.lta-row-lastseen { flex:1; display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.7rem; color:#94A3B8; white-space:nowrap; }
+.lta-row-bat { flex:1; display:flex; align-items:center; gap:4px; }
+.lta-row-lastseen { flex:1; display:flex; align-items:center; gap:3px; font-family:'Inter',sans-serif; font-size:.68rem; color:#94A3B8; white-space:nowrap; }
 
 /* Pagination */
 .lta-pagination { display:flex; align-items:center; justify-content:space-between; margin-top:28px; padding:16px 20px; background:#FFF; border-radius:12px; border:1px solid #E2E8F0; }
