@@ -14,6 +14,7 @@ import PremiumUsers from './premium/PremiumUsers'
 import PremiumSettings from './premium/PremiumSettings'
 import PremiumReports from './premium/PremiumReports'
 import PremiumGateway from './premium/PremiumGateway'
+import PremiumAssetDetailPreview from './premium/PremiumAssetDetailPreview'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -109,6 +110,7 @@ const components = {
   'deposit/index': DepotComponent,
   'rapports/index': RapportComponent,
   'EnginNoActive/index': EnginInactive,
+  'asset/detail': PremiumAssetDetailPreview,
   'LOGS/index': PremiumActivity,
   'gateway/index': PremiumGateway,
   // 'rapport/index': NewRapportUser,
