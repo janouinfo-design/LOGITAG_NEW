@@ -7,6 +7,9 @@ import ClientDetail from './Customer/CustomerList/ClientDetail'
 import PremiumDashboard from './premium/PremiumDashboard'
 import PremiumAssets from './premium/PremiumAssets'
 import PremiumMap from './premium/PremiumMap'
+import PremiumActivity from './premium/PremiumActivity'
+import PremiumAlerts from './premium/PremiumAlerts'
+import PremiumZones from './premium/PremiumZones'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -83,7 +86,7 @@ const components = {
   'tag/detail': TagDetail,
   'Company/index': CompanyComponent,
   'menu/setup': SetupInfo,
-  'Geofence/index': GeofencingComponent,
+  'Geofence/index': PremiumZones,
   // 'facture/index': QrCodeApk,
   'facture/fournisseur': Facturation,
   'facture/client': FacturationList,
@@ -102,7 +105,7 @@ const components = {
   'deposit/index': DepotComponent,
   'rapports/index': RapportComponent,
   'EnginNoActive/index': EnginInactive,
-  'LOGS/index': LogsTrackingList,
+  'LOGS/index': PremiumActivity,
   'gateway/index': GatewayComponent,
   // 'rapport/index': NewRapportUser,
   // 'rapport/index': NewRepportComponent,
@@ -125,7 +128,7 @@ const components = {
   'engins/potentialdelivered': PotentialDeliveredEngins,
   'situationtags/index': DashboardNewComponent,
   'dashboard/customer': CustomerDashboard,
-  'alert/index': AlertComponent,
+  'alert/index': PremiumAlerts,
 
   // 'rapport/index': MapTest,
 
