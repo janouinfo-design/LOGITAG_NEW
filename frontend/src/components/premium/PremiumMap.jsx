@@ -321,6 +321,7 @@ const PremiumMap = () => {
             <span className="ltmap-stat">
               <MapPin size={13} /> {filteredAssets.length} localisés
             </span>
+            <span className="ltmap-stat-sep">|</span>
             <span className="ltmap-stat ltmap-stat--warn">
               {allFilteredData.length - filteredAssets.length} sans GPS
             </span>
@@ -510,6 +511,7 @@ const MAP_STYLES = `
     box-shadow: 0 2px 8px rgba(0,0,0,.05);
   }
   .ltmap-stat--warn { color: #D97706; }
+  .ltmap-stat-sep { color: #CBD5E1; font-weight: 400; margin: 0 2px; }
 
   /* Responsive */
   @media (max-width: 768px) {
