@@ -3,7 +3,7 @@ import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {
   fetchEngines, getEngines, setSelectedEngine, setShow,
-  fetchStatusList, getStatusList,
+  fetchStatusList, getStatusList, createOrUpdateEngine,
 } from '../Engin/slice/engin.slice'
 import {fetchTagsWithEngin} from '../Tag/slice/tag.slice'
 import {fetchValidator} from '../Inventory/slice/inventory.slice'
@@ -15,7 +15,7 @@ import EnginMapLocation from '../Engin/EnginList/EnginMapLocation'
 import {
   Search, Filter, LayoutList, LayoutGrid, MapIcon, Download,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Battery, MapPin, Clock, Tag,
-  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown
+  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown, Pencil, Save, Loader2
 } from 'lucide-react'
 
 /* Generate page numbers with ellipsis */
@@ -53,6 +53,10 @@ const PremiumAssets = () => {
   const [mouvement, setMouvement] = useState('')
   const [sortCol, setSortCol] = useState('reference')
   const [sortDir, setSortDir] = useState('asc')
+  const [editItem, setEditItem] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const [editSaving, setEditSaving] = useState(false)
+  const [editMsg, setEditMsg] = useState(null)
   const searchRef = useRef(null)
 
   const formatTimeAgo = (dateStr) => {
@@ -173,6 +177,35 @@ const PremiumAssets = () => {
     setMapDialogVisible(true)
   }
 
+  const openEdit = (item) => {
+    setEditForm({
+      reference: item.reference || '',
+      label: item.label || '',
+      brand: item.brand || '',
+      model: item.model || '',
+      vin: item.vin || '',
+      immatriculation: item.immatriculation || '',
+    })
+    setEditItem(item)
+    setEditMsg(null)
+  }
+
+  const handleEditSave = async () => {
+    setEditSaving(true)
+    setEditMsg(null)
+    const updated = {...editItem, ...editForm}
+    dispatch(setSelectedEngine(updated))
+    const result = await dispatch(createOrUpdateEngine({}))
+    setEditSaving(false)
+    if (result.payload === true) {
+      setEditMsg({type: 'success', text: 'Modifié avec succès'})
+      loadData()
+      setTimeout(() => { setEditItem(null); setEditMsg(null) }, 1200)
+    } else {
+      setEditMsg({type: 'error', text: 'Erreur lors de la sauvegarde'})
+    }
+  }
+
   const getBattery = (b) => {
     if (!b && b !== 0) return {color: '#94A3B8', pct: 0, label: 'N/A'}
     const v = parseInt(b, 10)
@@ -228,7 +261,10 @@ const PremiumAssets = () => {
           <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); handleViewDetail(item); }} title="Détails" data-testid={`asset-detail-btn-${i}`}>
             <Eye size={15} />
           </button>
-          <button className="lta-act-btn" onClick={() => handleShowMap(item)} title="Carte">
+          <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); openEdit(item); }} title="Modifier" data-testid={`asset-edit-btn-${i}`}>
+            <Pencil size={15} />
+          </button>
+          <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); handleShowMap(item); }} title="Carte">
             <MapIcon size={15} />
           </button>
         </div>
@@ -315,7 +351,7 @@ const PremiumAssets = () => {
           <Field label="VIN" value={detailItem.vin} />
           <Field label="Immatriculation" value={detailItem.immatriculation} />
           <Field label="Famille" value={detailItem.famille} />
-          <Field label="Tag" value={detailItem.labeltag || detailItem.tagname} />
+          <Field label="Tag" value={detailItem.labeltag || detailItem.label || '—'} />
           <Field label="Worksite" value={detailItem.LocationObjectname} />
           <Field label="Adresse" value={detailItem.enginAddress} full />
         </div>
@@ -484,6 +520,49 @@ const PremiumAssets = () => {
           </div>
         )}
       </div>
+
+      {/* ── EDIT MODAL ── */}
+      {editItem && (
+        <div className="lta-edit-bg" onClick={() => !editSaving && setEditItem(null)} data-testid="assets-edit-modal-overlay">
+          <div className="lta-edit-modal" onClick={(e) => e.stopPropagation()} data-testid="assets-edit-modal">
+            <div className="lta-edit-head">
+              <h2 className="lta-edit-title">Modifier l'asset</h2>
+              <button className="lta-edit-close" onClick={() => !editSaving && setEditItem(null)}><X size={18} /></button>
+            </div>
+            <div className="lta-edit-body">
+              {[
+                {key: 'reference', label: 'Référence'},
+                {key: 'label', label: 'Label'},
+                {key: 'brand', label: 'Marque'},
+                {key: 'model', label: 'Modèle'},
+                {key: 'vin', label: 'VIN'},
+                {key: 'immatriculation', label: 'Immatriculation'},
+              ].map(f => (
+                <div key={f.key} className="lta-edit-field" data-testid={`assets-edit-field-${f.key}`}>
+                  <label>{f.label}</label>
+                  <input
+                    type="text"
+                    value={editForm[f.key] || ''}
+                    onChange={(e) => setEditForm(prev => ({...prev, [f.key]: e.target.value}))}
+                    data-testid={`assets-edit-input-${f.key}`}
+                  />
+                </div>
+              ))}
+              {editMsg && (
+                <div className={`lta-edit-msg ${editMsg.type === 'success' ? 'lta-edit-msg--ok' : 'lta-edit-msg--err'}`}>
+                  {editMsg.text}
+                </div>
+              )}
+            </div>
+            <div className="lta-edit-foot">
+              <button className="lta-edit-btn lta-edit-btn--cancel" onClick={() => setEditItem(null)} disabled={editSaving}>Annuler</button>
+              <button className="lta-edit-btn lta-edit-btn--save" onClick={handleEditSave} disabled={editSaving} data-testid="assets-edit-save-btn">
+                {editSaving ? <><Loader2 size={14} className="lta-spin" /> Sauvegarde...</> : <><Save size={14} /> Enregistrer</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
@@ -587,7 +666,7 @@ const STYLES = `
 
 .lta-card-actions { display:flex; border-top:1px solid #F1F5F9; }
 .lta-act-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; border:none; background:transparent; color:#64748B; cursor:pointer; transition:all .12s; font-size:.78rem; }
-.lta-act-btn:first-child { border-right:1px solid #F1F5F9; }
+.lta-act-btn + .lta-act-btn { border-left:1px solid #F1F5F9; }
 .lta-act-btn:hover { background:#EFF6FF; color:#2563EB; }
 
 /* ── LIST VIEW ── */
@@ -668,6 +747,56 @@ const STYLES = `
   .lta-list-head { display:none; }
   .lta-row { flex-wrap:wrap; }
 }
+
+/* ── EDIT MODAL (Assets) ── */
+.lta-edit-bg {
+  position:fixed; inset:0; background:rgba(15,23,42,.5); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;
+}
+.lta-edit-modal {
+  background:#FFF; border-radius:16px; width:100%; max-width:520px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;
+  animation:ltaSlideUp .25s ease;
+}
+@keyframes ltaSlideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.lta-edit-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 24px; border-bottom:1px solid #F1F5F9;
+}
+.lta-edit-title { font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:800; color:#0F172A; margin:0; }
+.lta-edit-close {
+  width:36px; height:36px; border-radius:10px; border:1.5px solid #E2E8F0;
+  background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.lta-edit-close:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
+.lta-edit-body { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+.lta-edit-field { display:flex; flex-direction:column; gap:4px; }
+.lta-edit-field label {
+  font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700;
+  color:#64748B; text-transform:uppercase; letter-spacing:.04em;
+}
+.lta-edit-field input {
+  padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0;
+  background:#FAFBFC; font-family:'Inter',sans-serif; font-size:.85rem; color:#0F172A;
+  outline:none; transition:all .2s;
+}
+.lta-edit-field input:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#FFF; }
+.lta-edit-msg { padding:10px 16px; border-radius:10px; font-family:'Inter',sans-serif; font-size:.82rem; font-weight:500; }
+.lta-edit-msg--ok { background:#ECFDF5; color:#059669; }
+.lta-edit-msg--err { background:#FEF2F2; color:#DC2626; }
+.lta-edit-foot { display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid #F1F5F9; }
+.lta-edit-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 20px; border-radius:10px; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.lta-edit-btn--cancel { border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; }
+.lta-edit-btn--cancel:hover { border-color:#94A3B8; }
+.lta-edit-btn--save { border:none; background:#2563EB; color:#FFF; box-shadow:0 2px 8px rgba(37,99,235,.2); }
+.lta-edit-btn--save:hover { background:#1D4ED8; }
+.lta-edit-btn--save:disabled { opacity:.6; cursor:not-allowed; }
+@keyframes ltaSpin { to{transform:rotate(360deg)} }
+.lta-spin { animation:ltaSpin .8s linear infinite; }
 `
 
 export default PremiumAssets

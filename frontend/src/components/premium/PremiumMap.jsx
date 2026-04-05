@@ -7,7 +7,7 @@ import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
   Search, X, Filter, Layers, MapPin, Battery, Clock, Calendar,
-  Crosshair, Truck, ChevronLeft, ChevronRight, Eye, Navigation
+  Crosshair, Truck, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, Navigation
 } from 'lucide-react'
 import {useNavigate} from 'react-router-dom'
 
@@ -63,6 +63,8 @@ const PremiumMap = () => {
   const [mapCenter, setMapCenter] = useState([46.8, 7.15])
   const [mapZoom, setMapZoom] = useState(8)
   const [activeFilter, setActiveFilter] = useState('all')
+  const [sbPage, setSbPage] = useState(1)
+  const sbRows = 15
   const mapRef = useRef(null)
 
   useEffect(() => {
@@ -192,7 +194,7 @@ const PremiumMap = () => {
               className="ltmap-sb-input"
               placeholder="Rechercher..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setSbPage(1); }}
               data-testid="map-search-input"
             />
             {search && <button className="ltmap-sb-clear" onClick={() => setSearch('')}><X size={13} /></button>}
@@ -205,7 +207,7 @@ const PremiumMap = () => {
                 key={f.code}
                 className={`ltmap-sb-filter ${activeFilter === f.code ? 'ltmap-sb-filter--active' : ''}`}
                 style={activeFilter === f.code ? {background: `${f.color}12`, color: f.color, borderColor: f.color} : {}}
-                onClick={() => setActiveFilter(f.code)}
+                onClick={() => { setActiveFilter(f.code); setSbPage(1); }}
                 data-testid={`map-filter-${f.code}`}
               >
                 {f.label}
@@ -220,37 +222,69 @@ const PremiumMap = () => {
             ) : allFilteredData.length === 0 ? (
               <div className="ltmap-sb-empty">Aucun asset</div>
             ) : (
-              allFilteredData.map((item, i) => {
-                const bat = getBat(item.batteries)
-                const etat = getEtat(item)
-                const isSelected = selectedAsset?.id === item.id
+              (() => {
+                const sbTotalPages = Math.ceil(allFilteredData.length / sbRows)
+                const safePage = Math.min(sbPage, sbTotalPages || 1)
+                const paginatedItems = allFilteredData.slice((safePage - 1) * sbRows, safePage * sbRows)
                 return (
-                  <div
-                    key={item.id || i}
-                    className={`ltmap-sb-item ${isSelected ? 'ltmap-sb-item--active' : ''}`}
-                    onClick={() => handleSelectAsset(item)}
-                    data-testid={`map-asset-item-${i}`}
-                  >
-                    <div className="ltmap-sb-item-img">
-                      {item.image ? (
-                        <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
-                      ) : (
-                        <div className="ltmap-sb-item-ph"><Truck size={14} /></div>
-                      )}
-                    </div>
-                    <div className="ltmap-sb-item-info">
-                      <span className="ltmap-sb-item-ref">{item.reference || 'N/A'}</span>
-                      <span className="ltmap-sb-item-loc">
-                        <MapPin size={10} /> {item.LocationObjectname || '—'}
-                      </span>
-                    </div>
-                    <div className="ltmap-sb-item-right">
-                      <span className="ltmap-sb-item-etat" style={{color: etat.color}}>{etat.label}</span>
-                      <span className="ltmap-sb-item-bat" style={{color: bat.color}}>{bat.label}</span>
-                    </div>
-                  </div>
+                  <>
+                    {paginatedItems.map((item, i) => {
+                      const bat = getBat(item.batteries)
+                      const etat = getEtat(item)
+                      const isSelected = selectedAsset?.id === item.id
+                      return (
+                        <div
+                          key={item.id || i}
+                          className={`ltmap-sb-item ${isSelected ? 'ltmap-sb-item--active' : ''}`}
+                          onClick={() => handleSelectAsset(item)}
+                          data-testid={`map-asset-item-${i}`}
+                        >
+                          <div className="ltmap-sb-item-img">
+                            {item.image ? (
+                              <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
+                            ) : (
+                              <div className="ltmap-sb-item-ph"><Truck size={14} /></div>
+                            )}
+                          </div>
+                          <div className="ltmap-sb-item-info">
+                            <span className="ltmap-sb-item-ref">{item.reference || 'N/A'}</span>
+                            <span className="ltmap-sb-item-loc">
+                              <MapPin size={10} /> {item.LocationObjectname || '—'}
+                            </span>
+                          </div>
+                          <div className="ltmap-sb-item-right">
+                            <span className="ltmap-sb-item-etat" style={{color: etat.color}}>{etat.label}</span>
+                            <span className="ltmap-sb-item-bat" style={{color: bat.color}}>{bat.label}</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {sbTotalPages > 1 && (
+                      <div className="ltmap-sb-pagination" data-testid="map-pagination">
+                        <button
+                          className="ltmap-sb-pg-btn"
+                          disabled={safePage <= 1}
+                          onClick={() => setSbPage(p => Math.max(1, p - 1))}
+                          data-testid="map-pg-prev"
+                        >
+                          <ChevronLeft size={14} />
+                        </button>
+                        <span className="ltmap-sb-pg-info" data-testid="map-pg-info">
+                          {safePage} / {sbTotalPages}
+                        </span>
+                        <button
+                          className="ltmap-sb-pg-btn"
+                          disabled={safePage >= sbTotalPages}
+                          onClick={() => setSbPage(p => Math.min(sbTotalPages, p + 1))}
+                          data-testid="map-pg-next"
+                        >
+                          <ChevronRight size={14} />
+                        </button>
+                      </div>
+                    )}
+                  </>
                 )
-              })
+              })()
             )}
           </div>
         </div>
@@ -338,7 +372,7 @@ const PremiumMap = () => {
                           {(item.labeltag || item.tagname) && (
                             <div className="ltmap-popup-row">
                               <span className="ltmap-popup-row-l">Tag</span>
-                              <span className="ltmap-popup-row-v" style={{fontFamily: 'monospace', fontSize: '.7rem'}}>{item.labeltag || item.tagname}</span>
+                              <span className="ltmap-popup-row-v" style={{fontSize: '.7rem'}}>{item.labeltag || item.tagname}</span>
                             </div>
                           )}
                           {item.statuslabel && (
@@ -520,6 +554,25 @@ const MAP_STYLES = `
   .ltmap-sb-skeleton { height: 56px; margin: 4px 12px; border-radius: 10px; background: linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:ltShimmer 1.5s infinite; }
   @keyframes ltShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
   .ltmap-sb-empty { padding: 40px; text-align: center; color: #94A3B8; font-family: 'Inter', sans-serif; font-size: .82rem; }
+
+  /* Sidebar pagination */
+  .ltmap-sb-pagination {
+    display: flex; align-items: center; justify-content: center; gap: 12px;
+    padding: 12px 8px; border-top: 1px solid #F1F5F9;
+    position: sticky; bottom: 0; background: #FFF; z-index: 2;
+  }
+  .ltmap-sb-pg-btn {
+    display: flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px;
+    border: 1.5px solid #E2E8F0; background: #FFF; color: #475569;
+    cursor: pointer; transition: all .15s;
+  }
+  .ltmap-sb-pg-btn:hover:not(:disabled) { border-color: #2563EB; color: #2563EB; background: #EFF6FF; }
+  .ltmap-sb-pg-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .ltmap-sb-pg-info {
+    font-family: 'Manrope', sans-serif; font-size: .78rem; font-weight: 700;
+    color: #0F172A; min-width: 50px; text-align: center;
+  }
 
   /* Toggle */
   .ltmap-sb-toggle {

@@ -1,15 +1,17 @@
-import {useEffect, useState} from 'react'
+import {useEffect, useState, useRef} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
-import {getSelectedEngine} from '../Engin/slice/engin.slice'
+import {getSelectedEngine, setSelectedEngine, createOrUpdateEngine} from '../Engin/slice/engin.slice'
 import {fetchLogList, getLogList} from '../LogsTracking/slice/logs.slice'
 import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet'
 import L from 'leaflet'
 import {API_BASE_URL_IMAGE} from '../../api/config'
+import {FileUploadeComponent} from '../shared/FileUploaderComponent/FileUploadeComponent'
 import {
   ArrowLeft, MapPin, Battery, Radio, Clock, Box, Tag,
   Building2, Calendar, Signal, ChevronRight, Shield,
-  Truck, CheckCircle, AlertTriangle, TrendingUp, Wifi, Eye, X
+  Truck, CheckCircle, AlertTriangle, TrendingUp, Wifi, Eye, X,
+  Pencil, Camera, Save, Loader2
 } from 'lucide-react'
 
 delete L.Icon.Default.prototype._getIconUrl
@@ -32,6 +34,11 @@ const PremiumAssetDetail = () => {
   const asset = useAppSelector(getSelectedEngine)
   const logList = useAppSelector(getLogList)
   const [loading, setLoading] = useState(true)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showPhotoModal, setShowPhotoModal] = useState(false)
+  const [editForm, setEditForm] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState(null)
 
   useEffect(() => {
     if (!asset) {
@@ -45,9 +52,6 @@ const PremiumAssetDetail = () => {
   if (!asset) return null
 
   const logs = Array.isArray(logList) ? logList : []
-
-  if (!asset) return null
-
   const bat = parseBattery(asset.batteries)
   const hasCoords = asset.last_lat && asset.last_lng && asset.last_lat !== 0 && asset.last_lng !== 0
   const center = hasCoords ? [asset.last_lat, asset.last_lng] : [46.5197, 6.6323]
@@ -57,9 +61,55 @@ const PremiumAssetDetail = () => {
     exit: {label: 'Sortie', color: '#D97706', bg: '#FFFBEB'},
   }
   const etat = etatMap[asset.etatenginname] || {label: asset.etatenginname || 'N/A', color: '#64748B', bg: '#F1F5F9'}
-
-  // Generate timeline from real logs related to this asset
   const timeline = buildTimeline(logs, asset)
+
+  const openEditModal = () => {
+    setEditForm({
+      reference: asset.reference || '',
+      label: asset.label || '',
+      brand: asset.brand || '',
+      model: asset.model || '',
+      vin: asset.vin || '',
+      immatriculation: asset.immatriculation || '',
+    })
+    setSaveMsg(null)
+    setShowEditModal(true)
+  }
+
+  const handleEditChange = (field, value) => {
+    setEditForm(prev => ({...prev, [field]: value}))
+  }
+
+  const handleSaveEdit = async () => {
+    setSaving(true)
+    setSaveMsg(null)
+    const updated = {
+      ...asset,
+      reference: editForm.reference,
+      label: editForm.label,
+      brand: editForm.brand,
+      model: editForm.model,
+      vin: editForm.vin,
+      immatriculation: editForm.immatriculation,
+    }
+    dispatch(setSelectedEngine(updated))
+    const result = await dispatch(createOrUpdateEngine({}))
+    setSaving(false)
+    if (result.payload === true) {
+      setSaveMsg({type: 'success', text: 'Asset modifié avec succès'})
+      setTimeout(() => setShowEditModal(false), 1200)
+    } else {
+      setSaveMsg({type: 'error', text: 'Erreur lors de la sauvegarde'})
+    }
+  }
+
+  const handlePhotoUploaded = (saveRes, uploadRes) => {
+    if (saveRes && !saveRes.error) {
+      const newImageId = saveRes?.data?.[0]?.id || saveRes?.data?.id || asset.imageid
+      dispatch(createOrUpdateEngine({imageId: newImageId}))
+      setShowPhotoModal(false)
+    }
+  }
 
   return (
     <>
@@ -77,21 +127,27 @@ const PremiumAssetDetail = () => {
         {/* Hero header */}
         <div className="ltad-hero" data-testid="asset-detail-hero">
           <div className="ltad-hero-left">
-            <div className="ltad-hero-icon">
+            <div className="ltad-hero-icon" style={{position: 'relative', cursor: 'pointer'}} onClick={() => setShowPhotoModal(true)}>
               {asset.image ? (
                 <img src={`${API_BASE_URL_IMAGE}${asset.image}`} alt="" style={{width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14}} />
               ) : (
                 <Truck size={28} style={{color: '#2563EB'}} />
               )}
+              <div className="ltad-photo-overlay" data-testid="asset-photo-edit-btn">
+                <Camera size={16} />
+              </div>
             </div>
             <div>
               <h1 className="ltad-hero-name">{asset.label || asset.reference || 'Asset'}</h1>
               <p className="ltad-hero-ref">
-                {asset.reference} {asset.labeltag || asset.tagname ? `· Tag: ${asset.labeltag || asset.tagname}` : ''}
+                {asset.reference} {asset.labeltag ? `· Tag: ${asset.labeltag}` : ''}
               </p>
             </div>
           </div>
           <div className="ltad-hero-right">
+            <button className="ltad-edit-btn" onClick={openEditModal} data-testid="asset-edit-btn">
+              <Pencil size={14} /> Modifier
+            </button>
             <span className="ltad-badge" style={{background: etat.bg, color: etat.color}}>
               <CheckCircle size={12} /> {etat.label}
             </span>
@@ -172,7 +228,12 @@ const PremiumAssetDetail = () => {
           <div className="ltad-side">
             {/* Details card */}
             <div className="ltad-card" data-testid="asset-detail-info">
-              <div className="ltad-card-head"><h3><Box size={16} /> Détails</h3></div>
+              <div className="ltad-card-head">
+                <h3><Box size={16} /> Détails</h3>
+                <button className="ltad-card-edit" onClick={openEditModal} data-testid="asset-detail-edit-btn">
+                  <Pencil size={12} /> Éditer
+                </button>
+              </div>
               <div className="ltad-info-list">
                 <InfoRow label="Référence" value={asset.reference} />
                 <InfoRow label="Label" value={asset.label} />
@@ -202,11 +263,11 @@ const PremiumAssetDetail = () => {
               </div>
             </div>
 
-            {/* Tag card */}
+            {/* Tag card — LABEL instead of ID */}
             <div className="ltad-card" data-testid="asset-detail-tag">
               <div className="ltad-card-head"><h3><Tag size={16} /> Tag BLE associé</h3></div>
               <div className="ltad-info-list">
-                <InfoRow label="ID Tag" value={asset.labeltag || asset.tagname || 'Non assigné'} />
+                <InfoRow label="Label Tag" value={asset.labeltag || 'Non assigné'} />
                 <InfoRow label="Référence tag" value={asset.tagreference} />
                 <InfoRow label="Statut mouvement" value={asset.etatenginname} />
               </div>
@@ -225,9 +286,91 @@ const PremiumAssetDetail = () => {
           </div>
         </div>
       </div>
+
+      {/* ── EDIT MODAL ── */}
+      {showEditModal && (
+        <div className="ltad-modal-bg" onClick={() => !saving && setShowEditModal(false)} data-testid="edit-modal-overlay">
+          <div className="ltad-modal" onClick={(e) => e.stopPropagation()} data-testid="edit-modal">
+            <div className="ltad-modal-head">
+              <h2>Modifier l'asset</h2>
+              <button className="ltad-modal-close" onClick={() => !saving && setShowEditModal(false)} data-testid="edit-modal-close"><X size={18} /></button>
+            </div>
+            <div className="ltad-modal-body">
+              {EDIT_FIELDS.map(f => (
+                <div key={f.key} className="ltad-edit-field" data-testid={`edit-field-${f.key}`}>
+                  <label>{f.label}</label>
+                  <input
+                    type="text"
+                    value={editForm[f.key] || ''}
+                    onChange={(e) => handleEditChange(f.key, e.target.value)}
+                    placeholder={f.placeholder}
+                    data-testid={`edit-input-${f.key}`}
+                  />
+                </div>
+              ))}
+              {saveMsg && (
+                <div className={`ltad-edit-msg ${saveMsg.type === 'success' ? 'ltad-edit-msg--ok' : 'ltad-edit-msg--err'}`} data-testid="edit-save-msg">
+                  {saveMsg.text}
+                </div>
+              )}
+            </div>
+            <div className="ltad-modal-foot">
+              <button className="ltad-modal-btn ltad-modal-btn--cancel" onClick={() => setShowEditModal(false)} disabled={saving} data-testid="edit-cancel-btn">
+                Annuler
+              </button>
+              <button className="ltad-modal-btn ltad-modal-btn--save" onClick={handleSaveEdit} disabled={saving} data-testid="edit-save-btn">
+                {saving ? <><Loader2 size={14} className="ltad-spin" /> Sauvegarde...</> : <><Save size={14} /> Enregistrer</>}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── PHOTO MODAL ── */}
+      {showPhotoModal && (
+        <div className="ltad-modal-bg" onClick={() => setShowPhotoModal(false)} data-testid="photo-modal-overlay">
+          <div className="ltad-modal ltad-modal--photo" onClick={(e) => e.stopPropagation()} data-testid="photo-modal">
+            <div className="ltad-modal-head">
+              <h2>Modifier la photo</h2>
+              <button className="ltad-modal-close" onClick={() => setShowPhotoModal(false)} data-testid="photo-modal-close"><X size={18} /></button>
+            </div>
+            <div className="ltad-modal-body">
+              {asset.image && (
+                <div className="ltad-photo-preview">
+                  <img src={`${API_BASE_URL_IMAGE}${asset.image}`} alt="Photo actuelle" />
+                  <span className="ltad-photo-current-label">Photo actuelle</span>
+                </div>
+              )}
+              <div className="ltad-photo-upload" data-testid="photo-upload-area">
+                <FileUploadeComponent
+                  accept="image/*"
+                  auto={true}
+                  onUploadFinished={handlePhotoUploaded}
+                  uploadExtraInfo={{
+                    src: 'engin',
+                    srcID: asset.id || 0,
+                    id: asset.imageid || 0,
+                    desc: 'profile',
+                  }}
+                />
+              </div>
+              <p className="ltad-photo-hint">Format: JPG, PNG. Taille max: 1 Mo</p>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }
+
+const EDIT_FIELDS = [
+  {key: 'reference', label: 'Référence', placeholder: 'Ex: REF-001'},
+  {key: 'label', label: 'Label', placeholder: 'Nom de l\'asset'},
+  {key: 'brand', label: 'Marque', placeholder: 'Ex: Caterpillar'},
+  {key: 'model', label: 'Modèle', placeholder: 'Ex: 320F'},
+  {key: 'vin', label: 'VIN', placeholder: 'Numéro VIN'},
+  {key: 'immatriculation', label: 'Immatriculation', placeholder: 'Ex: AB-123-CD'},
+]
 
 function parseBattery(b) {
   if (!b && b !== 0) return {color: '#94A3B8', pct: 0, label: 'N/A'}
@@ -240,7 +383,6 @@ function parseBattery(b) {
 
 function buildTimeline(logs, asset) {
   const events = []
-  // Build from logs data
   if (logs.length > 0) {
     logs.slice(0, 12).forEach((log, i) => {
       const type = i % 4 === 0 ? 'enter' : i % 4 === 1 ? 'exit' : i % 4 === 2 ? 'gateway' : 'alert'
@@ -256,7 +398,6 @@ function buildTimeline(logs, asset) {
       })
     })
   }
-  // If no logs, add placeholder based on asset data
   if (events.length === 0) {
     if (asset.LocationObjectname) {
       events.push({time: '--:--', date: '', type: 'enter', text: `Dernier site: ${asset.LocationObjectname}`, detail: ''})
@@ -287,11 +428,32 @@ const STYLES = `
 
 .ltad-hero { display:flex; align-items:center; justify-content:space-between; margin-bottom:28px; gap:16px; flex-wrap:wrap; }
 .ltad-hero-left { display:flex; align-items:center; gap:16px; }
-.ltad-hero-icon { width:56px; height:56px; border-radius:14px; background:#EFF6FF; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; }
+.ltad-hero-icon { width:56px; height:56px; border-radius:14px; background:#EFF6FF; display:flex; align-items:center; justify-content:center; flex-shrink:0; overflow:hidden; position:relative; }
+.ltad-photo-overlay {
+  position:absolute; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center;
+  color:#FFF; opacity:0; transition:opacity .2s; border-radius:14px; cursor:pointer;
+}
+.ltad-hero-icon:hover .ltad-photo-overlay { opacity:1; }
 .ltad-hero-name { font-family:'Manrope',sans-serif; font-size:1.5rem; font-weight:800; color:#0F172A; letter-spacing:-.03em; margin:0; }
 .ltad-hero-ref { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; margin:4px 0 0; }
-.ltad-hero-right { display:flex; gap:8px; flex-wrap:wrap; }
+.ltad-hero-right { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
 .ltad-badge { display:inline-flex; align-items:center; gap:5px; padding:6px 16px; border-radius:20px; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; }
+
+.ltad-edit-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 18px; border-radius:10px; border:1.5px solid #2563EB;
+  background:#2563EB; color:#FFF; font-family:'Inter',sans-serif; font-size:.82rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.ltad-edit-btn:hover { background:#1D4ED8; }
+
+.ltad-card-edit {
+  display:inline-flex; align-items:center; gap:4px;
+  padding:4px 12px; border-radius:8px; border:1.5px solid #E2E8F0;
+  background:#FFF; color:#64748B; font-family:'Inter',sans-serif; font-size:.72rem; font-weight:500;
+  cursor:pointer; transition:all .15s;
+}
+.ltad-card-edit:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
 
 .ltad-grid { display:grid; grid-template-columns:1fr 360px; gap:24px; }
 @media(max-width:1024px){ .ltad-grid{ grid-template-columns:1fr; } }
@@ -339,6 +501,75 @@ const STYLES = `
 .ltad-skel { height:60px; margin:8px 0; border-radius:8px; background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:ltShimmer 1.5s infinite; }
 @keyframes ltShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .ltad-empty { padding:40px; text-align:center; font-family:'Inter',sans-serif; font-size:.82rem; color:#94A3B8; }
+
+/* ── MODALS ── */
+.ltad-modal-bg {
+  position:fixed; inset:0; background:rgba(15,23,42,.5); backdrop-filter:blur(4px);
+  display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;
+}
+.ltad-modal {
+  background:#FFF; border-radius:16px; width:100%; max-width:520px;
+  box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;
+  animation:ltadSlideUp .25s ease;
+}
+.ltad-modal--photo { max-width:480px; }
+@keyframes ltadSlideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+
+.ltad-modal-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:20px 24px; border-bottom:1px solid #F1F5F9;
+}
+.ltad-modal-head h2 { font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:800; color:#0F172A; margin:0; }
+.ltad-modal-close {
+  width:36px; height:36px; border-radius:10px; border:1.5px solid #E2E8F0;
+  background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s;
+}
+.ltad-modal-close:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
+
+.ltad-modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+
+.ltad-edit-field { display:flex; flex-direction:column; gap:5px; }
+.ltad-edit-field label {
+  font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700;
+  color:#64748B; text-transform:uppercase; letter-spacing:.04em;
+}
+.ltad-edit-field input {
+  padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0;
+  background:#FAFBFC; font-family:'Inter',sans-serif; font-size:.85rem; color:#0F172A;
+  outline:none; transition:all .2s;
+}
+.ltad-edit-field input:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#FFF; }
+
+.ltad-edit-msg {
+  padding:10px 16px; border-radius:10px; font-family:'Inter',sans-serif; font-size:.82rem; font-weight:500;
+}
+.ltad-edit-msg--ok { background:#ECFDF5; color:#059669; }
+.ltad-edit-msg--err { background:#FEF2F2; color:#DC2626; }
+
+.ltad-modal-foot {
+  display:flex; justify-content:flex-end; gap:10px;
+  padding:16px 24px; border-top:1px solid #F1F5F9;
+}
+.ltad-modal-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:10px 20px; border-radius:10px; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.ltad-modal-btn--cancel { border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; }
+.ltad-modal-btn--cancel:hover { border-color:#94A3B8; }
+.ltad-modal-btn--save { border:none; background:#2563EB; color:#FFF; box-shadow:0 2px 8px rgba(37,99,235,.2); }
+.ltad-modal-btn--save:hover { background:#1D4ED8; }
+.ltad-modal-btn--save:disabled { opacity:.6; cursor:not-allowed; }
+
+@keyframes ltadSpin { to{transform:rotate(360deg)} }
+.ltad-spin { animation:ltadSpin .8s linear infinite; }
+
+/* Photo modal */
+.ltad-photo-preview { text-align:center; margin-bottom:8px; }
+.ltad-photo-preview img { width:100%; max-height:180px; object-fit:cover; border-radius:12px; border:1px solid #E2E8F0; }
+.ltad-photo-current-label { font-family:'Inter',sans-serif; font-size:.72rem; color:#94A3B8; display:block; margin-top:6px; }
+.ltad-photo-upload { border:2px dashed #E2E8F0; border-radius:12px; padding:12px; background:#FAFBFC; }
+.ltad-photo-hint { font-family:'Inter',sans-serif; font-size:.72rem; color:#94A3B8; margin:8px 0 0; text-align:center; }
 `
 
 export default PremiumAssetDetail
