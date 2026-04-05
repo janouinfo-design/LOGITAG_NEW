@@ -1,4 +1,5 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, Request, Response
+from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
@@ -9,7 +10,7 @@ from pydantic import BaseModel, Field, ConfigDict
 from typing import List
 import uuid
 from datetime import datetime, timezone
-
+import httpx
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -19,11 +20,17 @@ mongo_url = os.environ['MONGO_URL']
 client = AsyncIOMotorClient(mongo_url)
 db = client[os.environ['DB_NAME']]
 
+# External API base URL
+EXTERNAL_API_URL = "https://omniyat.is-certified.com:82/logitag_node"
+
 # Create the main app without a prefix
 app = FastAPI()
 
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
+
+# HTTP client for proxying requests
+http_client = httpx.AsyncClient(verify=False, timeout=60.0)
 
 
 # Define Models
@@ -68,6 +75,50 @@ async def get_status_checks():
 
 # Include the router in the main app
 app.include_router(api_router)
+
+# ── Proxy route: forwards all /api/proxy/* requests to external API ──
+@app.api_route("/api/proxy/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
+async def proxy_external_api(path: str, request: Request):
+    target_url = f"{EXTERNAL_API_URL}/{path}"
+    
+    # Forward query params
+    if request.query_params:
+        target_url += f"?{request.query_params}"
+    
+    # Forward headers (filter out host-specific ones)
+    headers = {}
+    for key, value in request.headers.items():
+        if key.lower() not in ('host', 'origin', 'referer', 'connection', 'transfer-encoding'):
+            headers[key] = value
+    
+    # Read body
+    body = await request.body()
+    
+    try:
+        response = await http_client.request(
+            method=request.method,
+            url=target_url,
+            headers=headers,
+            content=body,
+        )
+        
+        # Filter response headers
+        resp_headers = {}
+        for key, value in response.headers.items():
+            if key.lower() not in ('content-encoding', 'content-length', 'transfer-encoding', 'connection',
+                                    'access-control-allow-origin', 'access-control-allow-credentials',
+                                    'access-control-allow-methods', 'access-control-allow-headers'):
+                resp_headers[key] = value
+        
+        return Response(
+            content=response.content,
+            status_code=response.status_code,
+            headers=resp_headers,
+            media_type=response.headers.get('content-type', 'application/json'),
+        )
+    except Exception as e:
+        logger.error(f"Proxy error: {e}")
+        return Response(content=f'{{"error": "{str(e)}"}}', status_code=502, media_type="application/json")
 
 app.add_middleware(
     CORSMiddleware,

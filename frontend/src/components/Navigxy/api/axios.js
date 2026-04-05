@@ -6,5 +6,5 @@ export const navixy = axios.create({
 
 export default axios.create({
   baseURL: process.env.REACT_APP_API_URL,
-  withCredentials: true,
+  
 })
