@@ -2,7 +2,7 @@ import {useEffect, useState, useRef} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {getSelectedEngine, setSelectedEngine, createOrUpdateEngine} from '../Engin/slice/engin.slice'
-import {fetchLogList, getLogList} from '../LogsTracking/slice/logs.slice'
+import {fetchLogList, getLogList, setLogList} from '../LogsTracking/slice/logs.slice'
 import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet'
 import L from 'leaflet'
 import {API_BASE_URL_IMAGE} from '../../api/config'
@@ -46,7 +46,20 @@ const PremiumAssetDetail = () => {
       return
     }
     setLoading(true)
-    dispatch(fetchLogList({page: 1, PageSize: 20})).finally(() => setLoading(false))
+    // Fetch logs with timeout to avoid hanging on slow API
+    const timeout = setTimeout(() => setLoading(false), 8000)
+    dispatch(fetchLogList({page: 1, PageSize: 20})).then((res) => {
+      clearTimeout(timeout)
+      // Store result in Redux since the thunk doesn't dispatch setLogList
+      if (res?.payload && Array.isArray(res.payload)) {
+        dispatch(setLogList(res.payload))
+      }
+      setLoading(false)
+    }).catch(() => {
+      clearTimeout(timeout)
+      setLoading(false)
+    })
+    return () => clearTimeout(timeout)
   }, [asset, dispatch, navigate])
 
   if (!asset) return null
