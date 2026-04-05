@@ -2,7 +2,7 @@ import {useEffect, useState, useCallback, useRef} from 'react'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {fetchEngines, getEngines, setSelectedEngine} from '../Engin/slice/engin.slice'
 import {API_BASE_URL_IMAGE} from '../../api/config'
-import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet'
+import {MapContainer, TileLayer, Marker, Popup, Tooltip, useMap} from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
@@ -268,6 +268,8 @@ const PremiumMap = () => {
                 const [lat, lng] = getCoords(item)
                 const bat = getBat(item.batteries)
                 const etat = getEtat(item)
+                const displayName = item.label || item.reference || 'Asset'
+                const shortName = displayName.length > 18 ? displayName.slice(0, 16) + '…' : displayName
                 return (
                   <Marker
                     key={item.id || i}
@@ -277,25 +279,74 @@ const PremiumMap = () => {
                       click: () => setSelectedAsset(item),
                     }}
                   >
+                    <Tooltip direction="top" offset={[0, -34]} className="ltmap-tooltip" permanent={false}>
+                      <strong>{shortName}</strong>
+                    </Tooltip>
                     <Popup className="ltmap-popup">
                       <div className="ltmap-popup-content">
                         {item.image && (
                           <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" className="ltmap-popup-img" />
                         )}
-                        <div className="ltmap-popup-ref">{item.reference || 'N/A'}</div>
-                        <div className="ltmap-popup-label">{item.label || ''}</div>
-                        <div className="ltmap-popup-meta">
-                          <span style={{color: etat.color}}>{etat.label}</span>
-                          <span style={{color: bat.color}}>
-                            <Battery size={12} /> {bat.label}
-                          </span>
+                        <div className="ltmap-popup-header">
+                          <div className="ltmap-popup-ref">{item.reference || 'N/A'}</div>
+                          <span className="ltmap-popup-etat" style={{background: `${etat.color}15`, color: etat.color}}>{etat.label}</span>
                         </div>
+                        {item.label && <div className="ltmap-popup-label">{item.label}</div>}
+
+                        {/* Info rows */}
+                        <div className="ltmap-popup-info">
+                          {item.famille && (
+                            <div className="ltmap-popup-row">
+                              <span className="ltmap-popup-row-l">Famille</span>
+                              <span className="ltmap-popup-row-v" style={{color: item.familleBgcolor || '#0F172A'}}>{item.famille}</span>
+                            </div>
+                          )}
+                          {item.customername && (
+                            <div className="ltmap-popup-row">
+                              <span className="ltmap-popup-row-l">Client</span>
+                              <span className="ltmap-popup-row-v">{item.customername}</span>
+                            </div>
+                          )}
+                          {(item.labeltag || item.tagname) && (
+                            <div className="ltmap-popup-row">
+                              <span className="ltmap-popup-row-l">Tag</span>
+                              <span className="ltmap-popup-row-v" style={{fontFamily: 'monospace', fontSize: '.7rem'}}>{item.labeltag || item.tagname}</span>
+                            </div>
+                          )}
+                          {item.statuslabel && (
+                            <div className="ltmap-popup-row">
+                              <span className="ltmap-popup-row-l">Statut</span>
+                              <span className="ltmap-popup-row-v" style={{color: item.statusbgColor || '#64748B'}}>{item.statuslabel}</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Battery bar */}
+                        <div className="ltmap-popup-bat">
+                          <Battery size={13} style={{color: bat.color}} />
+                          <div className="ltmap-popup-bat-bar">
+                            <div className="ltmap-popup-bat-fill" style={{width: `${bat.pct}%`, background: bat.color}} />
+                          </div>
+                          <span style={{color: bat.color, fontWeight: 700, fontSize: '.72rem'}}>{bat.label}</span>
+                        </div>
+
+                        {/* Location */}
                         <div className="ltmap-popup-loc">
                           <MapPin size={11} /> {item.LocationObjectname || item.enginAddress || '—'}
                         </div>
+
+                        {/* Coordinates */}
+                        <div className="ltmap-popup-coords">
+                          {lat.toFixed(5)}, {lng.toFixed(5)}
+                        </div>
+
+                        {/* Actions */}
                         <div className="ltmap-popup-actions">
-                          <button onClick={() => navigate('/view/engin/index')} className="ltmap-popup-btn">
-                            <Eye size={13} /> Détails
+                          <button onClick={() => {
+                            dispatch(setSelectedEngine(item))
+                            navigate('/asset/detail')
+                          }} className="ltmap-popup-btn">
+                            <Eye size={13} /> Voir détails
                           </button>
                         </div>
                       </div>
@@ -461,25 +512,52 @@ const MAP_STYLES = `
   .ltmap-popup .leaflet-popup-content-wrapper {
     border-radius: 14px !important; padding: 0 !important;
     box-shadow: 0 8px 30px rgba(0,0,0,.12) !important;
+    border: 1px solid #E2E8F0;
   }
-  .ltmap-popup .leaflet-popup-content { margin: 0 !important; width: 240px !important; }
+  .ltmap-popup .leaflet-popup-content { margin: 0 !important; width: 280px !important; }
   .ltmap-popup .leaflet-popup-tip { display: none; }
   .ltmap-popup-content { padding: 0; }
-  .ltmap-popup-img { width: 100%; height: 120px; object-fit: cover; border-radius: 14px 14px 0 0; }
-  .ltmap-popup-ref { font-family: 'Manrope', sans-serif; font-size: .88rem; font-weight: 700; color: #0F172A; padding: 12px 14px 2px; }
-  .ltmap-popup-label { font-family: 'Inter', sans-serif; font-size: .72rem; color: #64748B; padding: 0 14px; }
-  .ltmap-popup-meta { display: flex; gap: 12px; padding: 8px 14px 4px; font-family: 'Inter', sans-serif; font-size: .72rem; font-weight: 600; }
-  .ltmap-popup-meta span { display: flex; align-items: center; gap: 4px; }
+  .ltmap-popup-img { width: 100%; height: 130px; object-fit: cover; border-radius: 14px 14px 0 0; }
+  .ltmap-popup-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px 0; gap: 8px; }
+  .ltmap-popup-ref { font-family: 'Manrope', sans-serif; font-size: .92rem; font-weight: 800; color: #0F172A; }
+  .ltmap-popup-etat { display: inline-flex; padding: 3px 10px; border-radius: 6px; font-family: 'Inter', sans-serif; font-size: .65rem; font-weight: 700; flex-shrink: 0; }
+  .ltmap-popup-label { font-family: 'Inter', sans-serif; font-size: .72rem; color: #64748B; padding: 2px 14px 0; }
+
+  .ltmap-popup-info { padding: 8px 14px 4px; display: flex; flex-direction: column; gap: 0; }
+  .ltmap-popup-row { display: flex; justify-content: space-between; align-items: center; padding: 5px 0; border-bottom: 1px solid #F8FAFC; }
+  .ltmap-popup-row:last-child { border-bottom: none; }
+  .ltmap-popup-row-l { font-family: 'Inter', sans-serif; font-size: .68rem; color: #94A3B8; }
+  .ltmap-popup-row-v { font-family: 'Manrope', sans-serif; font-size: .75rem; font-weight: 600; color: #0F172A; text-align: right; max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .ltmap-popup-bat { display: flex; align-items: center; gap: 8px; padding: 8px 14px 4px; }
+  .ltmap-popup-bat-bar { flex: 1; height: 6px; background: #F1F5F9; border-radius: 3px; overflow: hidden; }
+  .ltmap-popup-bat-fill { height: 100%; border-radius: 3px; transition: width .3s; }
+
   .ltmap-popup-loc { display: flex; align-items: center; gap: 4px; padding: 4px 14px; font-family: 'Inter', sans-serif; font-size: .68rem; color: #94A3B8; }
+  .ltmap-popup-coords { padding: 0 14px 4px; font-family: 'JetBrains Mono', monospace; font-size: .6rem; color: #CBD5E1; }
   .ltmap-popup-actions { padding: 10px 14px; border-top: 1px solid #F1F5F9; }
   .ltmap-popup-btn {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 6px 14px; border-radius: 8px; border: none;
-    background: #EFF6FF; color: #2563EB;
+    padding: 7px 16px; border-radius: 8px; border: none;
+    background: #2563EB; color: #FFF;
     font-family: 'Inter', sans-serif; font-size: .75rem; font-weight: 600;
-    cursor: pointer; transition: all .15s;
+    cursor: pointer; transition: all .15s; width: 100%; justify-content: center;
   }
-  .ltmap-popup-btn:hover { background: #2563EB; color: #FFF; }
+  .ltmap-popup-btn:hover { background: #1D4ED8; }
+
+  /* Tooltip */
+  .ltmap-tooltip {
+    font-family: 'Manrope', sans-serif !important;
+    font-size: .75rem !important;
+    font-weight: 700 !important;
+    background: rgba(15, 23, 42, .88) !important;
+    color: #FFF !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 5px 10px !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15) !important;
+  }
+  .ltmap-tooltip::before { border-top-color: rgba(15, 23, 42, .88) !important; }
 
   /* FAB */
   .ltmap-fab-group {
