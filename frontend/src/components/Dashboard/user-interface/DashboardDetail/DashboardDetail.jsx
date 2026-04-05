@@ -440,9 +440,10 @@ const DashboardDetail = ({viewMode = 'cards'}) => {
 
   /* ───── search filter ───── */
   const getFilteredData = () => {
-    if (!dashboardDataDetail || !searchTerm.trim()) return dashboardDataDetail || []
+    const arr = Array.isArray(dashboardDataDetail) ? dashboardDataDetail : []
+    if (!arr.length || !searchTerm.trim()) return arr
     const term = searchTerm.toLowerCase()
-    return dashboardDataDetail.filter((item) => {
+    return arr.filter((item) => {
       const fields = [item.reference,item.label,item.tagname,item.labeltag,item.vin,item.famille,item.brand,item.model,item.immatriculation,item.LocationObjectname,item.name,item.status,item.statuslabel,item.enginAddress,item.tagAddress]
       return fields.some((f) => f && String(f).toLowerCase().includes(term))
     })
@@ -681,7 +682,7 @@ const DashboardDetail = ({viewMode = 'cards'}) => {
 
   /* ═══════ CARD GRID ═══════ */
   const renderCardGrid = () => {
-    if (!filteredData || filteredData.length === 0) {
+    if (!Array.isArray(filteredData) || filteredData.length === 0) {
       return (
         <div className="lt-empty-state" data-testid="empty-state">
           <i className={isEngin ? 'fas fa-truck' : 'fas fa-tags'} />
