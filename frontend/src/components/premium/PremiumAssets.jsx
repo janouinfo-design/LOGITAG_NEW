@@ -1,4 +1,5 @@
 import {useEffect, useState, useCallback, useRef} from 'react'
+import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {
   fetchEngines, getEngines, setSelectedEngine, setShow,
@@ -19,6 +20,7 @@ import {
 
 const PremiumAssets = () => {
   const dispatch = useAppDispatch()
+  const navigate = useNavigate()
   const engines = useAppSelector(getEngines)
   const sites = useAppSelector(getSites)
   const statusList = useAppSelector(getStatusList)
@@ -89,6 +91,7 @@ const PremiumAssets = () => {
     dispatch(setSelectedEngine(item))
     dispatch(setShow(false))
     dispatch(fetchTagsWithEngin(item.id))
+    navigate('/asset/detail')
   }
 
   const handleShowMap = (item) => {
@@ -151,7 +154,7 @@ const PremiumAssets = () => {
           </div>
         </div>
         <div className="lta-card-actions">
-          <button className="lta-act-btn" onClick={() => setDetailItem(item)} title="Détails" data-testid={`asset-detail-btn-${i}`}>
+          <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); handleViewDetail(item); }} title="Détails" data-testid={`asset-detail-btn-${i}`}>
             <Eye size={15} />
           </button>
           <button className="lta-act-btn" onClick={() => handleShowMap(item)} title="Carte">
