@@ -1,96 +1,83 @@
 # LOGITAG - Product Requirements Document
 
 ## Original Problem Statement
-Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS. L'application doit ressembler à Samsara, Uber Fleet, Stripe Dashboard. L'utilisateur veut garder React existant et la connexion API externe Omniyat.
+Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS (style Samsara/Stripe/Uber Fleet). Garder React existant + connexion API externe Omniyat.
 
 ## Tech Stack
-- **Frontend**: React 18, PrimeReact, Redux Toolkit, TailwindCSS, ShadCN UI, Lucide React
+- **Frontend**: React 18, PrimeReact, Redux Toolkit, TailwindCSS, ShadCN UI, Lucide React, Leaflet
 - **Backend**: FastAPI + MongoDB (proxy vers API externe)
 - **External API**: omniyat.is-certified.com:82/logitag_node/ (proxied via /api/proxy/)
 - **Auth**: admin / user@1234
 
 ## Architecture
 ```
-/app/frontend/src/
-├── components/
-│   ├── premium/                # NEW Premium SaaS components
-│   │   ├── PremiumLayout.jsx   # Main layout (sidebar + main area)
-│   │   ├── PremiumSidebar.jsx  # Collapsible sidebar
-│   │   ├── PremiumBottomNav.jsx # Mobile bottom navigation
-│   │   └── PremiumDashboard.jsx # Dashboard with KPIs + widgets
-│   ├── Dashboard/              # Dashboard detail views (cards, table, modal)
-│   ├── DashboardNew/           # INACTIVE - DO NOT USE
-│   ├── Engin/                  # Engins list
-│   ├── Tag/                    # Tags list
-│   ├── User/                   # Authentication
-│   └── shared/                 # Shared UI (DatatableComponent)
-├── app/routing/
-│   └── PrivateRoutes.jsx       # Uses PremiumLayout (replaces MasterLayout)
-└── configs/index.js            # Default route: tagdashboard/index
+/app/frontend/src/components/premium/
+├── PremiumLayout.jsx       # Main layout (sidebar + main area, fullscreen for map)
+├── PremiumSidebar.jsx      # Collapsible sidebar (8 nav items + logout)
+├── PremiumBottomNav.jsx    # Mobile bottom navigation (5 items)
+├── PremiumDashboard.jsx    # Dashboard: KPIs, mini map, alerts, activity
+├── PremiumAssets.jsx       # Assets page: card/list views, search, filters, modal
+└── PremiumMap.jsx          # Map: fullscreen Leaflet, sidebar, clustering, filters
 ```
 
 ## Completed Features
 
 ### Phase 1 - Environment Setup (DONE)
 - Cloned React environment, fixed Craco/Webpack/ESLint
-- API proxy created on backend to avoid CORS/cookie issues
+- API proxy on backend (/api/proxy/) to avoid CORS/cookie issues
 
-### Phase 2 - UI/UX Overhaul (DONE)
-- Login page modern split-panel
-- Global CSS themes (logitag-theme.css, logitag-datatable.css)
-- DataTable column chips, "Tous" filter
+### Phase 2 - Premium SaaS Layout (DONE - Apr 5, 2026)
+- PremiumLayout replaces Metronic MasterLayout
+- Collapsible sidebar (260px → 72px), 8 nav items + logout
+- Mobile bottom nav, fullscreen mode for Map page
+- Testing: 100% (iteration_10.json)
 
-### Phase 3 - Dashboard Detail Hybrid View (DONE)
-- Toggle Tableau/Cartes, 5-column card grid, detail modals
+### Phase 3 - Premium Dashboard (DONE - Apr 5, 2026)
+- 4 KPI cards with real API data, progress bars, click-to-filter
+- Mini map widget, Alerts feed, Activity timeline widgets
+- Default route: /tagdashboard/index
+- Testing: 100% (iteration_10.json)
 
-### Phase 4 - Premium SaaS Layout (DONE - Apr 5, 2026)
-- **PremiumLayout**: Replaces Metronic MasterLayout
-- **PremiumSidebar**: Collapsible (260px → 72px), 8 nav items + logout
-  - Dashboard, Carte, Assets, Zones, Activité, Alertes, Clients, Paramètres
-  - Active state highlighting, smooth transitions
-- **PremiumBottomNav**: Mobile bottom navigation (5 items)
-- **PremiumDashboard**: 
-  - 4 KPI cards with real API data, progress bars, click-to-filter
-  - Mini map widget placeholder
-  - Alerts feed (3 mock alerts)
-  - Activity timeline (4 mock events)
-- Default route changed to tagdashboard/index
-- Testing: 100% pass rate (iteration_10.json)
+### Phase 4 - Premium Assets Page (DONE - Apr 5, 2026)
+- Fusion Engins + Tags into "Assets" view
+- Card grid (4 cols) + List view toggle
+- Search bar, Filter chips (Tous/Entrée/Sortie)
+- Detail modal: photo, STATUT pills, 10 fields, battery bar, "Voir sur la carte" / "Fiche complète"
+- Export button, Pagination
+- Testing: 100% (iteration_11.json)
+
+### Phase 5 - Premium Map Page (DONE - Apr 5, 2026)
+- Fullscreen Leaflet map with CARTO tiles
+- Independent sidebar: asset list, search, filters (Tous/Entrée/Sortie)
+- Marker clustering, color-coded markers by status
+- Popup with photo, status, battery, actions
+- FAB buttons (Recentrer, Calques), Stats overlay
+- Sidebar toggle (collapse/expand)
+- Testing: 100% (iteration_12.json)
 
 ## Pending/Future Tasks
 
-### P0 - Phase 2: Core Pages
-- Page Assets: fusion Engins + Tags, vues liste/cartes/map, recherche intelligente, filtres
-- Page Détail Asset: style Stripe (infos, batterie, mini map, historique, zones)
-- Page Map: fullscreen avec Mapbox GL JS, clustering, filtres
+### P1 - Remaining Pages
+- Page Détail Asset: style Stripe (infos, batterie graph, mini map, historique, zones)
+- Zones management: création polygon sur carte, règles entrée/sortie
+- Activity page: timeline globale avec événements réels (pas mock)
+- Alerts center: alertes dynamiques depuis API
 
-### P1 - Phase 3: Fonctionnalités avancées
-- Alerts center (alertes dynamiques depuis API, pas mock)
-- Activity timeline (événements depuis API, pas mock)
-- Zones management (création zone polygon, règles)
-- WebSocket temps réel
-
-### P2 - Phase 4: Polish
-- Dark mode
-- Mobile responsive complet
-- Performance optimisation
+### P2 - Advanced Features
+- WebSocket temps réel (positions, alertes)
+- Dark mode support
 - Mode Scan BLE, Mode proximité
 
-## Known Issues
-- External API slowness (omniyat.is-certified.com) - out of control
-- WebSocket connection to external API fails (not proxied yet)
-- Alerts feed & Activity timeline use static/mock data
-- Minor React warnings (non-boolean attributes, missing keys)
+### P3 - Polish
+- Responsive mobile complet
+- Performance optimisation
+- Multi-tenant B2B
 
-## Key Files
-1. `/app/frontend/src/components/premium/PremiumLayout.jsx`
-2. `/app/frontend/src/components/premium/PremiumSidebar.jsx`
-3. `/app/frontend/src/components/premium/PremiumDashboard.jsx`
-4. `/app/frontend/src/components/premium/PremiumBottomNav.jsx`
-5. `/app/frontend/src/components/Dashboard/user-interface/DashboardDetail/DashboardDetail.jsx`
-6. `/app/frontend/src/components/Dashboard/user-interface/DashboardTable/DashboardTable.jsx`
-7. `/app/frontend/src/app/routing/PrivateRoutes.jsx`
-8. `/app/backend/server.py` (proxy route)
+## Known Issues
+- External API slowness (omniyat.is-certified.com)
+- Most assets have 0 GPS coordinates (map shows "0 localisés")
+- Alerts feed & Activity timeline use static/mock data
+- WebSocket not proxied yet
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_10.json`
+- `/app/test_reports/iteration_1.json` through `iteration_12.json`
