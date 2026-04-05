@@ -6,6 +6,7 @@ import CustomerComponent from './Customer/CustomerComponent'
 import ClientDetail from './Customer/CustomerList/ClientDetail'
 import PremiumDashboard from './premium/PremiumDashboard'
 import PremiumAssets from './premium/PremiumAssets'
+import PremiumMap from './premium/PremiumMap'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -78,7 +79,7 @@ const components = {
   'view/staff/index': TeamComponent,
   'worksite/index': SiteComponent,
   'Invoice/index': InvoiceComponent,
-  'tour/index': TagMapViewComponent,
+  'tour/index': PremiumMap,
   'tag/detail': TagDetail,
   'Company/index': CompanyComponent,
   'menu/setup': SetupInfo,
