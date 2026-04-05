@@ -10,6 +10,10 @@ import PremiumMap from './premium/PremiumMap'
 import PremiumActivity from './premium/PremiumActivity'
 import PremiumAlerts from './premium/PremiumAlerts'
 import PremiumZones from './premium/PremiumZones'
+import PremiumUsers from './premium/PremiumUsers'
+import PremiumSettings from './premium/PremiumSettings'
+import PremiumReports from './premium/PremiumReports'
+import PremiumGateway from './premium/PremiumGateway'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -79,13 +83,13 @@ const components = {
   'view/engin/index': PremiumAssets,
   'tag/index': TagComponent,
   'customer/index': CustomerComponent,
-  'view/staff/index': TeamComponent,
+  'view/staff/index': PremiumUsers,
   'worksite/index': SiteComponent,
   'Invoice/index': InvoiceComponent,
   'tour/index': PremiumMap,
   'tag/detail': TagDetail,
   'Company/index': CompanyComponent,
-  'menu/setup': SetupInfo,
+  'menu/setup': PremiumSettings,
   'Geofence/index': PremiumZones,
   // 'facture/index': QrCodeApk,
   'facture/fournisseur': Facturation,
@@ -106,10 +110,10 @@ const components = {
   'rapports/index': RapportComponent,
   'EnginNoActive/index': EnginInactive,
   'LOGS/index': PremiumActivity,
-  'gateway/index': GatewayComponent,
+  'gateway/index': PremiumGateway,
   // 'rapport/index': NewRapportUser,
   // 'rapport/index': NewRepportComponent,
-  'rapport/index': RapportDisplayed,
+  'rapport/index': PremiumReports,
   'qrcodeapk/index': QrCodeApk,
   'datainsertion/index': DataInsertion,
   'places/reservationvehicule': ReservationVehComponent,

@@ -2,7 +2,8 @@ import {useNavigate, useLocation} from 'react-router-dom'
 import {useLayoutCtx} from './PremiumLayout'
 import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
-  ChevronLeft, ChevronRight, MapPin, Users, LogOut
+  ChevronLeft, ChevronRight, MapPin, Users, LogOut,
+  Radio, FileBarChart, UserCircle
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
@@ -14,6 +15,9 @@ const NAV_ITEMS = [
   {id: 'zones', label: 'Zones', icon: MapPin, path: '/Geofence/index'},
   {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
   {id: 'alerts', label: 'Alertes', icon: Bell, path: '/alert/index'},
+  {id: 'users', label: 'Utilisateurs', icon: UserCircle, path: '/view/staff/index'},
+  {id: 'gateway', label: 'Gateway', icon: Radio, path: '/gateway/index'},
+  {id: 'reports', label: 'Rapports', icon: FileBarChart, path: '/rapport/index'},
   {id: 'clients', label: 'Clients', icon: Users, path: '/customer/index'},
   {id: 'settings', label: 'Paramètres', icon: Settings, path: '/menu/setup'},
 ]

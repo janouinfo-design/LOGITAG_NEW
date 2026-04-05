@@ -28,5 +28,45 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900004,
+        "Text": "Gateway",
+        "Link": "gateway/index",
+        "Name": "Gateway",
+        "icon": "fa-solid fa-signal",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
+    },
+    {
+        "ID": 900005,
+        "Text": "Rapports",
+        "Link": "rapport/index",
+        "Name": "Rapports",
+        "icon": "fa-solid fa-chart-bar",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
+    },
+    {
+        "ID": 900006,
+        "Text": "Utilisateurs",
+        "Link": "view/staff/index",
+        "Name": "Utilisateurs",
+        "icon": "fa-solid fa-users",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
+    },
+    {
+        "ID": 900007,
+        "Text": "Paramètres",
+        "Link": "menu/setup",
+        "Name": "Paramètres",
+        "icon": "fa-solid fa-cog",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]
