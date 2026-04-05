@@ -185,6 +185,13 @@ const PremiumAssets = () => {
       model: item.model || '',
       vin: item.vin || '',
       immatriculation: item.immatriculation || '',
+      tagname: item.labeltag || item.tagname || '',
+      famille: item.famille || '',
+      LocationObjectname: item.LocationObjectname || '',
+      enginAddress: item.enginAddress || '',
+      etatenginname: item.etatenginname || '',
+      statuslabel: item.statuslabel || '',
+      infosAdditionnelles: item.infosAdditionnelles || '',
     })
     setEditItem(item)
     setEditMsg(null)
@@ -530,24 +537,33 @@ const PremiumAssets = () => {
               <button className="lta-edit-close" onClick={() => !editSaving && setEditItem(null)}><X size={18} /></button>
             </div>
             <div className="lta-edit-body">
-              {[
-                {key: 'reference', label: 'Référence'},
-                {key: 'label', label: 'Label'},
-                {key: 'brand', label: 'Marque'},
-                {key: 'model', label: 'Modèle'},
-                {key: 'vin', label: 'VIN'},
-                {key: 'immatriculation', label: 'Immatriculation'},
-              ].map(f => (
-                <div key={f.key} className="lta-edit-field" data-testid={`assets-edit-field-${f.key}`}>
-                  <label>{f.label}</label>
-                  <input
-                    type="text"
-                    value={editForm[f.key] || ''}
-                    onChange={(e) => setEditForm(prev => ({...prev, [f.key]: e.target.value}))}
-                    data-testid={`assets-edit-input-${f.key}`}
-                  />
-                </div>
-              ))}
+              <div className="lta-edit-grid">
+                {[
+                  {key: 'reference', label: 'Référence'},
+                  {key: 'label', label: 'Label'},
+                  {key: 'brand', label: 'Marque'},
+                  {key: 'model', label: 'Modèle'},
+                  {key: 'vin', label: 'VIN'},
+                  {key: 'immatriculation', label: 'Matricule'},
+                  {key: 'tagname', label: 'Tag'},
+                  {key: 'famille', label: 'Famille'},
+                  {key: 'etatenginname', label: 'Situation'},
+                  {key: 'statuslabel', label: 'Statut'},
+                  {key: 'LocationObjectname', label: 'Site'},
+                  {key: 'enginAddress', label: 'Adresse', full: true},
+                  {key: 'infosAdditionnelles', label: 'Infos additionnelles', full: true},
+                ].map(f => (
+                  <div key={f.key} className={`lta-edit-field ${f.full ? 'lta-edit-field--full' : ''}`} data-testid={`assets-edit-field-${f.key}`}>
+                    <label>{f.label}</label>
+                    <input
+                      type="text"
+                      value={editForm[f.key] || ''}
+                      onChange={(e) => setEditForm(prev => ({...prev, [f.key]: e.target.value}))}
+                      data-testid={`assets-edit-input-${f.key}`}
+                    />
+                  </div>
+                ))}
+              </div>
               {editMsg && (
                 <div className={`lta-edit-msg ${editMsg.type === 'success' ? 'lta-edit-msg--ok' : 'lta-edit-msg--err'}`}>
                   {editMsg.text}
@@ -754,9 +770,9 @@ const STYLES = `
   display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;
 }
 .lta-edit-modal {
-  background:#FFF; border-radius:16px; width:100%; max-width:520px;
+  background:#FFF; border-radius:16px; width:100%; max-width:620px;
   box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;
-  animation:ltaSlideUp .25s ease;
+  animation:ltaSlideUp .25s ease; max-height:90vh; display:flex; flex-direction:column;
 }
 @keyframes ltaSlideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
 .lta-edit-head {
@@ -769,8 +785,10 @@ const STYLES = `
   background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s;
 }
 .lta-edit-close:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
-.lta-edit-body { padding:20px 24px; display:flex; flex-direction:column; gap:14px; }
+.lta-edit-body { padding:20px 24px; display:flex; flex-direction:column; gap:14px; overflow-y:auto; flex:1; }
+.lta-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .lta-edit-field { display:flex; flex-direction:column; gap:4px; }
+.lta-edit-field--full { grid-column:1/-1; }
 .lta-edit-field label {
   font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700;
   color:#64748B; text-transform:uppercase; letter-spacing:.04em;

@@ -84,6 +84,13 @@ const PremiumAssetDetail = () => {
       model: asset.model || '',
       vin: asset.vin || '',
       immatriculation: asset.immatriculation || '',
+      tagname: asset.labeltag || asset.tagname || '',
+      famille: asset.famille || '',
+      LocationObjectname: asset.LocationObjectname || '',
+      enginAddress: asset.enginAddress || '',
+      etatenginname: asset.etatenginname || '',
+      statuslabel: asset.statuslabel || '',
+      infosAdditionnelles: asset.infosAdditionnelles || '',
     })
     setSaveMsg(null)
     setShowEditModal(true)
@@ -104,6 +111,13 @@ const PremiumAssetDetail = () => {
       model: editForm.model,
       vin: editForm.vin,
       immatriculation: editForm.immatriculation,
+      tagname: editForm.tagname,
+      famille: editForm.famille,
+      LocationObjectname: editForm.LocationObjectname,
+      enginAddress: editForm.enginAddress,
+      etatenginname: editForm.etatenginname,
+      statuslabel: editForm.statuslabel,
+      infosAdditionnelles: editForm.infosAdditionnelles,
     }
     dispatch(setSelectedEngine(updated))
     const result = await dispatch(createOrUpdateEngine({}))
@@ -309,18 +323,20 @@ const PremiumAssetDetail = () => {
               <button className="ltad-modal-close" onClick={() => !saving && setShowEditModal(false)} data-testid="edit-modal-close"><X size={18} /></button>
             </div>
             <div className="ltad-modal-body">
-              {EDIT_FIELDS.map(f => (
-                <div key={f.key} className="ltad-edit-field" data-testid={`edit-field-${f.key}`}>
-                  <label>{f.label}</label>
-                  <input
-                    type="text"
-                    value={editForm[f.key] || ''}
-                    onChange={(e) => handleEditChange(f.key, e.target.value)}
-                    placeholder={f.placeholder}
-                    data-testid={`edit-input-${f.key}`}
-                  />
-                </div>
-              ))}
+              <div className="ltad-edit-grid">
+                {EDIT_FIELDS.map(f => (
+                  <div key={f.key} className={`ltad-edit-field ${f.full ? 'ltad-edit-field--full' : ''}`} data-testid={`edit-field-${f.key}`}>
+                    <label>{f.label}</label>
+                    <input
+                      type="text"
+                      value={editForm[f.key] || ''}
+                      onChange={(e) => handleEditChange(f.key, e.target.value)}
+                      placeholder={f.placeholder}
+                      data-testid={`edit-input-${f.key}`}
+                    />
+                  </div>
+                ))}
+              </div>
               {saveMsg && (
                 <div className={`ltad-edit-msg ${saveMsg.type === 'success' ? 'ltad-edit-msg--ok' : 'ltad-edit-msg--err'}`} data-testid="edit-save-msg">
                   {saveMsg.text}
@@ -382,7 +398,14 @@ const EDIT_FIELDS = [
   {key: 'brand', label: 'Marque', placeholder: 'Ex: Caterpillar'},
   {key: 'model', label: 'Modèle', placeholder: 'Ex: 320F'},
   {key: 'vin', label: 'VIN', placeholder: 'Numéro VIN'},
-  {key: 'immatriculation', label: 'Immatriculation', placeholder: 'Ex: AB-123-CD'},
+  {key: 'immatriculation', label: 'Matricule', placeholder: 'Ex: AB-123-CD'},
+  {key: 'tagname', label: 'Tag', placeholder: 'Label du tag'},
+  {key: 'famille', label: 'Famille', placeholder: 'Ex: Engin'},
+  {key: 'etatenginname', label: 'Situation', placeholder: 'reception / exit'},
+  {key: 'statuslabel', label: 'Statut', placeholder: 'Ex: Actif'},
+  {key: 'LocationObjectname', label: 'Site', placeholder: 'Nom du site'},
+  {key: 'enginAddress', label: 'Adresse', placeholder: 'Adresse complète', full: true},
+  {key: 'infosAdditionnelles', label: 'Infos additionnelles', placeholder: 'Notes supplémentaires', full: true},
 ]
 
 function parseBattery(b) {
@@ -521,9 +544,9 @@ const STYLES = `
   display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px;
 }
 .ltad-modal {
-  background:#FFF; border-radius:16px; width:100%; max-width:520px;
+  background:#FFF; border-radius:16px; width:100%; max-width:620px;
   box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden;
-  animation:ltadSlideUp .25s ease;
+  animation:ltadSlideUp .25s ease; max-height:90vh; display:flex; flex-direction:column;
 }
 .ltad-modal--photo { max-width:480px; }
 @keyframes ltadSlideUp { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
@@ -539,9 +562,11 @@ const STYLES = `
 }
 .ltad-modal-close:hover { border-color:#EF4444; color:#EF4444; background:#FEF2F2; }
 
-.ltad-modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.ltad-modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; overflow-y:auto; flex:1; }
 
+.ltad-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .ltad-edit-field { display:flex; flex-direction:column; gap:5px; }
+.ltad-edit-field--full { grid-column:1/-1; }
 .ltad-edit-field label {
   font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700;
   color:#64748B; text-transform:uppercase; letter-spacing:.04em;
