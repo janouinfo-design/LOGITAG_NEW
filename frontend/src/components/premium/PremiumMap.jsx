@@ -74,9 +74,9 @@ const PremiumMap = () => {
 
   /* Filter assets with GPS coordinates */
   const assetsWithLocation = data.filter((a) => {
-    const lat = parseFloat(a.latitude || a.lat)
-    const lng = parseFloat(a.longitude || a.lng || a.lon)
-    return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0
+    const lat = parseFloat(a.last_lat || a.latitude || a.lat)
+    const lng = parseFloat(a.last_lng || a.longitude || a.lng || a.lon)
+    return !isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && lat !== -1 && lng !== -1
   })
 
   const filteredAssets = assetsWithLocation.filter((a) => {
@@ -100,14 +100,14 @@ const PremiumMap = () => {
   })
 
   const getCoords = (item) => [
-    parseFloat(item.latitude || item.lat),
-    parseFloat(item.longitude || item.lng || item.lon)
+    parseFloat(item.last_lat || item.latitude || item.lat),
+    parseFloat(item.last_lng || item.longitude || item.lng || item.lon)
   ]
 
   const handleSelectAsset = (item) => {
     setSelectedAsset(item)
-    const lat = parseFloat(item.latitude || item.lat)
-    const lng = parseFloat(item.longitude || item.lng || item.lon)
+    const lat = parseFloat(item.last_lat || item.latitude || item.lat)
+    const lng = parseFloat(item.last_lng || item.longitude || item.lng || item.lon)
     if (!isNaN(lat) && !isNaN(lng)) {
       setMapCenter([lat, lng])
       setMapZoom(15)
