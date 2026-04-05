@@ -13,24 +13,33 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 ```
 /app/frontend/src/components/premium/
 ├── PremiumLayout.jsx       # Main layout (sidebar + main area, fullscreen for map)
-├── PremiumSidebar.jsx      # Collapsible sidebar (8 nav items + logout)
-├── PremiumBottomNav.jsx    # Mobile bottom navigation (5 items)
+├── PremiumSidebar.jsx      # Collapsible sidebar (11 nav items + logout)
+├── PremiumBottomNav.jsx    # Mobile bottom navigation
 ├── PremiumDashboard.jsx    # Dashboard: KPIs, mini map, alerts, activity
-├── PremiumAssets.jsx       # Assets page: card/list views, search, filters, modal
+├── PremiumAssets.jsx       # Assets: card/list views, search, filters, detail modal
 ├── PremiumMap.jsx          # Map: fullscreen Leaflet, sidebar, clustering, filters
 ├── PremiumActivity.jsx     # Activity: timeline, stats, search, filter chips
 ├── PremiumAlerts.jsx       # Alerts: severity, stats, resolve/mark buttons
-└── PremiumZones.jsx        # Zones: Leaflet polygons, zone panel, detail drawer
+├── PremiumZones.jsx        # Zones: Leaflet polygons, zone panel, detail drawer
+├── PremiumUsers.jsx        # Users: stats, table, avatars, search, export
+├── PremiumSettings.jsx     # Settings: 4 tabs (Entreprise/Familles/Statuts/Corbeille)
+├── PremiumReports.jsx      # Reports: type cards, generated report list, actions
+└── PremiumGateway.jsx      # Gateway: stats, Leaflet map, gateway panel, logs
 ```
 
 ## Routing
 Routes dynamiques via API menus + EXTRA_MENU (config.js) -> components.js mapping:
-- `/tagdashboard/index` → PremiumDashboard
-- `/tour/index` → PremiumMap (fullscreen)
-- `/view/engin/index` → PremiumAssets
-- `/Geofence/index` → PremiumZones
-- `/LOGS/index` → PremiumActivity
-- `/alert/index` → PremiumAlerts
+- `/tagdashboard/index` -> PremiumDashboard
+- `/tour/index` -> PremiumMap (fullscreen)
+- `/view/engin/index` -> PremiumAssets
+- `/Geofence/index` -> PremiumZones
+- `/LOGS/index` -> PremiumActivity
+- `/alert/index` -> PremiumAlerts
+- `/view/staff/index` -> PremiumUsers
+- `/gateway/index` -> PremiumGateway
+- `/rapport/index` -> PremiumReports
+- `/menu/setup` -> PremiumSettings (tabs internes)
+- `/customer/index` -> Clients (legacy)
 
 ## Completed Features
 
@@ -38,30 +47,35 @@ Routes dynamiques via API menus + EXTRA_MENU (config.js) -> components.js mappin
 - Cloned React environment, fixed Craco/Webpack/ESLint
 - API proxy on backend (/api/proxy/) to avoid CORS/cookie issues
 
-### Phase 2 - Premium SaaS Layout (DONE - Apr 5, 2026)
+### Phase 2 - Premium SaaS Layout (DONE)
 - PremiumLayout replaces Metronic MasterLayout
-- Collapsible sidebar (260px → 72px), 8 nav items + logout
-- Mobile bottom nav, fullscreen mode for Map page
+- Collapsible sidebar, Mobile bottom nav, fullscreen mode for Map page
 
-### Phase 3 - Premium Dashboard (DONE - Apr 5, 2026)
+### Phase 3 - Premium Dashboard (DONE)
 - 4 KPI cards with real API data, progress bars, click-to-filter
 - Mini map widget, Alerts feed, Activity timeline widgets
 
-### Phase 4 - Premium Assets Page (DONE - Apr 5, 2026)
-- Card grid (4 cols) + List view toggle
-- Search bar, Filter chips, Detail modal, Export button, Pagination
+### Phase 4 - Premium Assets Page (DONE)
+- Card grid + List view toggle, Search, Filter chips, Detail modal, Export, Pagination
 
-### Phase 5 - Premium Map Page (DONE - Apr 5, 2026)
-- Fullscreen Leaflet map with CARTO tiles
-- Independent sidebar, Marker clustering, color-coded markers
-- Popup with details, FAB buttons, Stats overlay
+### Phase 5 - Premium Map Page (DONE)
+- Fullscreen Leaflet map, Independent sidebar, Marker clustering, Popup
 
-### Phase 6 - Activity, Alerts, Zones Pages (DONE - Apr 5, 2026)
-- **Activity**: Stats cards (Entrées/Sorties/Alertes/Hors ligne), timeline avec données réelles, filtres, recherche
-- **Alertes**: Stats par type, badges de sévérité (Critique/Attention/Info), bouton "Marquer traité", filtres
-- **Zones**: Carte Leaflet avec polygones colorés, panneau latéral, tiroir de détails, règles d'alerte
-- Routes ajoutées dans EXTRA_MENU + components.js
-- Testing: 100% (iteration_13.json)
+### Phase 6 - Activity, Alerts, Zones Pages (DONE)
+- Activity: Stats, timeline, filters, search
+- Alerts: Stats par type, severity badges, "Marquer traité"
+- Zones: Leaflet polygons, zone panel, detail drawer
+
+### Phase 7 - Users, Settings, Reports, Gateway Pages (DONE - Apr 5, 2026)
+- **Utilisateurs**: Stats (15 Total/14 Actifs/1 Inactifs), table with avatars, search, Excel/PDF export
+- **Paramètres**: 4 onglets internes (Entreprise/Familles/Statuts/Corbeille)
+  - Entreprise: Info fields (Nom, Secteur, Contact, Adresse)
+  - Familles: Object filter chips + famille list (real API)
+  - Statuts: Table with color dots, icons (real API)
+  - Corbeille: 50 inactive items with restore action
+- **Rapports**: 3 type cards (Présence/Mouvement/Localisation), 214 generated reports, search, download/view/delete
+- **Gateway**: Stats (5 Total/5 En ligne), Leaflet map with gateway markers, gateway list panel, event logs timeline
+- **Testing**: 100% (iteration_14.json) - All 10 premium pages + login + sidebar
 
 ## Pending/Future Tasks
 
@@ -81,10 +95,10 @@ Routes dynamiques via API menus + EXTRA_MENU (config.js) -> components.js mappin
 - Multi-tenant B2B (Settings, Clients)
 
 ## Known Issues
-- External API slowness (omniyat.is-certified.com)
-- Most assets have 0 GPS coordinates (map shows "0 localisés")
+- External API slowness (15-20s load times)
+- WebSocket connection failures to external API (wss://omniyat.is-certified.com)
 - Zones page uses MOCK_ZONES (not API-driven yet)
 - Dashboard alerts/activity widgets use static mock data
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_13.json`
+- `/app/test_reports/iteration_1.json` through `iteration_14.json`
