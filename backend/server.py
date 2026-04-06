@@ -141,19 +141,28 @@ async def get_status_checks():
 
 
 # ═══════════════════════════════════════════════════════════════
-#  ZONES CRUD
+#  ZONES ADVANCED GEOFENCING
 # ═══════════════════════════════════════════════════════════════
 
 class ZoneCreate(BaseModel):
     name: str
-    type: str = "chantier"
-    shape: str = "circle"
+    type: str = "chantier"           # chantier, depot, restricted, parking
+    shape: str = "circle"            # circle, polygon, ble
+    mode: str = "both"               # entry, exit, both
     color: str = "#2563EB"
     center: Optional[List[float]] = None
     radius: Optional[int] = None
     polygon: Optional[List[List[float]]] = None
     alertEntry: bool = False
     alertExit: bool = False
+    active: bool = True
+    site_id: Optional[str] = None
+    site_name: Optional[str] = None
+    router_id: Optional[str] = None
+    router_name: Optional[str] = None
+    rssi_threshold: Optional[int] = -70    # dBm threshold for BLE
+    debounce_seconds: int = 15             # anti-noise delay
+    rssi_smoothing: int = 3                # number of readings to average
 
 class ZoneUpdate(ZoneCreate):
     pass
@@ -179,6 +188,261 @@ async def list_zones():
     zones = await db.zones.find({}, {"_id": 0}).to_list(500)
     return zones
 
+
+# ── Static zone sub-routes MUST come BEFORE /zones/{zone_id} ──
+
+# ── Zone Events ──
+
+class ZoneEventCreate(BaseModel):
+    asset_id: str
+    asset_name: Optional[str] = None
+    zone_id: str
+    zone_name: Optional[str] = None
+    router_id: Optional[str] = None
+    event_type: str
+    signal_strength: Optional[int] = None
+    location: Optional[List[float]] = None
+    metadata: Optional[dict] = None
+
+
+@api_router.post("/zones/events")
+async def create_zone_event(data: ZoneEventCreate):
+    event = {
+        "id": str(uuid.uuid4()),
+        **data.model_dump(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.zone_events.insert_one(event)
+    event.pop("_id", None)
+    await ws_manager.broadcast("zone_event", event)
+    if data.event_type in ("asset_enter_zone", "asset_exit_zone", "asset_not_detected"):
+        severity = "warning" if data.event_type == "asset_not_detected" else "info"
+        labels = {"asset_enter_zone": "Entrée zone", "asset_exit_zone": "Sortie zone", "asset_not_detected": "Asset non détecté"}
+        await create_notification(
+            data.event_type, labels.get(data.event_type, data.event_type),
+            f"{data.asset_name or data.asset_id} - {data.zone_name or data.zone_id}",
+            asset_id=data.asset_id, severity=severity
+        )
+    return event
+
+
+@api_router.get("/zones/events")
+async def list_zone_events(zone_id: Optional[str] = None, asset_id: Optional[str] = None, event_type: Optional[str] = None, limit: int = 100):
+    query = {}
+    if zone_id:
+        query["zone_id"] = zone_id
+    if asset_id:
+        query["asset_id"] = asset_id
+    if event_type:
+        query["event_type"] = event_type
+    events = await db.zone_events.find(query, {"_id": 0}).sort("timestamp", -1).to_list(limit)
+    return events
+
+
+@api_router.get("/zones/events/stats")
+async def zone_events_stats():
+    total = await db.zone_events.count_documents({})
+    entries = await db.zone_events.count_documents({"event_type": "asset_enter_zone"})
+    exits = await db.zone_events.count_documents({"event_type": "asset_exit_zone"})
+    not_detected = await db.zone_events.count_documents({"event_type": "asset_not_detected"})
+    ble_detected = await db.zone_events.count_documents({"event_type": "asset_detected_by_router"})
+    cutoff = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()
+    recent = await db.zone_events.count_documents({"timestamp": {"$gte": cutoff}})
+    pipeline = [
+        {"$group": {"_id": "$zone_name", "count": {"$sum": 1}}},
+        {"$sort": {"count": -1}},
+        {"$limit": 5}
+    ]
+    active_zones = await db.zone_events.aggregate(pipeline).to_list(5)
+    return {
+        "total_events": total, "entries": entries, "exits": exits,
+        "not_detected": not_detected, "ble_detected": ble_detected,
+        "recent_24h": recent,
+        "most_active_zones": [{"zone": z["_id"] or "Inconnu", "count": z["count"]} for z in active_zones],
+    }
+
+
+# ── Zone Detection (Anti-noise logic) ──
+
+import math
+
+def haversine_distance(lat1, lon1, lat2, lon2):
+    R = 6371000
+    phi1, phi2 = math.radians(lat1), math.radians(lat2)
+    dphi = math.radians(lat2 - lat1)
+    dlam = math.radians(lon2 - lon1)
+    a = math.sin(dphi / 2) ** 2 + math.cos(phi1) * math.cos(phi2) * math.sin(dlam / 2) ** 2
+    return R * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+
+
+def point_in_polygon(lat, lng, polygon):
+    n = len(polygon)
+    inside = False
+    j = n - 1
+    for i in range(n):
+        if ((polygon[i][0] > lat) != (polygon[j][0] > lat)) and \
+           (lng < (polygon[j][1] - polygon[i][1]) * (lat - polygon[i][0]) / (polygon[j][0] - polygon[i][0]) + polygon[i][1]):
+            inside = not inside
+        j = i
+    return inside
+
+
+class DetectAssetRequest(BaseModel):
+    asset_id: str
+    asset_name: Optional[str] = None
+    lat: Optional[float] = None
+    lng: Optional[float] = None
+    router_id: Optional[str] = None
+    rssi: Optional[int] = None
+
+
+@api_router.post("/zones/detect")
+async def detect_asset_in_zone(data: DetectAssetRequest):
+    zones = await db.zones.find({"active": {"$ne": False}}, {"_id": 0}).to_list(500)
+    results = []
+    for zone in zones:
+        in_zone = False
+        method = "unknown"
+        if zone.get("shape") == "ble" and data.router_id and data.rssi is not None:
+            if zone.get("router_id") == data.router_id:
+                threshold = zone.get("rssi_threshold", -70)
+                smoothing = zone.get("rssi_smoothing", 3)
+                recent_events = await db.zone_events.find(
+                    {"asset_id": data.asset_id, "zone_id": zone["id"], "signal_strength": {"$ne": None}},
+                    {"_id": 0, "signal_strength": 1}
+                ).sort("timestamp", -1).to_list(smoothing)
+                readings = [e["signal_strength"] for e in recent_events] + [data.rssi]
+                avg_rssi = sum(readings) / len(readings)
+                in_zone = avg_rssi >= threshold
+                method = "ble"
+        elif data.lat is not None and data.lng is not None:
+            if zone.get("shape") == "circle" and zone.get("center"):
+                dist = haversine_distance(data.lat, data.lng, zone["center"][0], zone["center"][1])
+                in_zone = dist <= (zone.get("radius", 200))
+                method = "gps_circle"
+            elif zone.get("shape") == "polygon" and zone.get("polygon"):
+                in_zone = point_in_polygon(data.lat, data.lng, zone["polygon"])
+                method = "gps_polygon"
+        if in_zone:
+            results.append({"zone_id": zone["id"], "zone_name": zone["name"], "method": method, "in_zone": True})
+    debounce_events = []
+    for r in results:
+        zone = next((z for z in zones if z["id"] == r["zone_id"]), None)
+        debounce_sec = zone.get("debounce_seconds", 15) if zone else 15
+        cutoff = (datetime.now(timezone.utc) - timedelta(seconds=debounce_sec)).isoformat()
+        last_event = await db.zone_events.find_one(
+            {"asset_id": data.asset_id, "zone_id": r["zone_id"], "timestamp": {"$gte": cutoff}}, {"_id": 0}
+        )
+        r["debounced"] = last_event is not None
+        debounce_events.append(r)
+    return {"asset_id": data.asset_id, "zones_detected": debounce_events, "total_zones_in": len([r for r in debounce_events if not r.get("debounced")])}
+
+
+# ── Zone Alerts Configuration ──
+
+class ZoneAlertCreate(BaseModel):
+    zone_id: str
+    zone_name: Optional[str] = None
+    alert_type: str
+    message_template: Optional[str] = None
+    enabled: bool = True
+    channels: List[str] = ["in_app"]
+    cooldown_minutes: int = 5
+
+
+@api_router.post("/zones/alerts")
+async def create_zone_alert(data: ZoneAlertCreate):
+    alert = {
+        "id": str(uuid.uuid4()),
+        **data.model_dump(),
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.zone_alerts.insert_one(alert)
+    alert.pop("_id", None)
+    return alert
+
+
+@api_router.get("/zones/alerts")
+async def list_zone_alerts(zone_id: Optional[str] = None):
+    query = {"zone_id": zone_id} if zone_id else {}
+    alerts = await db.zone_alerts.find(query, {"_id": 0}).to_list(200)
+    return alerts
+
+
+@api_router.put("/zones/alerts/{alert_id}")
+async def update_zone_alert(alert_id: str, data: ZoneAlertCreate):
+    existing = await db.zone_alerts.find_one({"id": alert_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    await db.zone_alerts.update_one({"id": alert_id}, {"$set": data.model_dump()})
+    updated = await db.zone_alerts.find_one({"id": alert_id}, {"_id": 0})
+    return updated
+
+
+@api_router.delete("/zones/alerts/{alert_id}")
+async def delete_zone_alert(alert_id: str):
+    result = await db.zone_alerts.delete_one({"id": alert_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Alert not found")
+    return {"status": "deleted"}
+
+
+# ── Trigger Zone Event (with alert checking) ──
+
+class TriggerEventRequest(BaseModel):
+    asset_id: str
+    asset_name: Optional[str] = None
+    zone_id: str
+    event_type: str
+    router_id: Optional[str] = None
+    signal_strength: Optional[int] = None
+    location: Optional[List[float]] = None
+
+
+@api_router.post("/zones/trigger")
+async def trigger_zone_event(data: TriggerEventRequest):
+    zone = await db.zones.find_one({"id": data.zone_id}, {"_id": 0})
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    mode = zone.get("mode", "both")
+    if mode == "entry" and data.event_type == "asset_exit_zone":
+        return {"status": "skipped", "reason": "Zone mode is entry-only"}
+    if mode == "exit" and data.event_type == "asset_enter_zone":
+        return {"status": "skipped", "reason": "Zone mode is exit-only"}
+    event = {
+        "id": str(uuid.uuid4()),
+        "asset_id": data.asset_id, "asset_name": data.asset_name,
+        "zone_id": data.zone_id, "zone_name": zone.get("name"),
+        "router_id": data.router_id, "event_type": data.event_type,
+        "signal_strength": data.signal_strength, "location": data.location,
+        "timestamp": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.zone_events.insert_one(event)
+    event.pop("_id", None)
+    alert_map = {"asset_enter_zone": "asset_enter", "asset_exit_zone": "asset_exit", "asset_not_detected": "asset_not_detected"}
+    alert_type = alert_map.get(data.event_type)
+    triggered_alerts = []
+    if alert_type:
+        alerts = await db.zone_alerts.find(
+            {"zone_id": data.zone_id, "alert_type": alert_type, "enabled": True}, {"_id": 0}
+        ).to_list(50)
+        for alert in alerts:
+            cooldown = alert.get("cooldown_minutes", 5)
+            cutoff = (datetime.now(timezone.utc) - timedelta(minutes=cooldown)).isoformat()
+            recent = await db.zone_events.count_documents({
+                "zone_id": data.zone_id, "asset_id": data.asset_id,
+                "event_type": data.event_type, "timestamp": {"$gte": cutoff}
+            })
+            if recent <= 1:
+                msg = alert.get("message_template") or f"{data.asset_name or data.asset_id} - {zone['name']}"
+                if "in_app" in alert.get("channels", []):
+                    await create_notification(data.event_type, f"Alerte: {zone['name']}", msg, asset_id=data.asset_id, severity="warning")
+                triggered_alerts.append(alert["id"])
+    await ws_manager.broadcast("zone_event", event)
+    return {"status": "triggered", "event": event, "alerts_triggered": len(triggered_alerts)}
+
+
+# ── Parametric routes LAST ──
 
 @api_router.get("/zones/{zone_id}")
 async def get_zone(zone_id: str):
@@ -208,6 +472,7 @@ async def delete_zone(zone_id: str):
         raise HTTPException(status_code=404, detail="Zone not found")
     await ws_manager.broadcast("zone_deleted", {"id": zone_id})
     return {"status": "deleted"}
+
 # ═══════════════════════════════════════════════════════════════
 
 @api_router.post("/reservations")
