@@ -93,6 +93,8 @@ const EnterpriseCommand = () => {
   const [lastRefresh, setLastRefresh] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const [changedIds, setChangedIds] = useState(new Set())
+  const [externalLogs, setExternalLogs] = useState([])
+  const [selectedEvent, setSelectedEvent] = useState(null)
   const prevAssetsRef = useRef(null)
   const refreshInterval = useRef(null)
 
@@ -109,11 +111,22 @@ const EnterpriseCommand = () => {
     dispatch(fetchDashboard())
     try {
       const [zRes, eRes, nRes] = await Promise.all([
-        fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=30`), fetch(`${API}/api/notifications/count`)
+        fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=50`), fetch(`${API}/api/notifications/count`)
       ])
       if (zRes.ok) setZones(await zRes.json())
       if (eRes.ok) setEvents(await eRes.json())
       if (nRes.ok) { const d = await nRes.json(); setNotifCount(d.count || 0) }
+    } catch {}
+    // Fetch external API logs
+    try {
+      const logRes = await fetch(`${API}/api/proxy/logs/list`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({reverse: 1, limit: 50})
+      })
+      if (logRes.ok) {
+        const logData = await logRes.json()
+        if (logData.response && Array.isArray(logData.response)) setExternalLogs(logData.response)
+      }
     } catch {}
     setLastRefresh(new Date())
     if (!silent) setLoading(false)
@@ -160,40 +173,6 @@ const EnterpriseCommand = () => {
     }
   }, [refreshData]))
 
-  // Export Timeline as CSV
-  const exportTimelineCSV = useCallback(() => {
-    if (!events.length) return
-    const rows = [['Événement', 'Asset', 'Zone', 'Heure']]
-    events.forEach(ev => {
-      const meta = EVENT_META[ev.event_type] || {label: ev.event_type}
-      rows.push([
-        meta.label, ev.asset_name || ev.asset_id || '',
-        ev.zone_name || '', ev.timestamp ? new Date(ev.timestamp).toLocaleString('fr-FR') : ''
-      ])
-    })
-    const csv = rows.map(r => r.map(c => `"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n')
-    const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'})
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url; a.download = `timeline_${new Date().toISOString().slice(0,10)}.csv`
-    a.click(); URL.revokeObjectURL(url)
-  }, [events])
-
-  const exportTimelinePDF = useCallback(async () => {
-    if (!events.length) return
-    const printWin = window.open('', '_blank')
-    const rows = events.map(ev => {
-      const meta = EVENT_META[ev.event_type] || {label: ev.event_type}
-      return `<tr><td>${meta.label}</td><td>${ev.asset_name || ev.asset_id || ''}</td><td>${ev.zone_name || ''}</td><td>${ev.timestamp ? new Date(ev.timestamp).toLocaleString('fr-FR') : ''}</td></tr>`
-    }).join('')
-    printWin.document.write(`<!DOCTYPE html><html><head><title>Timeline LOGITAG</title>
-      <style>body{font-family:Inter,sans-serif;padding:24px;}h1{font-size:18px;margin-bottom:16px;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #E2E8F0;padding:8px 12px;text-align:left;font-size:13px;}th{background:#F1F5F9;font-weight:700;}</style>
-      </head><body><h1>Timeline - Événements LOGITAG</h1><p style="color:#64748B;font-size:12px;">Exporté le ${new Date().toLocaleString('fr-FR')}</p>
-      <table><thead><tr><th>Événement</th><th>Asset</th><th>Zone</th><th>Heure</th></tr></thead><tbody>${rows}</tbody></table></body></html>`)
-    printWin.document.close()
-    setTimeout(() => printWin.print(), 500)
-  }, [events])
-
   // KPIs from dashboard data
   const kpis = Array.isArray(dashData) ? dashData : []
   const kpiConfigs = [
@@ -231,6 +210,145 @@ const EnterpriseCommand = () => {
     asset_exit_zone: {label: 'Sortie zone', icon: LogOut, color: '#D97706'},
     asset_not_detected: {label: 'Non détecté', icon: AlertTriangle, color: '#DC2626'},
     asset_detected_by_router: {label: 'Détecté BLE', icon: Bluetooth, color: '#8B5CF6'},
+  }
+
+  // Build rich timeline entries: pair entry/exit, add duration, combine with external logs
+  const richTimeline = useMemo(() => {
+    const items = []
+    // Process local zone events - pair enter/exit by asset+zone
+    const sorted = [...events].sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))
+    const paired = new Set()
+    sorted.forEach(ev => {
+      if (paired.has(ev.id)) return
+      paired.add(ev.id)
+      const item = {
+        id: ev.id,
+        type: ev.event_type,
+        asset: ev.asset_name || ev.asset_id || '',
+        zone: ev.zone_name || '',
+        router: ev.router_id || null,
+        rssi: ev.signal_strength,
+        location: ev.location,
+        entryDate: null,
+        exitDate: null,
+        duration: null,
+        source: 'local',
+      }
+      if (ev.event_type === 'asset_enter_zone') {
+        item.entryDate = ev.timestamp
+        // Find matching exit for same asset+zone
+        const exitEv = sorted.find(e => e.id !== ev.id && e.event_type === 'asset_exit_zone' && e.asset_id === ev.asset_id && e.zone_id === ev.zone_id && !paired.has(e.id))
+        if (exitEv) {
+          item.exitDate = exitEv.timestamp
+          paired.add(exitEv.id)
+          const ms = new Date(exitEv.timestamp) - new Date(ev.timestamp)
+          item.duration = ms > 0 ? ms : Math.abs(ms)
+        }
+      } else if (ev.event_type === 'asset_exit_zone') {
+        item.exitDate = ev.timestamp
+        const enterEv = sorted.find(e => e.id !== ev.id && e.event_type === 'asset_enter_zone' && e.asset_id === ev.asset_id && e.zone_id === ev.zone_id && !paired.has(e.id))
+        if (enterEv) {
+          item.entryDate = enterEv.timestamp
+          paired.add(enterEv.id)
+          const ms = new Date(ev.timestamp) - new Date(enterEv.timestamp)
+          item.duration = ms > 0 ? ms : Math.abs(ms)
+        }
+      } else {
+        item.entryDate = ev.timestamp
+      }
+      // Try finding router info from gateways
+      if (item.router) {
+        const gw = routerList.find(r => String(r.id) === String(item.router))
+        if (gw) item.routerName = gw.fname || gw.label || gw.serialNumber
+      }
+      items.push(item)
+    })
+    // Add external logs if available
+    externalLogs.forEach((log, i) => {
+      items.push({
+        id: `ext-${i}`,
+        type: log.statuslabel === 'Exit' || log.statuslabel === 'exit' ? 'asset_exit_zone' : 'asset_enter_zone',
+        asset: log.engin || log.reference || '',
+        zone: log.locationObjectname || log.locationLabel || '',
+        router: log.deviceId || log.gateway || null,
+        routerName: log.deviceId || log.gateway || null,
+        rssi: log.rssi || log.RSSI || null,
+        location: (log.lat && log.lng) ? [log.lat, log.lng] : null,
+        entryDate: log.statusDate || log.dateFormated || null,
+        exitDate: log.exitDate || null,
+        duration: log.duration ? log.duration * 1000 : null,
+        source: 'external',
+        macAddr: log.macAddr,
+      })
+    })
+    return items.sort((a, b) => {
+      const da = new Date(a.exitDate || a.entryDate || 0)
+      const db = new Date(b.exitDate || b.entryDate || 0)
+      return db - da
+    })
+  }, [events, externalLogs, routerList])
+
+  // Format duration helper
+  const fmtDuration = (ms) => {
+    if (!ms || ms <= 0) return null
+    const s = Math.floor(ms / 1000)
+    const d = Math.floor(s / 86400), h = Math.floor((s % 86400) / 3600), m = Math.floor((s % 3600) / 60)
+    const parts = []
+    if (d > 0) parts.push(`${d}j`)
+    if (h > 0) parts.push(`${h}h`)
+    if (m > 0) parts.push(`${m}min`)
+    return parts.join(' ') || '< 1min'
+  }
+  const fmtDate = (d) => d ? new Date(d).toLocaleString('fr-FR', {day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit'}) : null
+  const getRssiColor = (v) => !v ? '#94A3B8' : v > -60 ? '#10B981' : v > -80 ? '#F59E0B' : '#EF4444'
+
+  // Export Timeline as CSV
+  const exportTimelineCSV = useCallback(() => {
+    if (!richTimeline.length) return
+    const rows = [['Événement', 'Asset', 'Zone/Site', 'Entrée', 'Sortie', 'Durée', 'Routeur', 'RSSI']]
+    richTimeline.forEach(item => {
+      const meta = EVENT_META[item.type] || {label: item.type}
+      rows.push([
+        meta.label, item.asset, item.zone,
+        item.entryDate ? new Date(item.entryDate).toLocaleString('fr-FR') : '',
+        item.exitDate ? new Date(item.exitDate).toLocaleString('fr-FR') : '',
+        fmtDuration(item.duration) || '',
+        item.routerName || item.router || '',
+        item.rssi != null ? String(item.rssi) : ''
+      ])
+    })
+    const csv = rows.map(r => r.map(c => `"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `journal_${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }, [richTimeline])
+
+  const exportTimelinePDF = useCallback(async () => {
+    if (!richTimeline.length) return
+    const printWin = window.open('', '_blank')
+    const rows = richTimeline.map(item => {
+      const meta = EVENT_META[item.type] || {label: item.type}
+      return `<tr><td>${meta.label}</td><td>${item.asset}</td><td>${item.zone}</td><td>${item.entryDate ? new Date(item.entryDate).toLocaleString('fr-FR') : ''}</td><td>${item.exitDate ? new Date(item.exitDate).toLocaleString('fr-FR') : ''}</td><td>${fmtDuration(item.duration) || ''}</td><td>${item.routerName || item.router || ''}</td><td>${item.rssi != null ? item.rssi : ''}</td></tr>`
+    }).join('')
+    printWin.document.write(`<!DOCTYPE html><html><head><title>Journal LOGITAG</title>
+      <style>body{font-family:Inter,sans-serif;padding:24px;}h1{font-size:18px;margin-bottom:16px;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #E2E8F0;padding:8px 12px;text-align:left;font-size:12px;}th{background:#F1F5F9;font-weight:700;}</style>
+      </head><body><h1>Journal des événements - LOGITAG</h1><p style="color:#64748B;font-size:12px;">Exporté le ${new Date().toLocaleString('fr-FR')}</p>
+      <table><thead><tr><th>Événement</th><th>Asset</th><th>Zone/Site</th><th>Entrée</th><th>Sortie</th><th>Durée</th><th>Routeur</th><th>RSSI</th></tr></thead><tbody>${rows}</tbody></table></body></html>`)
+    printWin.document.close()
+    setTimeout(() => printWin.print(), 500)
+  }, [richTimeline])
+
+  // Click event to locate on map
+  const onEventClick = (item) => {
+    setSelectedEvent(item)
+    if (item.location && item.location[0] && item.location[1]) {
+      setMapCenter([item.location[0], item.location[1]])
+    }
+    // Try to find and select the asset
+    const asset = assetList.find(a => (a.fname || a.label || '').toLowerCase() === (item.asset || '').toLowerCase())
+    if (asset) selectAsset(asset)
   }
 
   return (
@@ -451,24 +569,73 @@ const EnterpriseCommand = () => {
         {timelineOpen && (
           <div className="ec-timeline" data-testid="enterprise-timeline">
             <div className="ec-timeline-head">
-              <h3 className="ec-timeline-title"><Activity size={15} /> Événements récents</h3>
+              <h3 className="ec-timeline-title"><Activity size={15} /> Journal des événements</h3>
               <div className="ec-timeline-actions">
+                <span className="ec-timeline-badge">{richTimeline.length}</span>
                 <button className="ec-export-btn" onClick={exportTimelineCSV} title="Exporter CSV" data-testid="export-timeline-csv"><Download size={13} /> CSV</button>
                 <button className="ec-export-btn" onClick={exportTimelinePDF} title="Exporter PDF" data-testid="export-timeline-pdf"><FileBarChart size={13} /> PDF</button>
                 <button className="ec-timeline-close" onClick={() => setTimelineOpen(false)}><ChevronsDown size={16} /></button>
               </div>
             </div>
             <div className="ec-timeline-list">
-              {events.length === 0 ? <span className="ec-timeline-empty">Aucun événement</span> :
-                events.slice(0, 20).map((ev, i) => {
-                  const meta = EVENT_META[ev.event_type] || {label: ev.event_type, icon: Activity, color: '#64748B'}
+              {richTimeline.length === 0 ? <span className="ec-timeline-empty">Aucun événement</span> :
+                richTimeline.slice(0, 30).map((item, i) => {
+                  const meta = EVENT_META[item.type] || {label: item.type, icon: Activity, color: '#64748B'}
                   const Icon = meta.icon
+                  const isEntry = item.type === 'asset_enter_zone'
+                  const isExit = item.type === 'asset_exit_zone'
+                  const isActive = selectedEvent?.id === item.id
                   return (
-                    <div key={ev.id || i} className="ec-timeline-item" data-testid={`timeline-event-${i}`}>
-                      <Icon size={14} style={{color: meta.color, flexShrink: 0}} />
-                      <span className="ec-timeline-type" style={{color: meta.color}}>{meta.label}</span>
-                      <span className="ec-timeline-desc">{ev.asset_name || ev.asset_id} {ev.zone_name ? `→ ${ev.zone_name}` : ''}</span>
-                      <span className="ec-timeline-time">{ev.timestamp ? new Date(ev.timestamp).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : ''}</span>
+                    <div key={item.id || i} className={`ec-tl-card ${isActive ? 'ec-tl-card--active' : ''}`} onClick={() => onEventClick(item)} data-testid={`timeline-event-${i}`}>
+                      <div className="ec-tl-card-header">
+                        <div className="ec-tl-card-type" style={{color: meta.color}}>
+                          <Icon size={13} /> {meta.label}
+                        </div>
+                        <span className="ec-tl-card-asset">{item.asset}</span>
+                      </div>
+                      <div className="ec-tl-card-body">
+                        {item.entryDate && (
+                          <div className="ec-tl-row">
+                            <LogIn size={11} style={{color: '#059669'}} />
+                            <span className="ec-tl-lbl">Entrée:</span>
+                            <span className="ec-tl-val">{fmtDate(item.entryDate)}</span>
+                          </div>
+                        )}
+                        {item.exitDate && (
+                          <div className="ec-tl-row">
+                            <LogOut size={11} style={{color: '#D97706'}} />
+                            <span className="ec-tl-lbl">Sortie:</span>
+                            <span className="ec-tl-val">{fmtDate(item.exitDate)}</span>
+                          </div>
+                        )}
+                        {item.duration && (
+                          <div className="ec-tl-row">
+                            <Clock size={11} style={{color: '#8B5CF6'}} />
+                            <span className="ec-tl-lbl">Durée:</span>
+                            <span className="ec-tl-val ec-tl-duration">{fmtDuration(item.duration)}</span>
+                          </div>
+                        )}
+                        {item.zone && (
+                          <div className="ec-tl-row">
+                            <MapPin size={11} style={{color: '#2563EB'}} />
+                            <span className="ec-tl-lbl">Site:</span>
+                            <span className="ec-tl-val">{item.zone}</span>
+                          </div>
+                        )}
+                      </div>
+                      <div className="ec-tl-card-footer">
+                        {(item.routerName || item.router) && (
+                          <span className="ec-tl-router"><Radio size={10} /> {item.routerName || item.router}</span>
+                        )}
+                        {item.rssi != null && (
+                          <span className="ec-tl-rssi" style={{background: getRssiColor(item.rssi) + '18', color: getRssiColor(item.rssi)}}>{item.rssi}</span>
+                        )}
+                        <div className="ec-tl-icons">
+                          {isEntry && <span className="ec-tl-icon-circle ec-tl-icon--entry"><LogIn size={11} /></span>}
+                          {isExit && <span className="ec-tl-icon-circle ec-tl-icon--exit"><LogOut size={11} /></span>}
+                          {item.location && <span className="ec-tl-icon-circle ec-tl-icon--loc"><MapPin size={11} /></span>}
+                        </div>
+                      </div>
                     </div>
                   )
                 })
@@ -583,21 +750,38 @@ const STYLES = `
 .ec-action-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
 
 /* ── TIMELINE ── */
-.ec-timeline { background:#FFF; border-top:1px solid #E2E8F0; flex-shrink:0; animation:ecSlideUp .2s ease; max-height:200px; overflow:hidden; }
-@keyframes ecSlideUp { from{max-height:0;opacity:0} to{max-height:200px;opacity:1} }
-.ec-timeline-head { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid #F1F5F9; }
+.ec-timeline { background:#FFF; border-top:1px solid #E2E8F0; flex-shrink:0; animation:ecSlideUp .2s ease; max-height:240px; overflow:hidden; display:flex; flex-direction:column; box-shadow:0 -4px 16px rgba(0,0,0,.05); }
+@keyframes ecSlideUp { from{max-height:0;opacity:0} to{max-height:240px;opacity:1} }
+.ec-timeline-head { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid #F1F5F9; flex-shrink:0; }
 .ec-timeline-title { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:800; color:#0F172A; margin:0; display:flex; align-items:center; gap:7px; }
 .ec-timeline-actions { display:flex; align-items:center; gap:6px; }
+.ec-timeline-badge { display:inline-flex; align-items:center; justify-content:center; min-width:20px; height:20px; padding:0 6px; border-radius:10px; background:#2563EB; color:#FFF; font-family:'Inter',sans-serif; font-size:.58rem; font-weight:700; }
 .ec-timeline-close { background:none; border:none; color:#94A3B8; cursor:pointer; }
 .ec-export-btn { display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:7px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.62rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
 .ec-export-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
-.ec-timeline-list { display:flex; gap:0; overflow-x:auto; padding:10px 20px; scrollbar-width:thin; }
-.ec-timeline-item { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; background:#FAFBFC; margin-right:8px; flex-shrink:0; min-width:200px; border:1px solid #F1F5F9; transition:all .12s; }
-.ec-timeline-item:hover { border-color:#CBD5E1; }
-.ec-timeline-type { font-family:'Inter',sans-serif; font-size:.65rem; font-weight:700; white-space:nowrap; }
-.ec-timeline-desc { font-family:'Inter',sans-serif; font-size:.65rem; color:#475569; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:120px; }
-.ec-timeline-time { font-family:'Inter',sans-serif; font-size:.58rem; color:#94A3B8; margin-left:auto; flex-shrink:0; }
+.ec-timeline-list { display:flex; gap:10px; overflow-x:auto; padding:12px 16px; flex:1; scrollbar-width:thin; }
 .ec-timeline-empty { font-family:'Inter',sans-serif; font-size:.75rem; color:#94A3B8; padding:10px; }
+
+/* Rich timeline cards */
+.ec-tl-card { min-width:260px; max-width:310px; background:#FFF; border:1.5px solid #E2E8F0; border-radius:12px; padding:10px 12px; cursor:pointer; transition:all .15s; flex-shrink:0; display:flex; flex-direction:column; gap:5px; }
+.ec-tl-card:hover { border-color:#CBD5E1; box-shadow:0 4px 12px rgba(0,0,0,.06); transform:translateY(-1px); }
+.ec-tl-card--active { border-color:#2563EB; box-shadow:0 0 0 2px rgba(37,99,235,.12); }
+.ec-tl-card-header { display:flex; align-items:center; justify-content:space-between; gap:6px; }
+.ec-tl-card-type { display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.65rem; font-weight:700; }
+.ec-tl-card-asset { font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:800; color:#0F172A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; }
+.ec-tl-card-body { display:flex; flex-direction:column; gap:3px; }
+.ec-tl-row { display:flex; align-items:center; gap:5px; font-family:'Inter',sans-serif; font-size:.64rem; }
+.ec-tl-lbl { color:#94A3B8; font-weight:500; min-width:38px; }
+.ec-tl-val { color:#334155; font-weight:600; }
+.ec-tl-duration { color:#8B5CF6; background:#F5F3FF; padding:1px 6px; border-radius:4px; }
+.ec-tl-card-footer { display:flex; align-items:center; gap:6px; border-top:1px solid #F1F5F9; padding-top:5px; margin-top:2px; }
+.ec-tl-router { display:inline-flex; align-items:center; gap:3px; font-family:'Inter',sans-serif; font-size:.58rem; color:#64748B; background:#F8FAFC; padding:2px 6px; border-radius:4px; }
+.ec-tl-rssi { font-family:'Inter',sans-serif; font-size:.6rem; font-weight:800; padding:2px 7px; border-radius:6px; }
+.ec-tl-icons { display:flex; align-items:center; gap:3px; margin-left:auto; }
+.ec-tl-icon-circle { width:22px; height:22px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; }
+.ec-tl-icon--entry { background:#ECFDF5; color:#059669; }
+.ec-tl-icon--exit { background:#FEF3C7; color:#D97706; }
+.ec-tl-icon--loc { background:#EFF6FF; color:#2563EB; }
 
 /* ── RESPONSIVE ── */
 @media(max-width:1024px) {
