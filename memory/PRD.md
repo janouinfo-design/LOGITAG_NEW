@@ -1,86 +1,106 @@
 # LOGITAG - Product Requirements Document
 
 ## Original Problem Statement
-Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS (style Samsara/Stripe Dashboard). React + connexion API externe Omniyat.
+Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un niveau Premium SaaS. React + FastAPI + MongoDB + connexion API externe Omniyat.
 
 ## Tech Stack
 - **Frontend**: React 18, Redux Toolkit, TailwindCSS, Shadcn/Lucide-react, Leaflet, FullCalendar
-- **Backend**: FastAPI proxy vers API externe
-- **External API**: omniyat.is-certified.com:82/logitag_node/ (via /api/proxy/)
+- **Backend**: FastAPI + MongoDB (local) + Proxy vers API externe
+- **External API**: omniyat.is-certified.com:82/logitag_node/
 - **Auth**: admin / user@1234
 
-## Premium Pages Architecture
+## Architecture
 ```
-/app/frontend/src/components/premium/
-├── PremiumLayout.jsx (Multi-tenant client selector bar)
-├── PremiumSidebar.jsx (Dark mode toggle)
-├── PremiumBottomNav.jsx
-├── PremiumDashboard.jsx
-├── PremiumAssets.jsx (Column presets + tenant filtering)
-├── PremiumAssetDetail.jsx
-├── PremiumMap.jsx (Slide-over detail panel)
-├── PremiumPlanning.jsx (FullCalendar Gantt + slide-over)
-├── PremiumActivity.jsx, PremiumAlerts.jsx
-├── PremiumZones.jsx, PremiumUsers.jsx, PremiumGateway.jsx
-├── PremiumSettings.jsx
-├── PremiumReports.jsx (2-type report builder: Asset + Site)
-/app/frontend/src/logitag-dark.css (Complete dark mode theme)
+/app/
+├── backend/
+│   └── server.py                   # FastAPI: proxy + reservations + notifications API
+├── frontend/src/components/premium/
+│   ├── PremiumLayout.jsx           # Multi-tenant client selector
+│   ├── PremiumSidebar.jsx          # Dark mode toggle
+│   ├── PremiumDashboard.jsx
+│   ├── PremiumAssets.jsx           # Column presets
+│   ├── PremiumAssetDetail.jsx
+│   ├── PremiumMap.jsx              # Slide-over detail
+│   ├── PremiumPlanning.jsx         # FullCalendar Gantt
+│   ├── PremiumReservationPlanning.jsx  # NEW: Reservation calendar
+│   ├── PremiumMyReservations.jsx       # NEW: My reservations
+│   ├── PremiumReservationDashboard.jsx # NEW: KPI Dashboard + Alerts
+│   ├── PremiumActivity.jsx, PremiumAlerts.jsx
+│   ├── PremiumZones.jsx, PremiumUsers.jsx, PremiumGateway.jsx
+│   ├── PremiumSettings.jsx, PremiumReports.jsx
+/app/frontend/src/logitag-dark.css
 ```
 
 ## Completed Features
 
-### Phase 1-8 (Previous forks) - ALL DONE
-- Full Premium SaaS UI with 14 pages, FastAPI proxy, Leaflet maps, Redux
+### Phase 1-12 (Previous sessions) - ALL DONE
+- Full Premium SaaS UI, 14+ pages, Proxy, Maps, Redux, Edit modals, Slide-overs
+- Reports builder (Asset/Site), Multi-tenant, Column presets, Dark mode, Mobile responsive
 
-### Phase 9 - Planning + Edit Modals (DONE)
-- Planning page with FullCalendar resource-timeline
-- Asset edit modal (13 fields), Tag Label fix, Map pagination, Photo upload
+### Phase 13 - RESERVATION MODULE (DONE - Apr 6, 2026)
+Complete asset reservation and planning system with 4 phases:
 
-### Phase 10 - 5 Enhancements (DONE)
-- Zones edit/delete modal, Activity/Alerts time filters, Users/Gateway modals
+**Phase 1 - Backend (100% tested)**
+- MongoDB collections: `reservations`, `reservation_logs`, `notifications`
+- 14 API endpoints:
+  - POST /api/reservations (create with anti-conflict validation)
+  - GET /api/reservations (list with status/asset/user/site/date filters)
+  - GET /api/reservations/{id} (detail with audit logs)
+  - PUT /api/reservations/{id} (update with anti-conflict)
+  - POST /api/reservations/{id}/cancel, approve, reject
+  - POST /api/reservations/{id}/checkout, checkin
+  - GET /api/reservations/kpis (dashboard KPIs)
+  - GET /api/reservations/planning (calendar data)
+  - GET /api/reservations/availability/{asset_id}
+  - GET/PUT /api/notifications (CRUD, mark read, count)
+- Anti-conflict: Returns 409 for overlapping reservations on same asset
+- Statuts: confirmed, in_progress, completed, cancelled, requested, rejected, expired
+- Audit trail: reservation_logs collection tracks all actions
 
-### Phase 11 - Map Slide-over + Planning Activity (DONE)
-- Map detail slide-over panel, Planning activity log slide-over
+**Phase 2 - Planning Page**
+- Calendar views: Jour / Semaine / Mois
+- Color-coded events by status
+- Create reservation modal (asset, user, team, project, site, dates, priority, note)
+- Detail drawer (slide-over) with reservation info
+- Filters: status, site, search
+- Navigation: prev/next, today
 
-### Phase 12 - Reports Redesign (DONE - Apr 6, 2026)
-- 2 report types: Rapport par Asset + Rapport par Site
-- 3-panel builder with entry/exit focus, summary cards
-- Tests: 15/15 passed (iteration_18.json)
+**Phase 3 - Mes Réservations**
+- Active/History tabs
+- Reservation cards with status badges (En cours, Confirmé, En retard)
+- Quick actions: Check-out, Check-in, Cancel, View detail
+- Check-out modal: responsable, lieu, état, commentaire
+- Check-in modal: responsable, état retour, commentaire
+- Overdue indicator (red badge "En retard")
 
-### Phase 13 - Multi-tenant B2B + Presets + Mobile + Dark Mode (DONE - Apr 6, 2026)
-1. **Multi-tenant B2B** - Global client selector in PremiumLayout header
-   - Dropdown with customer list (LOGITRAK, CLIENT01)
-   - Filters Assets page by selected client
-   - "Tous les clients" shows all data
+**Phase 4 - Dashboard KPI + Centre d'alertes**
+- 6 KPI cards: Totales, En cours, Confirmées, Aujourd'hui, En retard, Terminées
+- Centre d'alertes in-app: notifications with severity (error/warning/info)
+- "Tout marquer lu" functionality
+- Top 5 assets les plus réservés
+- Réservations récentes avec badges de statut
+- Actualiser button
 
-2. **Column Presets** - Assets page column configuration
-   - 3 presets: Vue complète (12 cols), Vue standard (8 cols), Vue simple (4 cols)
-   - 12 individually toggleable columns (Photo, Référence, Label, Zone, Batterie, etc.)
-   - Saved in localStorage
-
-3. **Mobile Responsive** - Media queries for Reports builder, Layout, Slide-overs
-   - Reports 3-panel stacks to single column on mobile
-   - Tenant bar responsive
-
-4. **Dark Mode** - Complete dark theme via CSS class toggle
-   - Toggle in sidebar bottom (Moon/Sun icons)
-   - Persisted in localStorage
-   - Covers: Sidebar, Cards, Lists, Modals, Reports, Map, Planning, Inputs, Buttons
-   - Tests: 17/17 passed (iteration_19.json)
+**Testing**: iteration_20.json - 100% backend (20/20) + 100% frontend
 
 ## Pending/Future Tasks
 
-### P1 - Further Mobile Polish
-- Test all pages on actual mobile device
-- Slide-over panels on small screens
+### P1 - Reservation Enhancement
+- Drag & drop réservations dans le planning
+- Intégration BLE: comparer site prévu vs position réelle
+- Alertes push / email (intégration SendGrid)
+- Scan QR/NFC pour check-out rapide
 
-### P2 - Advanced Features
-- WebSocket real-time / BLE Proximity Scan
-- Real report data from API with cache layer
+### P2 - Advanced
+- Rôles/Permissions (super admin, admin client, manager, utilisateur terrain)
+- WebSocket temps réel pour alertes
+- Maintenance records module
 
 ### P3 - Extended
-- GPS Widget on dashboard
-- Multi-language support
+- Dark mode vérification complète mobile
+- Multi-language
+- Export CSV/PDF des réservations
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_19.json`
+- `/app/test_reports/iteration_1.json` through `iteration_20.json`
+- `/app/backend/tests/test_reservations.py` (pytest)
