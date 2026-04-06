@@ -379,7 +379,7 @@ const EnterpriseCommand = () => {
 
 const STYLES = `
 /* ── ROOT ── */
-.ec { display:flex; flex-direction:column; height:calc(100vh - 56px); background:#F8FAFC; overflow:hidden; }
+.ec { display:flex; flex-direction:column; height:100vh; background:#F8FAFC; overflow:hidden; }
 
 /* ── TOPBAR ── */
 .ec-topbar { display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:54px; background:#FFF; border-bottom:1px solid #E2E8F0; flex-shrink:0; gap:12px; z-index:10; }

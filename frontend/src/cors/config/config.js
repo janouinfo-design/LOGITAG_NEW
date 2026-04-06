@@ -118,5 +118,15 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900014,
+        "Text": "Command Center",
+        "Link": "command/center",
+        "Name": "Command Center",
+        "icon": "fa-solid fa-satellite-dish",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]

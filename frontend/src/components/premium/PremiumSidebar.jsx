@@ -5,12 +5,13 @@ import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
   ChevronLeft, ChevronRight, MapPin, Users, LogOut,
   Radio, FileBarChart, UserCircle, CalendarDays, Moon, Sun,
-  CalendarCheck, ClipboardList, BarChart3, Shield
+  CalendarCheck, ClipboardList, BarChart3, Shield, Radar
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
 
 const NAV_ITEMS = [
+  {id: 'command', label: 'Command Center', icon: Radar, path: '/command/center'},
   {id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/tagdashboard/index'},
   {id: 'map', label: 'Carte', icon: Map, path: '/tour/index'},
   {id: 'assets', label: 'Assets', icon: Box, path: '/view/engin/index'},

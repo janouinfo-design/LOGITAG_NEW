@@ -9,7 +9,7 @@ import {Menu, X, Building2, ChevronDown, Globe} from 'lucide-react'
 const LayoutCtx = createContext({collapsed: false, toggle: () => {}, tenant: null, setTenant: () => {}})
 export const useLayoutCtx = () => useContext(LayoutCtx)
 
-const FULLSCREEN_PATHS = ['/tour/index']
+const FULLSCREEN_PATHS = ['/tour/index', '/command/center']
 
 const PremiumLayout = () => {
   const dispatch = useAppDispatch()
