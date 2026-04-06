@@ -24,7 +24,7 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Highlight bleu sur les items sélectionnés
 - Test: iteration_29.json - 100% (7/7)
 
-**Phase A - Alertes Intelligentes Réservation :**
+**Phase A - Alertes Intelligentes Réservation (DONE):**
 Backend (6 endpoints) :
 - `GET /api/reservations/alerts/rules` - 5 règles configurables
 - `PUT /api/reservations/alerts/rules/{id}` - Toggle ON/OFF par règle
@@ -35,18 +35,31 @@ Backend (6 endpoints) :
 
 Types d'alertes :
 1. **Overdue** (CRITICAL) - Asset non retourné après fin de réservation
-2. **Upcoming** (WARNING) - Réservation imminente (configurable en minutes)
+2. **Upcoming** (WARNING) - Réservation imminente
 3. **No checkout** (WARNING) - Réservation commencée sans check-out
-4. **Long usage** (INFO) - Utilisation prolongée au-delà de la durée
+4. **Long usage** (INFO) - Utilisation prolongée
 5. **Low battery reserved** (WARNING) - Asset réservé avec batterie < 20%
+- Test: iteration_30.json - 100% (22/22)
 
-Frontend - Dashboard KPI Réservations enrichi :
-- Onglets "Alertes Smart" / "Notifications"
-- Bouton "Scanner" pour lancer le scan
-- Panneau "Règles" avec 5 toggles ON/OFF
-- Chips stats (En retard: X, Pas de check-out: X)
-- Cartes alertes avec titre, message, type badge, sévérité, bouton résoudre
-- Test: iteration_30.json - 100% (22/22 = 10 backend + 12 frontend)
+### Phase B - VUE GANTT PLANNING (DONE - Apr 6, 2026)
+- Vue timeline/Gantt : 1 ligne par asset, barres colorées par statut (Demandé/Confirmé/En cours/Terminé/Annulé/Rejeté)
+- Toolbar : recherche asset, filtre statut, zoom, sélecteur de jours (7/14/30)
+- Click sur barre → panneau de détail avec infos complètes
+- Marqueur jour courant (ligne rouge)
+- Backend: `GET /api/reservations/gantt?days=14`
+- Test: iteration_31.json - 100% (Backend 16/16, Frontend 26/26)
+
+### Phase C - WORKFLOW APPROBATION (DONE - Apr 6, 2026)
+- Boutons Approuver/Rejeter dans le détail de réservation (Gantt)
+- Statut "Demandé" → validation → "Confirmé" ou "Rejeté"
+- Backend: `POST /api/reservations/{id}/approve` et `/reject`
+- Logs et notifications automatiques
+- Test: iteration_31.json - 100%
+
+### Phase D - DASHBOARD OPÉRATIONNEL (DONE - Apr 6, 2026)
+- `GET /api/reservations/today-summary` : active, upcoming, overdue, pending, alerts
+- KPIs opérationnels dans le Command Center
+- Test: iteration_31.json - 100%
 
 ## DB Schema (Local MongoDB `test_database`)
 - reservations, reservation_logs, notifications, user_roles
@@ -54,24 +67,13 @@ Frontend - Dashboard KPI Réservations enrichi :
 - **reservation_alerts**: {id, type, reservation_id, asset_id, asset_name, user_name, title, message, severity, resolved, created_at}
 - **reservation_alert_rules**: {id, type, label, description, enabled, threshold_minutes, severity, auto_notify}
 
-## Pending/Future Tasks
-
-### Phase B - VUE GANTT PLANNING (P0 - Next)
-- Vue timeline/Gantt : 1 ligne par asset, barres colorées par réservation
-- Cliquable pour voir les détails
-- Indicateur de disponibilité
-
-### Phase C - WORKFLOW APPROBATION (P1)
-- Statut "Demandé" → validation → "Confirmé"
-- Notification au manager
-
-### Phase D - DASHBOARD OPÉRATIONNEL (P1)
-- Vue résumé du jour dans le Command Center
-- Assets critiques avec action rapide
-
-### Backlog (P2-P3)
-- Maintenance records, QR/NFC, Notifications Email/Push, Multi-language
-- Grid/card view alternatives, Presets colonnes
+## Backlog (P2-P3)
+- P1/P2: Refactoring de `server.py` (1400+ lignes → routeurs séparés)
+- P2: Grid/card views alternatifs, Presets colonnes
+- P3: Registres de maintenance (Maintenance records)
+- P3: Scan QR/NFC pour check-in rapide des assets
+- Backlog: Notifications Email et Push mobile
+- Backlog: Multi-language
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_30.json`
+- `/app/test_reports/iteration_1.json` through `iteration_31.json`
