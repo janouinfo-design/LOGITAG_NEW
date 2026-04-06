@@ -385,7 +385,7 @@ const EnterpriseCommand = () => {
             </div>
           </div>
           <div className="ec-topbar-right">
-            {lastRefresh && <span className="ec-refresh-time" data-testid="last-refresh"><Clock size={10} /> {lastRefresh.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>}
+            <span className="ec-refresh-time" data-testid="last-refresh"><Clock size={10} /> {lastRefresh ? lastRefresh.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'}) : '--:--:--'}</span>
             <button className={`ec-topbar-btn ${refreshing ? 'ec-refreshing' : ''}`} onClick={() => refreshData(true)} title="Rafraîchir" data-testid="manual-refresh">
               <RefreshCw size={15} />
             </button>
