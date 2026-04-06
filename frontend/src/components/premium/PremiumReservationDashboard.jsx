@@ -3,7 +3,8 @@ import {useWebSocket} from '../../hooks/useWebSocket'
 import {
   BarChart3, CalendarDays, Truck, Clock, AlertTriangle, CheckCircle2, XCircle,
   ArrowUp, ArrowDown, TrendingUp, MapPin, Users, Bell, Eye, X, Loader2,
-  LogIn, LogOut, FileText, Timer, RotateCcw, Wifi
+  LogIn, LogOut, FileText, Timer, RotateCcw, Wifi, Shield, ShieldAlert, Scan,
+  CheckCircle, BellRing, Settings2, ChevronDown, ChevronUp
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -13,21 +14,34 @@ const PremiumReservationDashboard = () => {
   const [notifications, setNotifications] = useState([])
   const [recentRes, setRecentRes] = useState([])
   const [loading, setLoading] = useState(true)
+  const [smartAlerts, setSmartAlerts] = useState([])
+  const [alertStats, setAlertStats] = useState(null)
+  const [alertRules, setAlertRules] = useState([])
+  const [scanning, setScanning] = useState(false)
+  const [rulesOpen, setRulesOpen] = useState(false)
+  const [tab, setTab] = useState('alerts') // 'alerts' | 'notifications'
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
     try {
-      const [kpiRes, notifRes, resRes] = await Promise.all([
+      const [kpiRes, notifRes, resRes, alertRes, statsRes, rulesRes] = await Promise.all([
         fetch(`${API}/api/reservations/kpis`),
         fetch(`${API}/api/notifications`),
         fetch(`${API}/api/reservations`),
+        fetch(`${API}/api/reservations/alerts?status=active`),
+        fetch(`${API}/api/reservations/alerts/stats`),
+        fetch(`${API}/api/reservations/alerts/rules`),
       ])
-      const kpiData = await kpiRes.json()
+      setKpis(await kpiRes.json())
       const notifData = await notifRes.json()
-      const resData = await resRes.json()
-      setKpis(kpiData)
       setNotifications(Array.isArray(notifData) ? notifData : [])
+      const resData = await resRes.json()
       setRecentRes(Array.isArray(resData) ? resData.slice(0, 10) : [])
+      const aData = await alertRes.json()
+      setSmartAlerts(Array.isArray(aData) ? aData : [])
+      setAlertStats(await statsRes.json())
+      const rData = await rulesRes.json()
+      setAlertRules(Array.isArray(rData) ? rData : [])
     } catch {}
     setLoading(false)
   }, [])
@@ -49,6 +63,42 @@ const PremiumReservationDashboard = () => {
   const markAllRead = async () => {
     await fetch(`${API}/api/notifications/read-all`, {method: 'PUT'})
     setNotifications(prev => prev.map(n => ({...n, read: true})))
+  }
+
+  const runScan = async () => {
+    setScanning(true)
+    try {
+      await fetch(`${API}/api/reservations/alerts/scan`, {method: 'POST'})
+      const [alertRes, statsRes] = await Promise.all([
+        fetch(`${API}/api/reservations/alerts?status=active`),
+        fetch(`${API}/api/reservations/alerts/stats`),
+      ])
+      setSmartAlerts(await alertRes.json())
+      setAlertStats(await statsRes.json())
+    } catch {}
+    setScanning(false)
+  }
+
+  const resolveAlert = async (id) => {
+    await fetch(`${API}/api/reservations/alerts/${id}/resolve`, {method: 'PUT'})
+    setSmartAlerts(prev => prev.filter(a => a.id !== id))
+  }
+
+  const toggleRule = async (rule) => {
+    const newEnabled = !rule.enabled
+    await fetch(`${API}/api/reservations/alerts/rules/${rule.id}`, {
+      method: 'PUT', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({enabled: newEnabled})
+    })
+    setAlertRules(prev => prev.map(r => r.id === rule.id ? {...r, enabled: newEnabled} : r))
+  }
+
+  const ALERT_TYPE_META = {
+    overdue: {icon: AlertTriangle, color: '#DC2626', bg: '#FEF2F2', label: 'En retard'},
+    upcoming: {icon: BellRing, color: '#D97706', bg: '#FFFBEB', label: 'Imminente'},
+    no_checkout: {icon: LogOut, color: '#7C3AED', bg: '#F5F3FF', label: 'Pas de check-out'},
+    long_usage: {icon: Timer, color: '#0EA5E9', bg: '#F0F9FF', label: 'Usage prolongé'},
+    low_battery_reserved: {icon: AlertTriangle, color: '#EA580C', bg: '#FFF7ED', label: 'Batterie faible'},
   }
 
   const STATUS_MAP = {
@@ -125,34 +175,128 @@ const PremiumReservationDashboard = () => {
         </div>
 
         <div className="rdb-two-cols">
-          {/* Notifications */}
-          <div className="rdb-panel" data-testid="notifications-panel">
+          {/* SMART ALERTS + NOTIFICATIONS PANEL */}
+          <div className="rdb-panel" data-testid="alerts-panel">
             <div className="rdb-panel-head">
-              <h2><Bell size={16} /> Centre d'alertes <span className="rdb-notif-badge">{unreadNotifs.length}</span></h2>
-              {unreadNotifs.length > 0 && <button className="rdb-mark-all" onClick={markAllRead} data-testid="mark-all-read">Tout marquer lu</button>}
+              <div className="rdb-tabs">
+                <button className={`rdb-tab ${tab === 'alerts' ? 'rdb-tab--active' : ''}`} onClick={() => setTab('alerts')} data-testid="tab-alerts">
+                  <ShieldAlert size={14} /> Alertes Smart
+                  {smartAlerts.length > 0 && <span className="rdb-notif-badge">{smartAlerts.length}</span>}
+                </button>
+                <button className={`rdb-tab ${tab === 'notifications' ? 'rdb-tab--active' : ''}`} onClick={() => setTab('notifications')} data-testid="tab-notifications">
+                  <Bell size={14} /> Notifications
+                  {unreadNotifs.length > 0 && <span className="rdb-notif-badge">{unreadNotifs.length}</span>}
+                </button>
+              </div>
+              <div className="rdb-head-actions">
+                {tab === 'alerts' && (
+                  <>
+                    <button className="rdb-scan-btn" onClick={runScan} disabled={scanning} data-testid="scan-alerts-btn">
+                      {scanning ? <Loader2 size={13} className="rdb-spin-icon" /> : <Scan size={13} />}
+                      {scanning ? 'Scan...' : 'Scanner'}
+                    </button>
+                    <button className="rdb-rules-btn" onClick={() => setRulesOpen(!rulesOpen)} data-testid="rules-toggle-btn">
+                      <Settings2 size={13} /> Règles
+                    </button>
+                  </>
+                )}
+                {tab === 'notifications' && unreadNotifs.length > 0 && (
+                  <button className="rdb-mark-all" onClick={markAllRead} data-testid="mark-all-read">Tout marquer lu</button>
+                )}
+              </div>
             </div>
+
+            {/* Alert Rules */}
+            {rulesOpen && tab === 'alerts' && (
+              <div className="rdb-rules-panel" data-testid="alert-rules-panel">
+                <h3 className="rdb-rules-title"><Shield size={14} /> Règles d'alertes</h3>
+                {alertRules.map((rule, i) => {
+                  const meta = ALERT_TYPE_META[rule.type] || {icon: Bell, color: '#64748B', bg: '#F8FAFC'}
+                  const Icon = meta.icon
+                  return (
+                    <div key={rule.id} className="rdb-rule-item" data-testid={`rule-${i}`}>
+                      <div className="rdb-rule-icon" style={{background: meta.bg}}>
+                        <Icon size={14} style={{color: meta.color}} />
+                      </div>
+                      <div className="rdb-rule-info">
+                        <span className="rdb-rule-label">{rule.label}</span>
+                        <span className="rdb-rule-desc">{rule.description}</span>
+                      </div>
+                      <label className="rdb-rule-toggle" data-testid={`rule-toggle-${i}`}>
+                        <input type="checkbox" checked={rule.enabled} onChange={() => toggleRule(rule)} />
+                        <span className="rdb-toggle-switch" />
+                      </label>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Alert Stats Bar */}
+            {tab === 'alerts' && alertStats && alertStats.total_active > 0 && (
+              <div className="rdb-alert-stats" data-testid="alert-stats">
+                {Object.entries(alertStats.by_type || {}).map(([type, count]) => {
+                  const meta = ALERT_TYPE_META[type] || {label: type, color: '#64748B', bg: '#F8FAFC'}
+                  return (
+                    <span key={type} className="rdb-stat-chip" style={{background: meta.bg, color: meta.color}}>
+                      {meta.label}: {count}
+                    </span>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* Tab Content */}
             <div className="rdb-notif-list">
-              {notifications.length === 0 ? (
-                <div className="rdb-notif-empty">Aucune notification</div>
-              ) : notifications.slice(0, 15).map((n, i) => {
-                const sev = SEVERITY_MAP[n.severity] || SEVERITY_MAP.info
-                const Icon = sev.icon
-                return (
-                  <div key={n.id} className={`rdb-notif ${n.read ? 'rdb-notif--read' : ''}`} data-testid={`notif-${i}`}>
-                    <div className="rdb-notif-icon" style={{background: sev.bg}}>
-                      <Icon size={14} style={{color: sev.color}} />
+              {tab === 'alerts' ? (
+                smartAlerts.length === 0 ? (
+                  <div className="rdb-notif-empty"><CheckCircle size={24} style={{color: '#059669', marginBottom: 8}} /><br/>Aucune alerte active. Cliquez "Scanner" pour vérifier.</div>
+                ) : smartAlerts.map((a, i) => {
+                  const meta = ALERT_TYPE_META[a.type] || {icon: AlertTriangle, color: '#64748B', bg: '#F8FAFC', label: a.type}
+                  const Icon = meta.icon
+                  return (
+                    <div key={a.id} className="rdb-notif rdb-notif--alert" data-testid={`smart-alert-${i}`}>
+                      <div className="rdb-notif-icon" style={{background: meta.bg}}>
+                        <Icon size={14} style={{color: meta.color}} />
+                      </div>
+                      <div className="rdb-notif-body">
+                        <span className="rdb-notif-title">{a.title}</span>
+                        <span className="rdb-notif-msg">{a.message}</span>
+                        <div className="rdb-alert-meta">
+                          <span className="rdb-alert-type" style={{background: meta.bg, color: meta.color}}>{meta.label}</span>
+                          <span className={`rdb-alert-sev rdb-alert-sev--${a.severity}`}>{a.severity}</span>
+                        </div>
+                      </div>
+                      <div className="rdb-notif-right">
+                        <span className="rdb-notif-time">{timeAgo(a.created_at)}</span>
+                        <button className="rdb-resolve-btn" onClick={() => resolveAlert(a.id)} title="Résoudre" data-testid={`resolve-alert-${i}`}><CheckCircle2 size={13} /></button>
+                      </div>
                     </div>
-                    <div className="rdb-notif-body">
-                      <span className="rdb-notif-title">{n.title}</span>
-                      <span className="rdb-notif-msg">{n.message}</span>
+                  )
+                })
+              ) : (
+                notifications.length === 0 ? (
+                  <div className="rdb-notif-empty">Aucune notification</div>
+                ) : notifications.slice(0, 15).map((n, i) => {
+                  const sev = SEVERITY_MAP[n.severity] || SEVERITY_MAP.info
+                  const Icon = sev.icon
+                  return (
+                    <div key={n.id} className={`rdb-notif ${n.read ? 'rdb-notif--read' : ''}`} data-testid={`notif-${i}`}>
+                      <div className="rdb-notif-icon" style={{background: sev.bg}}>
+                        <Icon size={14} style={{color: sev.color}} />
+                      </div>
+                      <div className="rdb-notif-body">
+                        <span className="rdb-notif-title">{n.title}</span>
+                        <span className="rdb-notif-msg">{n.message}</span>
+                      </div>
+                      <div className="rdb-notif-right">
+                        <span className="rdb-notif-time">{timeAgo(n.created_at)}</span>
+                        {!n.read && <button className="rdb-notif-mark" onClick={() => markRead(n.id)} title="Marquer comme lu"><Eye size={12} /></button>}
+                      </div>
                     </div>
-                    <div className="rdb-notif-right">
-                      <span className="rdb-notif-time">{timeAgo(n.created_at)}</span>
-                      {!n.read && <button className="rdb-notif-mark" onClick={() => markRead(n.id)} title="Marquer comme lu"><Eye size={12} /></button>}
-                    </div>
-                  </div>
-                )
-              })}
+                  )
+                })
+              )}
             </div>
           </div>
 
@@ -236,6 +380,7 @@ const STYLES = `
 .rdb-notif { display:flex; align-items:flex-start; gap:12px; padding:14px 20px; border-bottom:1px solid #F8FAFC; cursor:pointer; transition:background .1s; }
 .rdb-notif:hover { background:#FAFBFC; }
 .rdb-notif--read { opacity:.6; }
+.rdb-notif--alert:hover { background:#FFFBEB; }
 .rdb-notif-icon { width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .rdb-notif-body { flex:1; min-width:0; }
 .rdb-notif-title { display:block; font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:700; color:#0F172A; }
@@ -245,6 +390,50 @@ const STYLES = `
 .rdb-notif-mark { border:none; background:none; color:#94A3B8; cursor:pointer; padding:2px; }
 .rdb-notif-mark:hover { color:#2563EB; }
 .rdb-notif-empty { padding:40px; text-align:center; font-family:'Inter',sans-serif; color:#94A3B8; font-size:.82rem; }
+
+/* Tabs */
+.rdb-tabs { display:flex; gap:4px; }
+.rdb-tab { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:8px; border:1.5px solid transparent; background:none; font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; color:#64748B; cursor:pointer; transition:all .12s; }
+.rdb-tab:hover { background:#F8FAFC; }
+.rdb-tab--active { background:#EFF6FF; color:#2563EB; border-color:#BFDBFE; }
+.rdb-head-actions { display:flex; gap:6px; align-items:center; }
+.rdb-scan-btn { display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
+.rdb-scan-btn:hover { border-color:#2563EB; color:#2563EB; }
+.rdb-scan-btn:disabled { opacity:.5; cursor:not-allowed; }
+.rdb-rules-btn { display:inline-flex; align-items:center; gap:4px; padding:6px 12px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
+.rdb-rules-btn:hover { border-color:#7C3AED; color:#7C3AED; }
+.rdb-spin-icon { animation:rdbSpin 1s linear infinite; }
+@keyframes rdbSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+/* Alert meta */
+.rdb-alert-meta { display:flex; gap:6px; margin-top:4px; }
+.rdb-alert-type { display:inline-flex; padding:2px 8px; border-radius:6px; font-family:'Inter',sans-serif; font-size:.58rem; font-weight:700; }
+.rdb-alert-sev { display:inline-flex; padding:2px 8px; border-radius:6px; font-family:'Inter',sans-serif; font-size:.58rem; font-weight:700; text-transform:uppercase; }
+.rdb-alert-sev--critical { background:#FEE2E2; color:#DC2626; }
+.rdb-alert-sev--warning { background:#FEF3C7; color:#D97706; }
+.rdb-alert-sev--info { background:#DBEAFE; color:#2563EB; }
+.rdb-resolve-btn { border:none; background:none; color:#059669; cursor:pointer; padding:4px; border-radius:6px; transition:background .1s; }
+.rdb-resolve-btn:hover { background:#ECFDF5; }
+
+/* Alert Stats */
+.rdb-alert-stats { display:flex; gap:8px; padding:8px 16px; border-bottom:1px solid #F1F5F9; flex-wrap:wrap; }
+.rdb-stat-chip { display:inline-flex; padding:4px 10px; border-radius:8px; font-family:'Inter',sans-serif; font-size:.62rem; font-weight:700; }
+
+/* Rules Panel */
+.rdb-rules-panel { padding:12px 16px; border-bottom:1px solid #F1F5F9; background:#FAFBFC; }
+.rdb-rules-title { font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:800; color:#0F172A; margin:0 0 10px; display:flex; align-items:center; gap:6px; }
+.rdb-rule-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid #F1F5F9; }
+.rdb-rule-item:last-child { border-bottom:none; }
+.rdb-rule-icon { width:30px; height:30px; border-radius:8px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.rdb-rule-info { flex:1; min-width:0; }
+.rdb-rule-label { display:block; font-family:'Inter',sans-serif; font-size:.75rem; font-weight:700; color:#0F172A; }
+.rdb-rule-desc { display:block; font-family:'Inter',sans-serif; font-size:.62rem; color:#94A3B8; }
+.rdb-rule-toggle { position:relative; display:inline-flex; align-items:center; cursor:pointer; }
+.rdb-rule-toggle input { display:none; }
+.rdb-toggle-switch { width:36px; height:20px; border-radius:10px; background:#CBD5E1; position:relative; transition:background .2s; }
+.rdb-toggle-switch::after { content:''; position:absolute; left:2px; top:2px; width:16px; height:16px; border-radius:8px; background:#FFF; transition:transform .2s; }
+.rdb-rule-toggle input:checked + .rdb-toggle-switch { background:#2563EB; }
+.rdb-rule-toggle input:checked + .rdb-toggle-switch::after { transform:translateX(16px); }
 
 /* Top Assets */
 .rdb-top-list { padding:8px 12px; }
