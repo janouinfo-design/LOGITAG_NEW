@@ -73,7 +73,19 @@ Complete asset reservation and planning system:
 - **Détails enrichis**: Drawer affiche coordonnées centre, rayon, et badge de forme
 - **Stats**: Compteur de cercles et polygones dans la barre de statistiques
 
-**Testing**: iteration_22.json - 100% frontend (12/12)
+### Phase 16 - ZONES MONGODB + RAPPORTS ADRESSE (DONE - Apr 6, 2026)
+1. **Zones CRUD MongoDB**:
+   - Backend: POST/GET/PUT/DELETE /api/zones avec persistance MongoDB
+   - Collection: test_database.zones
+   - WebSocket broadcast sur create/update/delete pour sync temps réel
+   - Frontend: PremiumZones.jsx connecté à l'API (plus de données mock)
+   - Fallback vers DEFAULT_ZONES si API vide au premier chargement
+2. **Rapports - Adresse en fallback**:
+   - Si l'asset n'a pas de zone (LocationObjectname), le rapport affiche la dernière adresse connue (address/nearestLocationName)
+   - Badge orange avec icône MapPin pour distinguer les adresses des zones
+   - Colonne renommée "Zone / Adresse" dans le tableau des rapports
+
+**Testing**: iteration_23.json - 100% (13/13 backend + frontend)
 
 ## DB Schema (Local MongoDB `test_database`)
 - reservations: {id, asset_id, asset_name, start_date, end_date, user_name, status, site, priority, ...}
