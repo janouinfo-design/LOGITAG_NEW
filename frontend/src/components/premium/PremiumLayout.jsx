@@ -10,7 +10,6 @@ const LayoutCtx = createContext({collapsed: false, toggle: () => {}, tenant: nul
 export const useLayoutCtx = () => useContext(LayoutCtx)
 
 const FULLSCREEN_PATHS = ['/tour/index', '/command/center']
-const SELF_CONTAINED_PATHS = ['/command/center']
 
 const PremiumLayout = () => {
   const dispatch = useAppDispatch()
@@ -21,7 +20,6 @@ const PremiumLayout = () => {
   const [tenantOpen, setTenantOpen] = useState(false)
   const location = useLocation()
   const isFullscreen = FULLSCREEN_PATHS.some((p) => location.pathname.includes(p))
-  const isSelfContained = SELF_CONTAINED_PATHS.some((p) => location.pathname.includes(p))
 
   useEffect(() => {
     dispatch(fetchCustomers())
@@ -35,8 +33,8 @@ const PremiumLayout = () => {
         {/* Normal sidebar for non-fullscreen pages */}
         {!isFullscreen && <PremiumSidebar />}
 
-        {/* Overlay sidebar for fullscreen pages (not self-contained ones) */}
-        {isFullscreen && !isSelfContained && (
+        {/* Overlay sidebar for fullscreen pages */}
+        {isFullscreen && (
           <>
             <button
               className="lt-fs-menu-btn"

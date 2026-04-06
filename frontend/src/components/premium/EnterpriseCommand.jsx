@@ -170,7 +170,7 @@ const EnterpriseCommand = () => {
         <header className="ec-topbar" data-testid="enterprise-topbar">
           <div className="ec-topbar-left">
             <button className="ec-sidebar-toggle" onClick={() => setSidebarOpen(!sidebarOpen)} data-testid="sidebar-toggle-btn">
-              <Menu size={18} />
+              {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
             </button>
             <div className="ec-topbar-kpis" data-testid="topbar-kpis">
               {kpiConfigs.map((k, i) => {
@@ -382,7 +382,7 @@ const STYLES = `
 .ec { display:flex; flex-direction:column; height:100vh; background:#F8FAFC; overflow:hidden; }
 
 /* ── TOPBAR ── */
-.ec-topbar { display:flex; align-items:center; justify-content:space-between; padding:0 20px; height:54px; background:#FFF; border-bottom:1px solid #E2E8F0; flex-shrink:0; gap:12px; z-index:10; }
+.ec-topbar { display:flex; align-items:center; justify-content:space-between; padding:0 20px 0 60px; height:54px; background:#FFF; border-bottom:1px solid #E2E8F0; flex-shrink:0; gap:12px; z-index:10; }
 .ec-topbar-left { display:flex; align-items:center; gap:12px; flex:1; min-width:0; }
 .ec-topbar-right { display:flex; align-items:center; gap:8px; flex-shrink:0; }
 .ec-sidebar-toggle { width:34px; height:34px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; color:#475569; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; flex-shrink:0; }
