@@ -36,6 +36,7 @@ const PremiumSidebar = () => {
   const [dark, setDark] = useState(() => {
     try { return localStorage.getItem('lt-dark') === '1' } catch { return false }
   })
+  const [notifCount, setNotifCount] = useState(0)
 
   useEffect(() => {
     if (dark) {
@@ -45,6 +46,20 @@ const PremiumSidebar = () => {
     }
     localStorage.setItem('lt-dark', dark ? '1' : '0')
   }, [dark])
+
+  // Poll notification count every 30s
+  useEffect(() => {
+    const API = process.env.REACT_APP_BACKEND_URL
+    const fetchCount = async () => {
+      try {
+        const res = await fetch(`${API}/api/notifications/count`)
+        if (res.ok) { const d = await res.json(); setNotifCount(d.count || 0) }
+      } catch {}
+    }
+    fetchCount()
+    const interval = setInterval(fetchCount, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   const isActive = (path) => location.pathname === path
 
@@ -82,6 +97,9 @@ const PremiumSidebar = () => {
               >
                 <Icon size={20} strokeWidth={active ? 2.2 : 1.8} />
                 {!collapsed && <span>{item.label}</span>}
+                {item.id === 'res-dash' && notifCount > 0 && (
+                  <span className="lt-sidebar-notif-badge" data-testid="sidebar-notif-badge">{notifCount > 9 ? '9+' : notifCount}</span>
+                )}
                 {active && !collapsed && <div className="lt-sidebar-active-dot" />}
               </button>
             )
@@ -186,6 +204,29 @@ const PremiumSidebar = () => {
         .lt-sidebar-item--logout:hover { color: #EF4444; background: #FEF2F2; }
         .lt-sidebar-item--theme { color: #94A3B8; }
         .lt-sidebar-item--theme:hover { color: #F59E0B; background: #FFFBEB; }
+        .lt-sidebar-notif-badge {
+          position: absolute;
+          right: 8px;
+          top: 50%;
+          transform: translateY(-50%);
+          min-width: 18px;
+          height: 18px;
+          border-radius: 9px;
+          background: #EF4444;
+          color: #FFF;
+          font-family: 'Inter', sans-serif;
+          font-size: .6rem;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          padding: 0 4px;
+          animation: ltNotifPulse 2s ease infinite;
+        }
+        @keyframes ltNotifPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,.3); }
+          50% { box-shadow: 0 0 0 4px rgba(239,68,68,0); }
+        }
 
         /* Collapsed state centering */
         .lt-sidebar--collapsed .lt-sidebar-item {

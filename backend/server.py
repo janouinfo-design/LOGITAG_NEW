@@ -82,6 +82,10 @@ class CheckInData(BaseModel):
     condition: str = "good"
     comment: Optional[str] = None
 
+class DragDropUpdate(BaseModel):
+    start_date: str
+    end_date: str
+
 
 # ═══════════════════════════════════════════════════════════════
 #  HELPER: Create notification
@@ -366,7 +370,88 @@ async def update_reservation(reservation_id: str, data: ReservationUpdate):
     return updated
 
 
-@api_router.post("/reservations/{reservation_id}/cancel")
+@api_router.put("/reservations/{reservation_id}/drag")
+async def drag_drop_reservation(reservation_id: str, data: DragDropUpdate):
+    """Move reservation via drag & drop (update dates only)"""
+    res = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    if not res:
+        raise HTTPException(status_code=404, detail="Réservation introuvable")
+    if res["status"] in ["completed", "cancelled", "rejected"]:
+        raise HTTPException(status_code=400, detail="Impossible de déplacer cette réservation.")
+
+    # Anti-conflict check
+    conflict = await db.reservations.find_one({
+        "asset_id": res["asset_id"],
+        "id": {"$ne": reservation_id},
+        "status": {"$in": ["requested", "confirmed", "in_progress"]},
+        "$or": [{"start_date": {"$lt": data.end_date}, "end_date": {"$gt": data.start_date}}],
+    }, {"_id": 0})
+    if conflict:
+        raise HTTPException(status_code=409, detail=f"Conflit: créneau occupé par {conflict['asset_name']} ({conflict['id'][:8]})")
+
+    now_iso = datetime.now(timezone.utc).isoformat()
+    await db.reservations.update_one({"id": reservation_id}, {"$set": {
+        "start_date": data.start_date,
+        "end_date": data.end_date,
+        "updated_at": now_iso,
+    }})
+    await db.reservation_logs.insert_one({
+        "id": str(uuid.uuid4()), "reservation_id": reservation_id,
+        "action": "moved", "user": "admin",
+        "details": f"Déplacé vers {data.start_date[:10]} — {data.end_date[:10]}",
+        "created_at": now_iso,
+    })
+    updated = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    return updated
+
+
+@api_router.get("/reservations/{reservation_id}/ble-check")
+async def ble_position_check(reservation_id: str):
+    """Compare reservation planned site vs real BLE position"""
+    res = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    if not res:
+        raise HTTPException(status_code=404, detail="Réservation introuvable")
+
+    planned_site = res.get("site", "")
+    asset_id = res.get("asset_id", "")
+
+    # Fetch asset position from external API
+    ble_data = {"detected": False, "current_site": None, "match": None, "last_seen": None}
+    try:
+        resp = await http_client.post(
+            f"{EXTERNAL_API_URL}/engin/list",
+            json={"page": 1, "PageSize": 200},
+            timeout=8.0
+        )
+        if resp.status_code == 200:
+            body = resp.json()
+            engines = body.get("data", []) if isinstance(body, dict) else body if isinstance(body, list) else []
+            for eng in engines:
+                eid = eng.get("id") or eng.get("ID") or ""
+                if str(eid) == str(asset_id) or (eng.get("reference", "").lower() == res.get("asset_name", "").lower()):
+                    current_site = eng.get("LocationObjectname", "") or ""
+                    last_seen = eng.get("lastSeenAt", "") or eng.get("dateLastSeen", "")
+                    detected = bool(current_site or eng.get("etatenginname") == "reception")
+                    match_status = None
+                    if detected and planned_site:
+                        match_status = "match" if planned_site.lower() in current_site.lower() or current_site.lower() in planned_site.lower() else "mismatch"
+                    elif detected:
+                        match_status = "no_planned_site"
+                    ble_data = {
+                        "detected": detected,
+                        "current_site": current_site or None,
+                        "planned_site": planned_site or None,
+                        "match": match_status,
+                        "last_seen": last_seen,
+                        "battery": eng.get("batteries", ""),
+                        "etat": eng.get("etatenginname", ""),
+                    }
+                    break
+    except Exception as e:
+        logger.warning(f"BLE check failed: {e}")
+        ble_data["error"] = "API externe indisponible"
+
+    return ble_data
 async def cancel_reservation(reservation_id: str):
     res = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
     if not res:
@@ -512,6 +597,154 @@ async def mark_all_notifications_read():
 async def notification_count():
     count = await db.notifications.count_documents({"read": False})
     return {"count": count}
+
+
+# ═══════════════════════════════════════════════════════════════
+#  ROLES & PERMISSIONS
+# ═══════════════════════════════════════════════════════════════
+
+ROLE_PERMISSIONS = {
+    "super_admin": ["*"],
+    "admin_client": ["reservations.*", "assets.read", "assets.edit", "users.read", "users.edit", "reports.*", "notifications.*", "planning.*", "zones.read"],
+    "manager": ["reservations.*", "assets.read", "users.read", "reports.read", "notifications.*", "planning.*", "zones.read"],
+    "terrain": ["reservations.read", "reservations.create", "reservations.checkout", "reservations.checkin", "assets.read", "notifications.read", "planning.read"],
+}
+
+class RoleAssign(BaseModel):
+    user_id: str
+    user_name: str
+    role: str
+
+@api_router.get("/roles")
+async def list_roles():
+    return {"roles": list(ROLE_PERMISSIONS.keys()), "permissions": ROLE_PERMISSIONS}
+
+@api_router.get("/roles/users")
+async def list_user_roles():
+    users = await db.user_roles.find({}, {"_id": 0}).to_list(200)
+    return users
+
+@api_router.post("/roles/assign")
+async def assign_role(data: RoleAssign):
+    if data.role not in ROLE_PERMISSIONS:
+        raise HTTPException(status_code=400, detail=f"Rôle invalide. Choix: {list(ROLE_PERMISSIONS.keys())}")
+    doc = {
+        "id": str(uuid.uuid4()),
+        "user_id": data.user_id,
+        "user_name": data.user_name,
+        "role": data.role,
+        "permissions": ROLE_PERMISSIONS[data.role],
+        "assigned_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.user_roles.update_one(
+        {"user_id": data.user_id},
+        {"$set": doc},
+        upsert=True
+    )
+    doc.pop("_id", None)
+    return doc
+
+@api_router.get("/roles/check/{user_id}/{permission}")
+async def check_permission(user_id: str, permission: str):
+    user_role = await db.user_roles.find_one({"user_id": user_id}, {"_id": 0})
+    if not user_role:
+        return {"allowed": False, "reason": "Aucun rôle attribué"}
+    perms = user_role.get("permissions", [])
+    if "*" in perms:
+        return {"allowed": True, "role": user_role["role"]}
+    for p in perms:
+        if p == permission or (p.endswith(".*") and permission.startswith(p[:-2])):
+            return {"allowed": True, "role": user_role["role"]}
+    return {"allowed": False, "role": user_role["role"], "reason": "Permission insuffisante"}
+
+
+# ═══════════════════════════════════════════════════════════════
+#  EXPORT CSV
+# ═══════════════════════════════════════════════════════════════
+
+@api_router.get("/reservations/export/csv")
+async def export_reservations_csv(status: Optional[str] = None):
+    import csv, io
+    query = {}
+    if status:
+        query["status"] = status
+    reservations = await db.reservations.find(query, {"_id": 0}).sort("start_date", -1).to_list(1000)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Asset", "Utilisateur", "Équipe", "Projet", "Site", "Début", "Fin", "Statut", "Priorité", "Check-out", "Check-in", "Créé le"])
+    for r in reservations:
+        writer.writerow([
+            r.get("id", "")[:8],
+            r.get("asset_name", ""),
+            r.get("user_name", ""),
+            r.get("team", ""),
+            r.get("project", ""),
+            r.get("site", ""),
+            r.get("start_date", "")[:16] if r.get("start_date") else "",
+            r.get("end_date", "")[:16] if r.get("end_date") else "",
+            r.get("status", ""),
+            r.get("priority", ""),
+            r.get("checkout_at", "")[:16] if r.get("checkout_at") else "",
+            r.get("checkin_at", "")[:16] if r.get("checkin_at") else "",
+            r.get("created_at", "")[:16] if r.get("created_at") else "",
+        ])
+
+    content = output.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reservations.csv"}
+    )
+
+
+# ═══════════════════════════════════════════════════════════════
+#  MAINTENANCE RECORDS
+# ═══════════════════════════════════════════════════════════════
+
+class MaintenanceCreate(BaseModel):
+    asset_id: str
+    asset_name: str
+    type: str = "preventive"  # preventive, corrective, inspection
+    description: Optional[str] = None
+    start_date: str
+    end_date: str
+    technician: Optional[str] = None
+
+@api_router.post("/maintenance")
+async def create_maintenance(data: MaintenanceCreate):
+    doc = {
+        "id": str(uuid.uuid4()),
+        "asset_id": data.asset_id,
+        "asset_name": data.asset_name,
+        "type": data.type,
+        "description": data.description,
+        "start_date": data.start_date,
+        "end_date": data.end_date,
+        "technician": data.technician,
+        "status": "active",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.maintenance_records.insert_one(doc)
+    doc.pop("_id", None)
+
+    await create_notification("maintenance", "Maintenance planifiée",
+        f"{data.asset_name} en maintenance du {data.start_date[:10]} au {data.end_date[:10]}", None, data.asset_id, "warning")
+
+    return doc
+
+@api_router.get("/maintenance")
+async def list_maintenance(asset_id: Optional[str] = None, status: Optional[str] = None):
+    query = {}
+    if asset_id: query["asset_id"] = asset_id
+    if status: query["status"] = status
+    records = await db.maintenance_records.find(query, {"_id": 0}).sort("start_date", -1).to_list(200)
+    return records
+
+@api_router.put("/maintenance/{maint_id}/complete")
+async def complete_maintenance(maint_id: str):
+    await db.maintenance_records.update_one({"id": maint_id}, {"$set": {"status": "completed", "completed_at": datetime.now(timezone.utc).isoformat()}})
+    return {"status": "completed"}
 
 
 # ═══════════════════════════════════════════════════════════════

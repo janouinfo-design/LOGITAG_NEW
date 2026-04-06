@@ -5,7 +5,8 @@ import {fetchSites, getSites} from '../Site/slice/site.slice'
 import {
   CalendarDays, ChevronLeft, ChevronRight, Filter, Plus, X, Search,
   Truck, MapPin, Clock, User, AlertTriangle, CheckCircle2, XCircle,
-  LogIn, LogOut, Eye, Loader2, ChevronDown, ArrowRight, Calendar as CalIcon
+  LogIn, LogOut, Eye, Loader2, ChevronDown, ArrowRight, Calendar as CalIcon,
+  Wifi, WifiOff, Battery, GripVertical
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -57,6 +58,10 @@ const PremiumReservationPlanning = () => {
   const [coForm, setCoForm] = useState({user_name: '', location: '', condition: 'good', comment: ''})
   const [ciForm, setCiForm] = useState({user_name: '', condition: 'good', comment: ''})
   const [actionLoading, setActionLoading] = useState(false)
+  const [dragItem, setDragItem] = useState(null)
+  const [dropTarget, setDropTarget] = useState(null)
+  const [bleData, setBleData] = useState(null)
+  const [bleLoading, setBleLoading] = useState(false)
 
   const fetchReservations = useCallback(async () => {
     setLoading(true)
@@ -208,6 +213,70 @@ const PremiumReservationPlanning = () => {
     setShowDetailDrawer(null)
   }
 
+  // ── Drag & Drop ──
+  const handleDragStart = (e, reservation) => {
+    setDragItem(reservation)
+    e.dataTransfer.effectAllowed = 'move'
+    e.dataTransfer.setData('text/plain', reservation.id)
+    e.target.style.opacity = '0.5'
+  }
+  const handleDragEnd = (e) => {
+    e.target.style.opacity = '1'
+    setDragItem(null)
+    setDropTarget(null)
+  }
+  const handleDragOver = (e, dayIndex) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDropTarget(dayIndex)
+  }
+  const handleDragLeave = () => { setDropTarget(null) }
+  const handleDrop = async (e, targetDay) => {
+    e.preventDefault()
+    setDropTarget(null)
+    if (!dragItem) return
+    if (['completed', 'cancelled', 'rejected'].includes(dragItem.status)) return
+
+    const origStart = new Date(dragItem.start_date)
+    const origEnd = new Date(dragItem.end_date)
+    const duration = origEnd - origStart
+    const newStart = new Date(targetDay)
+    newStart.setHours(origStart.getHours(), origStart.getMinutes(), 0, 0)
+    const newEnd = new Date(newStart.getTime() + duration)
+
+    try {
+      const res = await fetch(`${API}/api/reservations/${dragItem.id}/drag`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({start_date: newStart.toISOString(), end_date: newEnd.toISOString()})
+      })
+      if (res.ok) {
+        fetchReservations()
+      } else {
+        const err = await res.json()
+        alert(err.detail || 'Impossible de déplacer.')
+      }
+    } catch { alert('Erreur réseau.') }
+    setDragItem(null)
+  }
+
+  // ── BLE Check ──
+  const fetchBleCheck = async (resId) => {
+    setBleLoading(true)
+    setBleData(null)
+    try {
+      const res = await fetch(`${API}/api/reservations/${resId}/ble-check`)
+      if (res.ok) { setBleData(await res.json()) }
+    } catch {}
+    setBleLoading(false)
+  }
+
+  const openDetail = (r) => {
+    setShowDetailDrawer(r)
+    if (r.status === 'in_progress' || r.status === 'confirmed') {
+      fetchBleCheck(r.id)
+    }
+  }
+
   const days = getDaysInView()
   const uniqueSites = [...new Set(reservations.map(r => r.site).filter(Boolean))]
 
@@ -268,8 +337,15 @@ const PremiumReservationPlanning = () => {
               const dayRes = getReservationsForDay(day)
               const today = isToday(day)
               const curMonth = isCurrentMonth(day)
+              const isDropZone = dropTarget === di
               return (
-                <div key={di} className={`rp-day ${today ? 'rp-day--today' : ''} ${!curMonth && viewMode === 'month' ? 'rp-day--outside' : ''}`} data-testid={`day-${di}`}>
+                <div key={di}
+                  className={`rp-day ${today ? 'rp-day--today' : ''} ${!curMonth && viewMode === 'month' ? 'rp-day--outside' : ''} ${isDropZone ? 'rp-day--drop' : ''}`}
+                  data-testid={`day-${di}`}
+                  onDragOver={(e) => handleDragOver(e, di)}
+                  onDragLeave={handleDragLeave}
+                  onDrop={(e) => handleDrop(e, day)}
+                >
                   <div className="rp-day-head">
                     <span className={`rp-day-num ${today ? 'rp-day-num--today' : ''}`}>{day.getDate()}</span>
                     {(viewMode !== 'month') && <span className="rp-day-name">{day.toLocaleDateString('fr-FR', {weekday: 'short'})}</span>}
@@ -277,11 +353,17 @@ const PremiumReservationPlanning = () => {
                   <div className="rp-day-body">
                     {dayRes.slice(0, viewMode === 'month' ? 3 : 20).map(r => {
                       const st = STATUS_MAP[r.status] || STATUS_MAP.confirmed
+                      const canDrag = !['completed', 'cancelled', 'rejected'].includes(r.status)
                       return (
-                        <div key={r.id} className="rp-event" style={{borderLeftColor: st.bar, background: st.bg}}
-                          onClick={() => setShowDetailDrawer(r)} data-testid={`event-${r.id}`}>
+                        <div key={r.id} className={`rp-event ${canDrag ? 'rp-event--draggable' : ''}`}
+                          style={{borderLeftColor: st.bar, background: st.bg}}
+                          draggable={canDrag}
+                          onDragStart={(e) => canDrag && handleDragStart(e, r)}
+                          onDragEnd={handleDragEnd}
+                          onClick={() => openDetail(r)} data-testid={`event-${r.id}`}>
                           <span className="rp-event-name">{r.asset_name}</span>
                           <span className="rp-event-user">{r.user_name}</span>
+                          {canDrag && <span className="rp-event-grip">⠿</span>}
                         </div>
                       )
                     })}
@@ -418,6 +500,41 @@ const PremiumReservationPlanning = () => {
                         <div className="rp-drawer-row"><Clock size={13} /><label>Heure</label><span>{new Date(r.checkin_at).toLocaleString('fr-FR')}</span></div>
                         <div className="rp-drawer-row"><User size={13} /><label>Par</label><span>{r.checkin_by}</span></div>
                         <div className="rp-drawer-row"><Eye size={13} /><label>État</label><span>{r.checkin_condition}</span></div>
+                      </div>
+                    )}
+                    {/* ── BLE Position Check ── */}
+                    {(r.status === 'in_progress' || r.status === 'confirmed') && (
+                      <div className="rp-ble-section" data-testid="ble-section">
+                        <h4><Wifi size={14} /> Tracking BLE</h4>
+                        {bleLoading ? (
+                          <div className="rp-ble-loading"><Loader2 size={14} className="rp-spin" /> Vérification position...</div>
+                        ) : bleData ? (
+                          <div className="rp-ble-data">
+                            <div className={`rp-ble-status rp-ble-status--${bleData.match || 'unknown'}`}>
+                              {bleData.match === 'match' && <><CheckCircle2 size={16} /> Position correcte</>}
+                              {bleData.match === 'mismatch' && <><AlertTriangle size={16} /> Hors zone prévue</>}
+                              {bleData.match === 'no_planned_site' && <><MapPin size={16} /> Détecté (pas de site prévu)</>}
+                              {!bleData.detected && <><WifiOff size={16} /> Non détecté</>}
+                            </div>
+                            {bleData.current_site && (
+                              <div className="rp-ble-row"><MapPin size={12} /> <label>Position actuelle</label><span>{bleData.current_site}</span></div>
+                            )}
+                            {bleData.planned_site && (
+                              <div className="rp-ble-row"><MapPin size={12} /> <label>Site prévu</label><span>{bleData.planned_site}</span></div>
+                            )}
+                            {bleData.last_seen && (
+                              <div className="rp-ble-row"><Clock size={12} /> <label>Dernière détection</label><span>{bleData.last_seen}</span></div>
+                            )}
+                            {bleData.battery && (
+                              <div className="rp-ble-row"><Battery size={12} /> <label>Batterie</label><span>{bleData.battery}</span></div>
+                            )}
+                            {bleData.error && (
+                              <div className="rp-ble-row rp-ble-row--warn"><AlertTriangle size={12} /> {bleData.error}</div>
+                            )}
+                          </div>
+                        ) : (
+                          <div className="rp-ble-loading">Données BLE non disponibles</div>
+                        )}
                       </div>
                     )}
                     <div className="rp-drawer-actions">
@@ -601,6 +718,29 @@ const STYLES = `
 .rp-drawer-section { margin-top:16px; padding:16px; background:#FAFBFC; border-radius:12px; border:1px solid #E2E8F0; }
 .rp-drawer-section h4 { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; color:#0F172A; margin:0 0 12px; display:flex; align-items:center; gap:6px; }
 .rp-drawer-actions { display:flex; gap:10px; margin-top:24px; flex-wrap:wrap; }
+
+/* Drag & Drop */
+.rp-day--drop { background:#EFF6FF !important; outline:2px dashed #3B82F6; outline-offset:-2px; }
+.rp-event--draggable { cursor:grab; position:relative; }
+.rp-event--draggable:active { cursor:grabbing; }
+.rp-event-grip { position:absolute; right:4px; top:50%; transform:translateY(-50%); font-size:.6rem; color:#94A3B8; opacity:0; transition:opacity .15s; }
+.rp-event--draggable:hover .rp-event-grip { opacity:1; }
+
+/* BLE Section */
+.rp-ble-section { margin-top:16px; padding:16px; background:#FAFBFC; border-radius:12px; border:1px solid #E2E8F0; }
+.rp-ble-section h4 { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; color:#0F172A; margin:0 0 12px; display:flex; align-items:center; gap:6px; }
+.rp-ble-loading { font-family:'Inter',sans-serif; font-size:.78rem; color:#64748B; display:flex; align-items:center; gap:6px; }
+.rp-ble-data { display:flex; flex-direction:column; gap:6px; }
+.rp-ble-status { display:flex; align-items:center; gap:8px; padding:10px 14px; border-radius:10px; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; }
+.rp-ble-status--match { background:#D1FAE5; color:#059669; }
+.rp-ble-status--mismatch { background:#FEF2F2; color:#DC2626; }
+.rp-ble-status--no_planned_site { background:#DBEAFE; color:#2563EB; }
+.rp-ble-status--unknown { background:#F1F5F9; color:#64748B; }
+.rp-ble-row { display:flex; align-items:center; gap:8px; padding:7px 10px; font-family:'Inter',sans-serif; font-size:.76rem; color:#475569; }
+.rp-ble-row svg { color:#94A3B8; flex-shrink:0; }
+.rp-ble-row label { color:#64748B; width:110px; flex-shrink:0; }
+.rp-ble-row span { color:#0F172A; font-weight:600; }
+.rp-ble-row--warn { color:#D97706; background:#FFFBEB; border-radius:8px; }
 
 @keyframes rpSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 @keyframes rpFadeIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
