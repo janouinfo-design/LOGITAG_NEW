@@ -4,7 +4,8 @@ import {useLayoutCtx} from './PremiumLayout'
 import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
   ChevronLeft, ChevronRight, MapPin, Users, LogOut,
-  Radio, FileBarChart, UserCircle, CalendarDays, Moon, Sun
+  Radio, FileBarChart, UserCircle, CalendarDays, Moon, Sun,
+  CalendarCheck, ClipboardList, BarChart3
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
@@ -14,6 +15,9 @@ const NAV_ITEMS = [
   {id: 'map', label: 'Carte', icon: Map, path: '/tour/index'},
   {id: 'assets', label: 'Assets', icon: Box, path: '/view/engin/index'},
   {id: 'planning', label: 'Planning', icon: CalendarDays, path: '/timeline/index'},
+  {id: 'res-planning', label: 'Réservations', icon: CalendarCheck, path: '/reservation/planning'},
+  {id: 'res-my', label: 'Mes réservations', icon: ClipboardList, path: '/reservation/myreservations'},
+  {id: 'res-dash', label: 'KPI Réservations', icon: BarChart3, path: '/reservation/dashboard'},
   {id: 'zones', label: 'Zones', icon: MapPin, path: '/Geofence/index'},
   {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
   {id: 'alerts', label: 'Alertes', icon: Bell, path: '/alert/index'},

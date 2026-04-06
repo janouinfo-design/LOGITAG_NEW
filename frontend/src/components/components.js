@@ -16,6 +16,9 @@ import PremiumReports from './premium/PremiumReports'
 import PremiumGateway from './premium/PremiumGateway'
 import PremiumAssetDetail from './premium/PremiumAssetDetail'
 import PremiumPlanning from './premium/PremiumPlanning'
+import PremiumReservationPlanning from './premium/PremiumReservationPlanning'
+import PremiumMyReservations from './premium/PremiumMyReservations'
+import PremiumReservationDashboard from './premium/PremiumReservationDashboard'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -136,6 +139,9 @@ const components = {
   'situationtags/index': DashboardNewComponent,
   'dashboard/customer': CustomerDashboard,
   'alert/index': PremiumAlerts,
+  'reservation/planning': PremiumReservationPlanning,
+  'reservation/myreservations': PremiumMyReservations,
+  'reservation/dashboard': PremiumReservationDashboard,
 
   // 'rapport/index': MapTest,
 

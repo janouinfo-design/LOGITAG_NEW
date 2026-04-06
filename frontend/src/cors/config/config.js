@@ -78,5 +78,35 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900010,
+        "Text": "Réservations",
+        "Link": "reservation/planning",
+        "Name": "Réservations",
+        "icon": "fa-solid fa-calendar-check",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
+    },
+    {
+        "ID": 900011,
+        "Text": "Mes réservations",
+        "Link": "reservation/myreservations",
+        "Name": "Mes réservations",
+        "icon": "fa-solid fa-clipboard-list",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
+    },
+    {
+        "ID": 900012,
+        "Text": "KPI Réservations",
+        "Link": "reservation/dashboard",
+        "Name": "KPI Réservations",
+        "icon": "fa-solid fa-chart-bar",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]
