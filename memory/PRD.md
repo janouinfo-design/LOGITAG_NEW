@@ -16,8 +16,9 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 │   └── server.py                   # FastAPI: proxy + reservations + notifications + roles + WebSocket
 ├── frontend/src/
 │   ├── components/premium/
-│   │   ├── PremiumLayout.jsx           # Multi-tenant client selector
-│   │   ├── PremiumSidebar.jsx          # Dark mode toggle, notification badge
+│   │   ├── EnterpriseCommand.jsx       # NEW: Samsara-like Command Center (fullscreen)
+│   │   ├── PremiumLayout.jsx           # Multi-tenant + fullscreen path management
+│   │   ├── PremiumSidebar.jsx          # Dark mode toggle, notification badge, Command Center nav
 │   │   ├── PremiumDashboard.jsx
 │   │   ├── PremiumAssets.jsx           # Column presets
 │   │   ├── PremiumAssetDetail.jsx
@@ -26,13 +27,12 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 │   │   ├── PremiumReservationPlanning.jsx  # Reservation calendar + D&D + CSV export + WS
 │   │   ├── PremiumMyReservations.jsx       # My reservations + CSV export + WS
 │   │   ├── PremiumReservationDashboard.jsx # KPI Dashboard + Alerts + WS
-│   │   ├── PremiumRoles.jsx                # NEW: Roles & Permissions management
+│   │   ├── PremiumRoles.jsx                # Roles & Permissions management
 │   │   ├── PremiumActivity.jsx, PremiumAlerts.jsx
 │   │   ├── PremiumZones.jsx, PremiumUsers.jsx, PremiumGateway.jsx
 │   │   └── PremiumSettings.jsx, PremiumReports.jsx
 │   ├── hooks/
-│   │   └── useWebSocket.js             # NEW: WebSocket hook for real-time
-│   ├── logitag-dark.css
+│   │   └── useWebSocket.js             # WebSocket hook for real-time
 │   └── cors/config/config.js
 ```
 
@@ -42,118 +42,65 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - Full Premium SaaS UI, 14+ pages, Proxy, Maps, Redux, Edit modals, Slide-overs
 - Reports builder (Asset/Site), Multi-tenant, Column presets, Dark mode, Mobile responsive
 
-### Phase 13 - RESERVATION MODULE (DONE - Apr 6, 2026)
-Complete asset reservation and planning system:
-- Backend: 14+ API endpoints (CRUD, anti-conflict, check-in/out, KPIs, planning, availability)
-- Frontend: Calendar with D&D, My Reservations list, KPI Dashboard, Alerts center
-- BLE Integration: compares actual position vs reserved site
-- Notification system with sidebar badge
+### Phase 13 - RESERVATION MODULE (DONE)
+Complete asset reservation and planning system with 14+ API endpoints
 
-### Phase 14 - EXPORT CSV + ROLES + WEBSOCKET (DONE - Apr 6, 2026)
-1. **Bug Fix**: Fixed missing @api_router.post decorator on cancel_reservation endpoint
-2. **CSV Export**: 
-   - Backend: GET /api/reservations/export/csv with optional status filter
-   - Frontend: Export CSV buttons on "Mes Réservations" and "Planning" pages
-3. **Roles & Permissions**:
-   - Backend: GET /api/roles, POST /api/roles/assign, GET /api/roles/users, GET /api/roles/check/{user_id}/{permission}
-   - 4 roles: super_admin, admin_client, manager, terrain
-   - Frontend: Full PremiumRoles.jsx page with role cards, permissions matrix, assign modal
-4. **WebSocket Real-Time**:
-   - Backend: WebSocket endpoint at /ws with ConnectionManager
-   - Auto-broadcasts on: reservation created/moved/checkout/checkin/cancelled + notifications
-   - Frontend: useWebSocket hook with auto-reconnect + heartbeat
-   - "Live" indicator on Mes Réservations, Planning, KPI Dashboard pages
+### Phase 14 - EXPORT CSV + ROLES + WEBSOCKET (DONE)
+CSV Export, Roles & Permissions, WebSocket Real-Time
 
-### Phase 15 - ZONES CERCLES PERSONNALISÉS (DONE - Apr 6, 2026)
-- **Cercles et Polygones**: Support complet pour les deux formes géométriques sur la carte
-- **Sélecteur de forme**: Modal avec choix Cercle/Polygone lors de la création/édition
-- **Slider de rayon**: 50m à 2000m pour les zones circulaires
-- **Dessin interactif**: Outil "Dessiner sur la carte" avec curseur crosshair
-- **DrawController**: Composant Leaflet interactif (clic centre + clic rayon pour cercle, multi-clic pour polygone)
-- **Détails enrichis**: Drawer affiche coordonnées centre, rayon, et badge de forme
-- **Stats**: Compteur de cercles et polygones dans la barre de statistiques
+### Phase 15 - ZONES CERCLES PERSONNALISÉS (DONE)
+Cercles et Polygones, Slider de rayon, Dessin interactif
 
-### Phase 16 - ZONES MONGODB + RAPPORTS ADRESSE (DONE - Apr 6, 2026)
-1. **Zones CRUD MongoDB**: POST/GET/PUT/DELETE /api/zones, WebSocket sync
-2. **Rapports - Adresse en fallback**: Si pas de zone, affiche dernière adresse connue (badge orange)
+### Phase 16 - ZONES MONGODB + RAPPORTS ADRESSE (DONE)
+Zones CRUD MongoDB, Rapports - Adresse en fallback
 
-### Phase 17 - GEOFENCING AVANCÉ (DONE - Apr 6, 2026)
-Module complet de geofencing avancé avec :
-1. **3 types de zones** : Cercle (GPS), Polygone (GPS), Router BLE (RSSI)
-2. **3 modes de détection** : Entrée uniquement, Sortie uniquement, Entrée + Sortie
-3. **Zone BLE configurable** : Seuil RSSI (-100 à -30 dBm), Anti-bruit (5-120s debounce), Lissage RSSI (1-10 lectures), Router associé
-4. **Système d'événements** : Collection zone_events avec types (enter, exit, stay, not_detected, detected_by_router), timeline historique, statistiques KPI
-5. **Alertes configurables** : Collection zone_alerts, types (entrée, sortie, non détecté, accès restreint), cooldown, canaux (in_app, email, push)
-6. **Détection GPS** : Haversine distance (cercle), Ray-casting (polygone)
-7. **Détection BLE** : RSSI smoothing (moyenne des N dernières lectures), debounce anti-oscillation
-8. **Trigger intelligent** : Respecte le mode de la zone, vérifie alertes, cooldown anti-spam
-9. **UI 3 onglets** : Zones (carte + liste), Événements (KPIs + zones actives + timeline), Alertes (règles)
-10. **Overlay carte** : Toggle Routers (icônes vertes/grises), Toggle Assets (points bleus)
-11. **Route ordering fix** : Routes statiques avant /zones/{zone_id}
+### Phase 17 - GEOFENCING AVANCÉ (DONE)
+3 types de zones, 3 modes de détection, BLE configurable, Alertes, Événements
 
-**API Endpoints** :
-- POST/GET /api/zones, GET/PUT/DELETE /api/zones/{id}
-- POST/GET /api/zones/events, GET /api/zones/events/stats
-- POST /api/zones/detect (GPS + BLE)
-- POST /api/zones/trigger (avec vérification alertes)
-- POST/GET/PUT/DELETE /api/zones/alerts
+### Phase 18 - ENTERPRISE COMMAND CENTER (DONE - Apr 6, 2026)
+Interface unifiée style Samsara/Motive avec 5 sections:
+1. **TopBar**: 4 KPIs temps réel (Assets actifs, Hors zone, Alertes, Batterie faible)
+2. **Sidebar Assets**: Recherche, filtres par statut (Tous/Actif/Sorti/Inactif/Batt.), liste scrollable
+3. **Carte Leaflet**: Smart markers colorés, clustering, toggle Routers/Zones, overlay BLE
+4. **Panneau Détail**: Jauge batterie SVG, localisation GPS, infos asset, actions navigation
+5. **Timeline Événements**: Événements zone récents en temps réel via WebSocket
+- Route: `/command/center` (mode fullscreen, self-contained)
+- WebSocket Live indicator
+- Responsive mobile avec sidebar/detail en overlay
 
-**Testing**: iteration_24.json - 100% (20/20 backend + frontend)
+**Testing**: iteration_25.json - 13/13 features passed (100%)
 
 ## DB Schema (Local MongoDB `test_database`)
-- reservations: {id, asset_id, asset_name, start_date, end_date, user_name, status, site, priority, ...}
-- reservation_logs: {id, reservation_id, action, user, details, created_at}
-- notifications: {id, type, title, message, severity, read, created_at}
-- user_roles: {id, user_id, user_name, role, permissions, assigned_at}
-- maintenance_records: {id, asset_id, asset_name, type, status, start_date, end_date}
+- reservations, reservation_logs, notifications, user_roles, maintenance_records
+- zones, zone_events, zone_alerts
 
 ## API Endpoints
-### Reservations
-- POST /api/reservations (create with anti-conflict)
-- GET /api/reservations (list with filters)
-- GET /api/reservations/{id} (detail with logs)
-- PUT /api/reservations/{id} (update)
-- PUT /api/reservations/{id}/drag (D&D move)
-- POST /api/reservations/{id}/cancel|approve|reject
-- POST /api/reservations/{id}/checkout|checkin
-- GET /api/reservations/kpis
-- GET /api/reservations/planning
-- GET /api/reservations/availability/{asset_id}
-- GET /api/reservations/export/csv
-- GET /api/reservations/{id}/ble-check
+### Reservations, Roles, Notifications, Maintenance, WebSocket
+(See previous PRD for full endpoint list)
 
-### Roles
-- GET /api/roles
-- POST /api/roles/assign
-- GET /api/roles/users
-- GET /api/roles/check/{user_id}/{permission}
-
-### Notifications
-- GET /api/notifications
-- PUT /api/notifications/{id}/read
-- PUT /api/notifications/read-all
-- GET /api/notifications/count
-
-### Maintenance
-- POST /api/maintenance
-- GET /api/maintenance
-- PUT /api/maintenance/{id}/complete
-
-### WebSocket
-- WS /ws (real-time events)
+### Zones (Geofencing)
+- POST/GET /api/zones, GET/PUT/DELETE /api/zones/{id}
+- POST/GET /api/zones/events, GET /api/zones/events/stats
+- POST /api/zones/detect, POST /api/zones/trigger
+- POST/GET/PUT/DELETE /api/zones/alerts
 
 ## Pending/Future Tasks
 
-### P2 - Next
-- Maintenance records UI (registres de maintenance des assets)
-- Scan QR/NFC (check-in/out rapide, orienté mobile)
+### P1 - Next
+- Connecter WebSocket aux assets pour tracking temps réel sur Command Center
+- Skeleton loading + animations pour le Command Center
+
+### P2 - Future
+- Export Timeline (PDF/Excel) depuis le Command Center
+- Grid/card view sur autres pages (Engins, Tags)
+- Presets pour configuration colonnes
 
 ### P3 - Backlog
-- Notifications automatiques via Email et Push (reporté par l'utilisateur)
+- Maintenance records UI (registres de maintenance des assets)
+- Scan QR/NFC (check-in/out rapide, orienté mobile)
+- Carte GPS temps réel sur dashboard
+- Notifications Email/Push (différé par l'utilisateur)
 - Multi-language
-- Dark mode mobile vérification complète
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_21.json`
-- `/app/backend/tests/test_reservations.py`
-- `/app/backend/tests/test_iteration21.py`
+- `/app/test_reports/iteration_1.json` through `iteration_25.json`
