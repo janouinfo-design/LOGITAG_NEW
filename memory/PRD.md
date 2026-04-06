@@ -74,18 +74,31 @@ Complete asset reservation and planning system:
 - **Stats**: Compteur de cercles et polygones dans la barre de statistiques
 
 ### Phase 16 - ZONES MONGODB + RAPPORTS ADRESSE (DONE - Apr 6, 2026)
-1. **Zones CRUD MongoDB**:
-   - Backend: POST/GET/PUT/DELETE /api/zones avec persistance MongoDB
-   - Collection: test_database.zones
-   - WebSocket broadcast sur create/update/delete pour sync temps réel
-   - Frontend: PremiumZones.jsx connecté à l'API (plus de données mock)
-   - Fallback vers DEFAULT_ZONES si API vide au premier chargement
-2. **Rapports - Adresse en fallback**:
-   - Si l'asset n'a pas de zone (LocationObjectname), le rapport affiche la dernière adresse connue (address/nearestLocationName)
-   - Badge orange avec icône MapPin pour distinguer les adresses des zones
-   - Colonne renommée "Zone / Adresse" dans le tableau des rapports
+1. **Zones CRUD MongoDB**: POST/GET/PUT/DELETE /api/zones, WebSocket sync
+2. **Rapports - Adresse en fallback**: Si pas de zone, affiche dernière adresse connue (badge orange)
 
-**Testing**: iteration_23.json - 100% (13/13 backend + frontend)
+### Phase 17 - GEOFENCING AVANCÉ (DONE - Apr 6, 2026)
+Module complet de geofencing avancé avec :
+1. **3 types de zones** : Cercle (GPS), Polygone (GPS), Router BLE (RSSI)
+2. **3 modes de détection** : Entrée uniquement, Sortie uniquement, Entrée + Sortie
+3. **Zone BLE configurable** : Seuil RSSI (-100 à -30 dBm), Anti-bruit (5-120s debounce), Lissage RSSI (1-10 lectures), Router associé
+4. **Système d'événements** : Collection zone_events avec types (enter, exit, stay, not_detected, detected_by_router), timeline historique, statistiques KPI
+5. **Alertes configurables** : Collection zone_alerts, types (entrée, sortie, non détecté, accès restreint), cooldown, canaux (in_app, email, push)
+6. **Détection GPS** : Haversine distance (cercle), Ray-casting (polygone)
+7. **Détection BLE** : RSSI smoothing (moyenne des N dernières lectures), debounce anti-oscillation
+8. **Trigger intelligent** : Respecte le mode de la zone, vérifie alertes, cooldown anti-spam
+9. **UI 3 onglets** : Zones (carte + liste), Événements (KPIs + zones actives + timeline), Alertes (règles)
+10. **Overlay carte** : Toggle Routers (icônes vertes/grises), Toggle Assets (points bleus)
+11. **Route ordering fix** : Routes statiques avant /zones/{zone_id}
+
+**API Endpoints** :
+- POST/GET /api/zones, GET/PUT/DELETE /api/zones/{id}
+- POST/GET /api/zones/events, GET /api/zones/events/stats
+- POST /api/zones/detect (GPS + BLE)
+- POST /api/zones/trigger (avec vérification alertes)
+- POST/GET/PUT/DELETE /api/zones/alerts
+
+**Testing**: iteration_24.json - 100% (20/20 backend + frontend)
 
 ## DB Schema (Local MongoDB `test_database`)
 - reservations: {id, asset_id, asset_name, start_date, end_date, user_name, status, site, priority, ...}
