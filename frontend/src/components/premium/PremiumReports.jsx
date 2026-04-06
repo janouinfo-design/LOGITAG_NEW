@@ -663,6 +663,24 @@ const STYLES = `
 
 @keyframes rptShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 @keyframes rptSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+/* ── MOBILE RESPONSIVE ── */
+@media(max-width:768px) {
+  .rpt-builder { grid-template-columns:1fr !important; min-height:auto; }
+  .rpt-panel { border-right:none !important; border-bottom:1px solid #E2E8F0; }
+  .rpt-panel:last-child { border-bottom:none; }
+  .rpt-item-list { max-height:200px; }
+  .rpt-type-list { flex-direction:row; flex-wrap:wrap; }
+  .rpt-type-card { flex:1; min-width:200px; }
+  .rpt-summary-bar { grid-template-columns:repeat(2,1fr) !important; }
+  .rpt-result-header-card { flex-direction:column; align-items:flex-start; }
+  .rpt-result-header-right { flex-direction:row; gap:16px; }
+  .rpt-result-head { flex-direction:column; }
+  .rpt-result-actions { width:100%; justify-content:flex-end; }
+  .rpt-group-summary { flex-wrap:wrap; }
+  .rpt-date-row { flex-direction:column; }
+  .rpt-date-sep { display:none; }
+}
 `
 
 export default PremiumReports

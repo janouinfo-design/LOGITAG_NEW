@@ -1,9 +1,10 @@
+import {useState, useEffect} from 'react'
 import {useNavigate, useLocation} from 'react-router-dom'
 import {useLayoutCtx} from './PremiumLayout'
 import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
   ChevronLeft, ChevronRight, MapPin, Users, LogOut,
-  Radio, FileBarChart, UserCircle, CalendarDays
+  Radio, FileBarChart, UserCircle, CalendarDays, Moon, Sun
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
@@ -28,6 +29,18 @@ const PremiumSidebar = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const dispatch = useAppDispatch()
+  const [dark, setDark] = useState(() => {
+    try { return localStorage.getItem('lt-dark') === '1' } catch { return false }
+  })
+
+  useEffect(() => {
+    if (dark) {
+      document.documentElement.classList.add('lt-dark')
+    } else {
+      document.documentElement.classList.remove('lt-dark')
+    }
+    localStorage.setItem('lt-dark', dark ? '1' : '0')
+  }, [dark])
 
   const isActive = (path) => location.pathname === path
 
@@ -73,6 +86,15 @@ const PremiumSidebar = () => {
 
         {/* Bottom section */}
         <div className="lt-sidebar-bottom">
+          <button
+            className="lt-sidebar-item lt-sidebar-item--theme"
+            onClick={() => setDark(d => !d)}
+            title={dark ? 'Mode clair' : 'Mode sombre'}
+            data-testid="sidebar-dark-toggle"
+          >
+            {dark ? <Sun size={20} strokeWidth={1.8} /> : <Moon size={20} strokeWidth={1.8} />}
+            {!collapsed && <span>{dark ? 'Mode clair' : 'Mode sombre'}</span>}
+          </button>
           <button
             className="lt-sidebar-item lt-sidebar-item--logout"
             onClick={handleLogout}
@@ -158,6 +180,8 @@ const PremiumSidebar = () => {
         }
         .lt-sidebar-item--logout { color: #94A3B8; }
         .lt-sidebar-item--logout:hover { color: #EF4444; background: #FEF2F2; }
+        .lt-sidebar-item--theme { color: #94A3B8; }
+        .lt-sidebar-item--theme:hover { color: #F59E0B; background: #FFFBEB; }
 
         /* Collapsed state centering */
         .lt-sidebar--collapsed .lt-sidebar-item {

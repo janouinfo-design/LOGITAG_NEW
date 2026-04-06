@@ -27,6 +27,7 @@ import 'primeflex/primeflex.css'
 import './index.scss'
 import './logitag-theme.css'
 import './logitag-datatable.css'
+import './logitag-dark.css'
 
 import {AppRoutes} from './app/routing/AppRoutes'
 // import {AuthProvider, setupAxios} from './app/modules/auth'

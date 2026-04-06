@@ -1,22 +1,34 @@
-import {useState, createContext, useContext} from 'react'
+import {useState, useEffect, createContext, useContext} from 'react'
 import {Outlet, useLocation} from 'react-router-dom'
+import {useAppDispatch, useAppSelector} from '../../hooks'
+import {fetchCustomers, getCustomers} from '../../store/slices/customer.slice'
 import PremiumSidebar from './PremiumSidebar'
 import PremiumBottomNav from './PremiumBottomNav'
-import {Menu, X} from 'lucide-react'
+import {Menu, X, Building2, ChevronDown, Globe} from 'lucide-react'
 
-const LayoutCtx = createContext({collapsed: false, toggle: () => {}})
+const LayoutCtx = createContext({collapsed: false, toggle: () => {}, tenant: null, setTenant: () => {}})
 export const useLayoutCtx = () => useContext(LayoutCtx)
 
 const FULLSCREEN_PATHS = ['/tour/index']
 
 const PremiumLayout = () => {
+  const dispatch = useAppDispatch()
+  const customers = useAppSelector(getCustomers)
   const [collapsed, setCollapsed] = useState(false)
   const [overlayOpen, setOverlayOpen] = useState(false)
+  const [tenant, setTenant] = useState(null)
+  const [tenantOpen, setTenantOpen] = useState(false)
   const location = useLocation()
   const isFullscreen = FULLSCREEN_PATHS.some((p) => location.pathname.includes(p))
 
+  useEffect(() => {
+    dispatch(fetchCustomers())
+  }, [dispatch])
+
+  const clientList = Array.isArray(customers) ? customers : []
+
   return (
-    <LayoutCtx.Provider value={{collapsed, toggle: () => setCollapsed((p) => !p)}}>
+    <LayoutCtx.Provider value={{collapsed, toggle: () => setCollapsed((p) => !p), tenant, setTenant}}>
       <div className="lt-premium-root" data-testid="premium-layout">
         {/* Normal sidebar for non-fullscreen pages */}
         {!isFullscreen && <PremiumSidebar />}
@@ -49,6 +61,46 @@ const PremiumLayout = () => {
           style={isFullscreen ? {marginLeft: 0, padding: 0} : {marginLeft: collapsed ? 72 : 260}}
           data-testid="premium-main"
         >
+          {/* Tenant selector bar */}
+          {!isFullscreen && (
+            <div className="lt-tenant-bar" data-testid="tenant-bar">
+              <div className="lt-tenant-current" onClick={() => setTenantOpen(!tenantOpen)} data-testid="tenant-selector">
+                {tenant ? (
+                  <><Building2 size={14} /><span className="lt-tenant-name">{tenant.name || tenant.label || tenant.codeClient}</span></>
+                ) : (
+                  <><Globe size={14} /><span className="lt-tenant-name">Tous les clients</span></>
+                )}
+                <ChevronDown size={13} className={`lt-tenant-chev ${tenantOpen ? 'lt-tenant-chev--open' : ''}`} />
+              </div>
+              {tenantOpen && (
+                <>
+                  <div className="lt-tenant-backdrop" onClick={() => setTenantOpen(false)} />
+                  <div className="lt-tenant-dropdown" data-testid="tenant-dropdown">
+                    <div
+                      className={`lt-tenant-opt ${!tenant ? 'lt-tenant-opt--active' : ''}`}
+                      onClick={() => { setTenant(null); setTenantOpen(false); }}
+                      data-testid="tenant-all"
+                    >
+                      <Globe size={14} />
+                      <span>Tous les clients</span>
+                    </div>
+                    {clientList.map((c, i) => (
+                      <div
+                        key={c.id || i}
+                        className={`lt-tenant-opt ${tenant?.id === c.id ? 'lt-tenant-opt--active' : ''}`}
+                        onClick={() => { setTenant(c); setTenantOpen(false); }}
+                        data-testid={`tenant-opt-${i}`}
+                      >
+                        <Building2 size={14} />
+                        <span>{c.name || c.label || c.codeClient || `Client ${i+1}`}</span>
+                      </div>
+                    ))}
+                    {clientList.length === 0 && <div className="lt-tenant-empty">Aucun client</div>}
+                  </div>
+                </>
+              )}
+            </div>
+          )}
           <Outlet />
         </main>
         {!isFullscreen && <PremiumBottomNav />}
@@ -135,6 +187,87 @@ const PremiumLayout = () => {
           z-index: 1;
         }
         .lt-fs-close:hover { background: #FEF2F2; color: #DC2626; }
+
+        /* ── TENANT BAR ── */
+        .lt-tenant-bar {
+          position: relative;
+          display: flex;
+          align-items: center;
+          margin-bottom: 22px;
+          z-index: 50;
+        }
+        .lt-tenant-current {
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          padding: 8px 16px;
+          border-radius: 10px;
+          border: 1.5px solid #E2E8F0;
+          background: #FFF;
+          cursor: pointer;
+          transition: all .15s;
+          user-select: none;
+        }
+        .lt-tenant-current:hover { border-color: #2563EB; background: #EFF6FF; }
+        .lt-tenant-current svg { color: #64748B; flex-shrink: 0; }
+        .lt-tenant-name {
+          font-family: 'Manrope', sans-serif;
+          font-size: .82rem;
+          font-weight: 700;
+          color: #0F172A;
+        }
+        .lt-tenant-chev { color: #94A3B8; transition: transform .2s; }
+        .lt-tenant-chev--open { transform: rotate(180deg); }
+        .lt-tenant-backdrop {
+          position: fixed;
+          inset: 0;
+          z-index: 49;
+        }
+        .lt-tenant-dropdown {
+          position: absolute;
+          top: calc(100% + 4px);
+          left: 0;
+          min-width: 260px;
+          max-height: 340px;
+          overflow-y: auto;
+          background: #FFF;
+          border-radius: 12px;
+          border: 1px solid #E2E8F0;
+          box-shadow: 0 12px 32px rgba(0,0,0,.1);
+          z-index: 50;
+          padding: 6px;
+          animation: ltTenantIn .15s ease;
+        }
+        @keyframes ltTenantIn { from { opacity:0; transform:translateY(-6px); } to { opacity:1; transform:translateY(0); } }
+        .lt-tenant-opt {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          padding: 10px 14px;
+          border-radius: 8px;
+          cursor: pointer;
+          font-family: 'Inter', sans-serif;
+          font-size: .8rem;
+          color: #475569;
+          transition: all .1s;
+        }
+        .lt-tenant-opt:hover { background: #F1F5F9; color: #0F172A; }
+        .lt-tenant-opt--active { background: #EFF6FF; color: #2563EB; font-weight: 600; }
+        .lt-tenant-opt svg { color: #94A3B8; flex-shrink: 0; }
+        .lt-tenant-opt--active svg { color: #2563EB; }
+        .lt-tenant-empty {
+          padding: 20px;
+          text-align: center;
+          font-family: 'Inter', sans-serif;
+          font-size: .8rem;
+          color: #94A3B8;
+        }
+
+        /* ── MOBILE ── */
+        @media (max-width: 768px) {
+          .lt-tenant-bar { margin-bottom: 16px; }
+          .lt-tenant-dropdown { min-width: 220px; left: 0; right: auto; }
+        }
       `}</style>
     </LayoutCtx.Provider>
   )

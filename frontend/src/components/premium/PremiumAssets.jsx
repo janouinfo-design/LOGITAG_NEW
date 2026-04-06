@@ -1,6 +1,7 @@
-import {useEffect, useState, useCallback, useRef} from 'react'
+import {useEffect, useState, useCallback, useRef, useMemo} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
+import {useLayoutCtx} from './PremiumLayout'
 import {
   fetchEngines, getEngines, setSelectedEngine, setShow,
   fetchStatusList, getStatusList, createOrUpdateEngine,
@@ -15,8 +16,37 @@ import EnginMapLocation from '../Engin/EnginList/EnginMapLocation'
 import {
   Search, Filter, LayoutList, LayoutGrid, MapIcon, Download,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Battery, MapPin, Clock, Tag,
-  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown, Pencil, Save, Loader2
+  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown, Pencil, Save, Loader2, Columns3, CheckSquare, Square
 } from 'lucide-react'
+
+const COLUMN_DEFS = [
+  {key: 'image', label: 'Photo', default: true, simple: false},
+  {key: 'reference', label: 'Référence', default: true, simple: true},
+  {key: 'label', label: 'Label', default: true, simple: true},
+  {key: 'zone', label: 'Zone / Site', default: true, simple: true},
+  {key: 'battery', label: 'Batterie', default: true, simple: false},
+  {key: 'etat', label: 'État', default: true, simple: true},
+  {key: 'status', label: 'Statut', default: true, simple: false},
+  {key: 'lastSeen', label: 'Dernière vue', default: true, simple: false},
+  {key: 'client', label: 'Client', default: false, simple: false},
+  {key: 'famille', label: 'Famille', default: false, simple: false},
+  {key: 'tag', label: 'Tag', default: false, simple: false},
+  {key: 'vin', label: 'VIN', default: false, simple: false},
+]
+
+const PRESETS = [
+  {key: 'complete', label: 'Vue complète', cols: COLUMN_DEFS.map(c => c.key)},
+  {key: 'default', label: 'Vue standard', cols: COLUMN_DEFS.filter(c => c.default).map(c => c.key)},
+  {key: 'simple', label: 'Vue simple', cols: COLUMN_DEFS.filter(c => c.simple).map(c => c.key)},
+]
+
+const loadSavedCols = () => {
+  try {
+    const saved = localStorage.getItem('lt-asset-cols')
+    if (saved) return JSON.parse(saved)
+  } catch {}
+  return COLUMN_DEFS.filter(c => c.default).map(c => c.key)
+}
 
 /* Generate page numbers with ellipsis */
 function getPageNumbers(current, total) {
@@ -38,6 +68,7 @@ const PremiumAssets = () => {
   const engines = useAppSelector(getEngines)
   const sites = useAppSelector(getSites)
   const statusList = useAppSelector(getStatusList)
+  const {tenant} = useLayoutCtx()
 
   const [viewMode, setViewMode] = useState('cards')
   const [search, setSearch] = useState('')
@@ -58,6 +89,9 @@ const PremiumAssets = () => {
   const [editSaving, setEditSaving] = useState(false)
   const [editMsg, setEditMsg] = useState(null)
   const searchRef = useRef(null)
+  const [visibleCols, setVisibleCols] = useState(loadSavedCols)
+  const [colPanelOpen, setColPanelOpen] = useState(false)
+  const [activePreset, setActivePreset] = useState('default')
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
@@ -86,6 +120,23 @@ const PremiumAssets = () => {
     }
     setPage(1)
   }
+
+  const toggleCol = (key) => {
+    setVisibleCols(prev => {
+      const next = prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+      localStorage.setItem('lt-asset-cols', JSON.stringify(next))
+      setActivePreset('custom')
+      return next
+    })
+  }
+
+  const applyPreset = (preset) => {
+    setVisibleCols(preset.cols)
+    localStorage.setItem('lt-asset-cols', JSON.stringify(preset.cols))
+    setActivePreset(preset.key)
+  }
+
+  const isColVisible = (key) => visibleCols.includes(key)
 
   const getSortValue = (item, col) => {
     switch (col) {
@@ -145,8 +196,14 @@ const PremiumAssets = () => {
     window.scrollTo({top: 0, behavior: 'smooth'})
   }
 
-  /* Client-side search + sort */
+  /* Client-side search + sort + tenant filter */
   const filteredItems = allData.filter(item => {
+    // Tenant filter
+    if (tenant) {
+      const cname = (item.customername || '').toLowerCase()
+      const tname = (tenant.name || tenant.label || tenant.codeClient || '').toLowerCase()
+      if (cname !== tname && item.IDCustomer !== tenant.id) return false
+    }
     if (!search) return true
     const t = search.toLowerCase()
     return [item.reference, item.label, item.vin, item.brand, item.model, item.labeltag, item.tagname, item.LocationObjectname, item.customername]
@@ -285,34 +342,38 @@ const PremiumAssets = () => {
     const etat = getEtat(item)
     return (
       <div className="lta-row" key={item.id || i} data-testid={`asset-row-${i}`} onClick={() => handleViewDetail(item)}>
-        <div className="lta-row-img">
+        {isColVisible('image') && <div className="lta-row-img">
           {item.image ? (
             <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
           ) : (
             <div className="lta-row-img-ph"><Truck size={14} strokeWidth={1.5} /></div>
           )}
-        </div>
-        <div className="lta-row-main">
+        </div>}
+        {isColVisible('reference') && <div className="lta-row-main">
           <span className="lta-row-ref">{item.reference || 'N/A'}</span>
           <span className="lta-row-label">{item.label || ''}</span>
-        </div>
-        <div className="lta-row-zone">
+        </div>}
+        {isColVisible('zone') && <div className="lta-row-zone">
           <MapPin size={11} />
           <span>{item.LocationObjectname || '—'}</span>
-        </div>
-        <div className="lta-row-bat">
+        </div>}
+        {isColVisible('battery') && <div className="lta-row-bat">
           <div className="lta-bat-bar lta-bat-bar--sm"><div className="lta-bat-fill" style={{width: `${bat.pct}%`, background: bat.color}} /></div>
           <span style={{color: bat.color, fontSize: '.68rem', fontWeight: 600}}>{bat.label}</span>
-        </div>
-        <span className="lta-chip lta-chip--sm" style={{background: etat.bg, color: etat.color, fontSize: '.65rem', padding: '2px 8px'}}>
+        </div>}
+        {isColVisible('etat') && <span className="lta-chip lta-chip--sm" style={{background: etat.bg, color: etat.color, fontSize: '.65rem', padding: '2px 8px'}}>
           {etat.label}
-        </span>
-        <span className="lta-chip lta-chip--sm" style={{background: item.statusbgColor || '#94A3B8', color: item.color || '#FFF', fontSize: '.65rem', padding: '2px 8px'}}>
+        </span>}
+        {isColVisible('status') && <span className="lta-chip lta-chip--sm" style={{background: item.statusbgColor || '#94A3B8', color: item.color || '#FFF', fontSize: '.65rem', padding: '2px 8px'}}>
           {item.statuslabel || '—'}
-        </span>
-        <span className="lta-row-lastseen">
+        </span>}
+        {isColVisible('lastSeen') && <span className="lta-row-lastseen">
           <Clock size={10} /> {formatTimeAgo(item.lastSeenAt)}
-        </span>
+        </span>}
+        {isColVisible('client') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.customername || '—'}</span>}
+        {isColVisible('famille') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.famille || '—'}</span>}
+        {isColVisible('tag') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.labeltag || item.tagname || '—'}</span>}
+        {isColVisible('vin') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.vin || '—'}</span>}
       </div>
     )
   }
@@ -447,6 +508,43 @@ const PremiumAssets = () => {
               <LayoutGrid size={16} />
             </button>
           </div>
+          {/* Column config button */}
+          <div className="lta-colcfg-wrap">
+            <button className="lta-colcfg-btn" onClick={() => setColPanelOpen(!colPanelOpen)} data-testid="col-config-btn">
+              <Columns3 size={15} /> Colonnes
+            </button>
+            {colPanelOpen && (
+              <>
+                <div className="lta-colcfg-backdrop" onClick={() => setColPanelOpen(false)} />
+                <div className="lta-colcfg-panel" data-testid="col-config-panel">
+                  <div className="lta-colcfg-head">
+                    <span className="lta-colcfg-title">Configuration colonnes</span>
+                    <button className="lta-colcfg-close" onClick={() => setColPanelOpen(false)}><X size={14} /></button>
+                  </div>
+                  <div className="lta-colcfg-presets">
+                    {PRESETS.map(p => (
+                      <button
+                        key={p.key}
+                        className={`lta-colcfg-preset ${activePreset === p.key ? 'lta-colcfg-preset--active' : ''}`}
+                        onClick={() => applyPreset(p)}
+                        data-testid={`col-preset-${p.key}`}
+                      >
+                        {p.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="lta-colcfg-list">
+                    {COLUMN_DEFS.map(c => (
+                      <div key={c.key} className="lta-colcfg-item" onClick={() => toggleCol(c.key)} data-testid={`col-toggle-${c.key}`}>
+                        {visibleCols.includes(c.key) ? <CheckSquare size={15} className="lta-colcfg-check--on" /> : <Square size={15} className="lta-colcfg-check" />}
+                        <span>{c.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
         </div>
 
         {/* CONTENT */}
@@ -466,25 +564,29 @@ const PremiumAssets = () => {
         ) : (
           <div className="lta-list" data-testid="assets-list">
             <div className="lta-list-head">
-              <span style={{width: 56}} />
-              <span className="lta-lh-col lta-lh-col--main lta-lh-sort" onClick={() => handleSort('reference')} data-testid="sort-reference">
+              {isColVisible('image') && <span style={{width: 56}} />}
+              {isColVisible('reference') && <span className="lta-lh-col lta-lh-col--main lta-lh-sort" onClick={() => handleSort('reference')} data-testid="sort-reference">
                 Asset {sortCol === 'reference' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
-              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('zone')} data-testid="sort-zone">
+              </span>}
+              {isColVisible('zone') && <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('zone')} data-testid="sort-zone">
                 Zone {sortCol === 'zone' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
-              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('battery')} data-testid="sort-battery">
+              </span>}
+              {isColVisible('battery') && <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('battery')} data-testid="sort-battery">
                 Batterie {sortCol === 'battery' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
-              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('etat')} data-testid="sort-etat">
+              </span>}
+              {isColVisible('etat') && <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('etat')} data-testid="sort-etat">
                 État {sortCol === 'etat' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
-              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('status')} data-testid="sort-status">
+              </span>}
+              {isColVisible('status') && <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('status')} data-testid="sort-status">
                 Status {sortCol === 'status' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
-              <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('lastSeen')} data-testid="sort-lastseen">
+              </span>}
+              {isColVisible('lastSeen') && <span className="lta-lh-col lta-lh-sort" onClick={() => handleSort('lastSeen')} data-testid="sort-lastseen">
                 Dernière vue {sortCol === 'lastSeen' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
-              </span>
+              </span>}
+              {isColVisible('client') && <span className="lta-lh-col">Client</span>}
+              {isColVisible('famille') && <span className="lta-lh-col">Famille</span>}
+              {isColVisible('tag') && <span className="lta-lh-col">Tag</span>}
+              {isColVisible('vin') && <span className="lta-lh-col">VIN</span>}
             </div>
             {data.map((item, i) => renderListRow(item, i))}
           </div>
@@ -629,7 +731,7 @@ const STYLES = `
 .lta-filter-chip:hover { border-color:#CBD5E1; }
 .lta-filter-chip--active { font-weight:600; }
 
-.lta-view-toggle { display:flex; background:#F1F5F9; border-radius:8px; padding:3px; gap:2px; margin-left:auto; }
+.lta-view-toggle { display:flex; background:#F1F5F9; border-radius:8px; padding:3px; gap:2px; }
 .lta-vt-btn {
   display:flex; align-items:center; justify-content:center;
   padding:7px 12px; border-radius:6px; border:none; background:transparent;
@@ -720,6 +822,53 @@ const STYLES = `
 .lta-pg-num--active { background:#2563EB !important; color:#FFF !important; box-shadow:0 2px 6px rgba(37,99,235,.25); }
 .lta-pg-dots { font-family:'Inter',sans-serif; font-size:.82rem; color:#CBD5E1; padding:0 2px; }
 @media(max-width:640px) { .lta-pg-info-left { display:none; } .lta-pagination { justify-content:center; } }
+
+/* ── COLUMN CONFIG ── */
+.lta-colcfg-wrap { position:relative; margin-left:auto; }
+.lta-colcfg-btn {
+  display:inline-flex; align-items:center; gap:6px;
+  padding:8px 14px; border-radius:10px; border:1.5px solid #E2E8F0;
+  background:#FFF; color:#64748B; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600;
+  cursor:pointer; transition:all .15s;
+}
+.lta-colcfg-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.lta-colcfg-backdrop { position:fixed; inset:0; z-index:49; }
+.lta-colcfg-panel {
+  position:absolute; top:calc(100% + 6px); right:0; z-index:50;
+  width:280px; max-height:420px; overflow-y:auto;
+  background:#FFF; border-radius:14px; border:1px solid #E2E8F0;
+  box-shadow:0 12px 32px rgba(0,0,0,.12);
+  animation:ltaColIn .15s ease;
+}
+@keyframes ltaColIn { from{opacity:0;transform:translateY(-6px)} to{opacity:1;transform:translateY(0)} }
+.lta-colcfg-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:14px 16px; border-bottom:1px solid #F1F5F9;
+}
+.lta-colcfg-title { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:800; color:#0F172A; }
+.lta-colcfg-close {
+  width:28px; height:28px; border-radius:8px; border:none; background:transparent;
+  color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center;
+}
+.lta-colcfg-close:hover { background:#FEF2F2; color:#EF4444; }
+.lta-colcfg-presets { display:flex; gap:6px; padding:12px 16px; border-bottom:1px solid #F1F5F9; }
+.lta-colcfg-preset {
+  flex:1; padding:7px; border-radius:8px; border:1.5px solid #E2E8F0;
+  background:#FFF; font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600;
+  color:#64748B; cursor:pointer; text-align:center; transition:all .12s;
+}
+.lta-colcfg-preset:hover { border-color:#2563EB; color:#2563EB; }
+.lta-colcfg-preset--active { background:#2563EB; color:#FFF; border-color:#2563EB; }
+.lta-colcfg-list { padding:8px; }
+.lta-colcfg-item {
+  display:flex; align-items:center; gap:10px;
+  padding:9px 12px; border-radius:8px; cursor:pointer;
+  font-family:'Inter',sans-serif; font-size:.78rem; color:#475569;
+  transition:background .1s;
+}
+.lta-colcfg-item:hover { background:#F8FAFC; }
+.lta-colcfg-check { color:#CBD5E1; }
+.lta-colcfg-check--on { color:#2563EB; }
 
 /* ── DETAIL MODAL ── */
 .lta-modal-overlay .p-dialog-header { display:none !important; }
