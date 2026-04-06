@@ -837,6 +837,105 @@ async def get_reservation_alert_stats():
     }
 
 
+@api_router.get("/reservations/gantt")
+async def get_reservations_gantt(days: int = 14):
+    """Return reservations formatted for Gantt view, grouped by asset."""
+    now = datetime.now(timezone.utc)
+    start_range = (now - timedelta(days=3)).isoformat()
+    end_range = (now + timedelta(days=days)).isoformat()
+    reservations = await db.reservations.find(
+        {"end_date": {"$gte": start_range}, "start_date": {"$lte": end_range}},
+        {"_id": 0}
+    ).sort("start_date", 1).to_list(500)
+
+    # Group by asset
+    asset_map = {}
+    for r in reservations:
+        aid = r.get("asset_id", "unknown")
+        if aid not in asset_map:
+            asset_map[aid] = {"asset_id": aid, "asset_name": r.get("asset_name", ""), "reservations": []}
+        asset_map[aid]["reservations"].append({
+            "id": r["id"], "user_name": r.get("user_name"), "status": r.get("status"),
+            "priority": r.get("priority"), "site": r.get("site"), "address": r.get("address"),
+            "start_date": r.get("start_date"), "end_date": r.get("end_date"),
+            "note": r.get("note"), "project": r.get("project"),
+        })
+    return {"assets": list(asset_map.values()), "range_start": start_range, "range_end": end_range, "total_reservations": len(reservations)}
+
+
+@api_router.get("/reservations/today-summary")
+async def get_today_summary():
+    """Return operational summary for today: active reservations, upcoming, overdue, critical assets."""
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    today_end = now.replace(hour=23, minute=59, second=59).isoformat()
+    now_iso = now.isoformat()
+
+    active = await db.reservations.find(
+        {"status": "in_progress"}, {"_id": 0}
+    ).sort("end_date", 1).to_list(50)
+
+    upcoming = await db.reservations.find(
+        {"status": "confirmed", "start_date": {"$gte": now_iso, "$lte": today_end}}, {"_id": 0}
+    ).sort("start_date", 1).to_list(20)
+
+    overdue = await db.reservations.find(
+        {"status": "in_progress", "end_date": {"$lt": now_iso}}, {"_id": 0}
+    ).sort("end_date", 1).to_list(20)
+
+    pending_approval = await db.reservations.find(
+        {"status": "requested"}, {"_id": 0}
+    ).sort("created_at", -1).to_list(20)
+
+    active_alerts = await db.reservation_alerts.count_documents({"resolved": False})
+
+    return {
+        "active_count": len(active), "active": active[:10],
+        "upcoming_count": len(upcoming), "upcoming": upcoming[:10],
+        "overdue_count": len(overdue), "overdue": overdue[:10],
+        "pending_count": len(pending_approval), "pending": pending_approval[:10],
+        "alert_count": active_alerts,
+        "timestamp": now_iso,
+    }
+
+
+@api_router.get("/reservations/export/csv")
+async def export_reservations_csv(status: Optional[str] = None):
+    import csv
+    import io
+    query = {}
+    if status:
+        query["status"] = status
+    reservations = await db.reservations.find(query, {"_id": 0}).sort("start_date", -1).to_list(1000)
+
+    output = io.StringIO()
+    writer = csv.writer(output)
+    writer.writerow(["ID", "Asset", "Utilisateur", "Équipe", "Projet", "Site", "Début", "Fin", "Statut", "Priorité", "Check-out", "Check-in", "Créé le"])
+    for r in reservations:
+        writer.writerow([
+            r.get("id", "")[:8],
+            r.get("asset_name", ""),
+            r.get("user_name", ""),
+            r.get("team", ""),
+            r.get("project", ""),
+            r.get("site", ""),
+            r.get("start_date", "")[:16] if r.get("start_date") else "",
+            r.get("end_date", "")[:16] if r.get("end_date") else "",
+            r.get("status", ""),
+            r.get("priority", ""),
+            r.get("checkout_at", "")[:16] if r.get("checkout_at") else "",
+            r.get("checkin_at", "")[:16] if r.get("checkin_at") else "",
+            r.get("created_at", "")[:16] if r.get("created_at") else "",
+        ])
+
+    content = output.getvalue()
+    return Response(
+        content=content,
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=reservations.csv"}
+    )
+
+
 @api_router.get("/reservations/{reservation_id}")
 async def get_reservation(reservation_id: str):
     res = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
@@ -1025,68 +1124,6 @@ async def reject_reservation(reservation_id: str):
     return {"status": "rejected"}
 
 
-@api_router.get("/reservations/gantt")
-async def get_reservations_gantt(days: int = 14):
-    """Return reservations formatted for Gantt view, grouped by asset."""
-    now = datetime.now(timezone.utc)
-    start_range = (now - timedelta(days=3)).isoformat()
-    end_range = (now + timedelta(days=days)).isoformat()
-    reservations = await db.reservations.find(
-        {"end_date": {"$gte": start_range}, "start_date": {"$lte": end_range}},
-        {"_id": 0}
-    ).sort("start_date", 1).to_list(500)
-
-    # Group by asset
-    asset_map = {}
-    for r in reservations:
-        aid = r.get("asset_id", "unknown")
-        if aid not in asset_map:
-            asset_map[aid] = {"asset_id": aid, "asset_name": r.get("asset_name", ""), "reservations": []}
-        asset_map[aid]["reservations"].append({
-            "id": r["id"], "user_name": r.get("user_name"), "status": r.get("status"),
-            "priority": r.get("priority"), "site": r.get("site"), "address": r.get("address"),
-            "start_date": r.get("start_date"), "end_date": r.get("end_date"),
-            "note": r.get("note"), "project": r.get("project"),
-        })
-    return {"assets": list(asset_map.values()), "range_start": start_range, "range_end": end_range}
-
-
-@api_router.get("/reservations/today-summary")
-async def get_today_summary():
-    """Return operational summary for today: active reservations, upcoming, overdue, critical assets."""
-    now = datetime.now(timezone.utc)
-    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
-    today_end = now.replace(hour=23, minute=59, second=59).isoformat()
-    now_iso = now.isoformat()
-
-    active = await db.reservations.find(
-        {"status": "in_progress"}, {"_id": 0}
-    ).sort("end_date", 1).to_list(50)
-
-    upcoming = await db.reservations.find(
-        {"status": "confirmed", "start_date": {"$gte": now_iso, "$lte": today_end}}, {"_id": 0}
-    ).sort("start_date", 1).to_list(20)
-
-    overdue = await db.reservations.find(
-        {"status": "in_progress", "end_date": {"$lt": now_iso}}, {"_id": 0}
-    ).sort("end_date", 1).to_list(20)
-
-    pending_approval = await db.reservations.find(
-        {"status": "requested"}, {"_id": 0}
-    ).sort("created_at", -1).to_list(20)
-
-    active_alerts = await db.reservation_alerts.count_documents({"resolved": False})
-
-    return {
-        "active_count": len(active), "active": active[:10],
-        "upcoming_count": len(upcoming), "upcoming": upcoming[:10],
-        "overdue_count": len(overdue), "overdue": overdue[:10],
-        "pending_count": len(pending_approval), "pending": pending_approval[:10],
-        "alert_count": active_alerts,
-        "timestamp": now_iso,
-    }
-
-
 # ═══════════════════════════════════════════════════════════════
 #  CHECK-OUT / CHECK-IN
 # ═══════════════════════════════════════════════════════════════
@@ -1239,47 +1276,6 @@ async def check_permission(user_id: str, permission: str):
         if p == permission or (p.endswith(".*") and permission.startswith(p[:-2])):
             return {"allowed": True, "role": user_role["role"]}
     return {"allowed": False, "role": user_role["role"], "reason": "Permission insuffisante"}
-
-
-# ═══════════════════════════════════════════════════════════════
-#  EXPORT CSV
-# ═══════════════════════════════════════════════════════════════
-
-@api_router.get("/reservations/export/csv")
-async def export_reservations_csv(status: Optional[str] = None):
-    import csv
-    import io
-    query = {}
-    if status:
-        query["status"] = status
-    reservations = await db.reservations.find(query, {"_id": 0}).sort("start_date", -1).to_list(1000)
-
-    output = io.StringIO()
-    writer = csv.writer(output)
-    writer.writerow(["ID", "Asset", "Utilisateur", "Équipe", "Projet", "Site", "Début", "Fin", "Statut", "Priorité", "Check-out", "Check-in", "Créé le"])
-    for r in reservations:
-        writer.writerow([
-            r.get("id", "")[:8],
-            r.get("asset_name", ""),
-            r.get("user_name", ""),
-            r.get("team", ""),
-            r.get("project", ""),
-            r.get("site", ""),
-            r.get("start_date", "")[:16] if r.get("start_date") else "",
-            r.get("end_date", "")[:16] if r.get("end_date") else "",
-            r.get("status", ""),
-            r.get("priority", ""),
-            r.get("checkout_at", "")[:16] if r.get("checkout_at") else "",
-            r.get("checkin_at", "")[:16] if r.get("checkin_at") else "",
-            r.get("created_at", "")[:16] if r.get("created_at") else "",
-        ])
-
-    content = output.getvalue()
-    return Response(
-        content=content,
-        media_type="text/csv",
-        headers={"Content-Disposition": "attachment; filename=reservations.csv"}
-    )
 
 
 # ═══════════════════════════════════════════════════════════════
