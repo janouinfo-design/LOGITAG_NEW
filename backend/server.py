@@ -138,6 +138,76 @@ async def get_status_checks():
 
 # ═══════════════════════════════════════════════════════════════
 #  RESERVATIONS CRUD
+
+
+# ═══════════════════════════════════════════════════════════════
+#  ZONES CRUD
+# ═══════════════════════════════════════════════════════════════
+
+class ZoneCreate(BaseModel):
+    name: str
+    type: str = "chantier"
+    shape: str = "circle"
+    color: str = "#2563EB"
+    center: Optional[List[float]] = None
+    radius: Optional[int] = None
+    polygon: Optional[List[List[float]]] = None
+    alertEntry: bool = False
+    alertExit: bool = False
+
+class ZoneUpdate(ZoneCreate):
+    pass
+
+
+@api_router.post("/zones")
+async def create_zone(data: ZoneCreate):
+    zone = {
+        "id": str(uuid.uuid4()),
+        **data.model_dump(),
+        "assetsCount": 0,
+        "lastActivity": "—",
+        "created_at": datetime.now(timezone.utc).isoformat(),
+    }
+    await db.zones.insert_one(zone)
+    zone.pop("_id", None)
+    await ws_manager.broadcast("zone_created", zone)
+    return zone
+
+
+@api_router.get("/zones")
+async def list_zones():
+    zones = await db.zones.find({}, {"_id": 0}).to_list(500)
+    return zones
+
+
+@api_router.get("/zones/{zone_id}")
+async def get_zone(zone_id: str):
+    zone = await db.zones.find_one({"id": zone_id}, {"_id": 0})
+    if not zone:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    return zone
+
+
+@api_router.put("/zones/{zone_id}")
+async def update_zone(zone_id: str, data: ZoneUpdate):
+    existing = await db.zones.find_one({"id": zone_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    update_data = data.model_dump()
+    update_data["updated_at"] = datetime.now(timezone.utc).isoformat()
+    await db.zones.update_one({"id": zone_id}, {"$set": update_data})
+    updated = await db.zones.find_one({"id": zone_id}, {"_id": 0})
+    await ws_manager.broadcast("zone_updated", updated)
+    return updated
+
+
+@api_router.delete("/zones/{zone_id}")
+async def delete_zone(zone_id: str):
+    result = await db.zones.delete_one({"id": zone_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Zone not found")
+    await ws_manager.broadcast("zone_deleted", {"id": zone_id})
+    return {"status": "deleted"}
 # ═══════════════════════════════════════════════════════════════
 
 @api_router.post("/reservations")

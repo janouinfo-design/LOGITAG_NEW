@@ -115,8 +115,13 @@ const PremiumReports = () => {
 
     selected.forEach(item => {
       const name = getItemName(item)
+      // Use real location data: LocationObjectname, address, nearestLocationName
+      const realZone = item.LocationObjectname || item.locationName || null
+      const lastAddress = item.address || item.nearestLocationName || item.lastAddress || null
+      const fallbackLocation = realZone || lastAddress || 'Adresse inconnue'
+
       const zones = reportType === 'asset'
-        ? [item.LocationObjectname || 'Dépôt Central', 'Chantier Nord', 'Zone Est', 'Entrepôt Sud']
+        ? [fallbackLocation, ...(realZone ? [] : [lastAddress || 'Position GPS dernière']).filter(Boolean)]
         : ['Entrée principale', 'Zone de stockage', 'Quai de chargement', 'Bureau']
 
       const eventsPerDay = 1 + Math.floor(Math.random() * 3)
@@ -134,6 +139,7 @@ const PremiumReports = () => {
           const zone = zones[Math.floor(Math.random() * zones.length)]
           const durH = Math.floor(dur / 60)
           const durM = dur % 60
+          const isAddress = !realZone && lastAddress
 
           events.push({
             name,
@@ -142,6 +148,7 @@ const PremiumReports = () => {
             timeExit: `${String(Math.min(exitHour, 23)).padStart(2, '0')}:${String(exitMin).padStart(2, '0')}`,
             type: 'pair',
             zone,
+            isAddress, // flag to show it's an address, not a zone
             duration: `${durH}h${String(durM).padStart(2, '0')}`,
             durationMin: dur,
           })
@@ -275,7 +282,7 @@ const PremiumReports = () => {
                       <th className="rpt-th">Date</th>
                       <th className="rpt-th">Entrée</th>
                       <th className="rpt-th">Sortie</th>
-                      <th className="rpt-th">{reportType === 'asset' ? 'Zone / Site' : 'Asset'}</th>
+                      <th className="rpt-th">{reportType === 'asset' ? 'Zone / Adresse' : 'Asset'}</th>
                       <th className="rpt-th">Durée</th>
                     </tr>
                   </thead>
@@ -289,7 +296,11 @@ const PremiumReports = () => {
                         <td className="rpt-td">
                           <span className="rpt-badge-exit"><LogOut size={12} /> {ev.timeExit || '--'}</span>
                         </td>
-                        <td className="rpt-td">{ev.zone}</td>
+                        <td className="rpt-td">
+                          {ev.isAddress ? (
+                            <span className="rpt-badge-addr"><MapPin size={12} /> {ev.zone}</span>
+                          ) : ev.zone}
+                        </td>
                         <td className="rpt-td rpt-td--dur">{ev.duration}</td>
                       </tr>
                     ))}
@@ -658,6 +669,7 @@ const STYLES = `
 
 .rpt-badge-entry { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:8px; background:#ECFDF5; color:#059669; font-size:.72rem; font-weight:600; }
 .rpt-badge-exit { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:8px; background:#FDF2F8; color:#D64B70; font-size:.72rem; font-weight:600; }
+.rpt-badge-addr { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:8px; background:#FFF7ED; color:#D97706; font-size:.72rem; font-weight:600; font-style:italic; }
 
 .rpt-group-summary { display:flex; gap:20px; padding:12px 20px; background:#F8FAFC; border-top:1px solid #E2E8F0; font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; color:#475569; }
 

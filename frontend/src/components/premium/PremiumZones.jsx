@@ -1,11 +1,14 @@
 import {useState, useRef, useCallback, useEffect} from 'react'
 import {MapContainer, TileLayer, Polygon, Circle, Popup, useMapEvents, useMap} from 'react-leaflet'
 import L from 'leaflet'
+import {useWebSocket} from '../../hooks/useWebSocket'
 import {
   MapPin, Plus, Edit3, Trash2, Search, Shield, Circle as CircleIcon,
   AlertTriangle, LogIn, LogOut, X, ChevronRight, Eye, Truck,
-  Hexagon, Move, Target, Ruler, Pencil, Check, RotateCcw
+  Hexagon, Move, Target, Ruler, Pencil, Check, RotateCcw, Loader2, Wifi
 } from 'lucide-react'
+
+const API = process.env.REACT_APP_BACKEND_URL
 
 /* Fix Leaflet icons */
 delete L.Icon.Default.prototype._getIconUrl
@@ -15,47 +18,47 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
 })
 
-const MOCK_ZONES = [
-  {
-    id: 1, name: 'Chantier Nord', type: 'chantier', shape: 'polygon',
-    color: '#2563EB',
-    polygon: [[46.82, 7.14], [46.83, 7.14], [46.83, 7.16], [46.82, 7.16]],
-    center: null, radius: null,
-    rules: {alertEntry: true, alertExit: true},
-    assetsCount: 12, lastActivity: 'il y a 15 min',
-  },
-  {
-    id: 2, name: 'Dépôt Central', type: 'depot', shape: 'circle',
-    color: '#059669',
-    polygon: null,
-    center: [46.805, 7.13], radius: 350,
-    rules: {alertEntry: false, alertExit: true},
-    assetsCount: 8, lastActivity: 'il y a 1h',
-  },
-  {
-    id: 3, name: 'Zone Interdite', type: 'restricted', shape: 'polygon',
-    color: '#DC2626',
-    polygon: [[46.84, 7.10], [46.85, 7.10], [46.85, 7.12], [46.84, 7.12]],
-    center: null, radius: null,
-    rules: {alertEntry: true, alertExit: false},
-    assetsCount: 0, lastActivity: '—',
-  },
-  {
-    id: 4, name: 'Parking VL', type: 'parking', shape: 'circle',
-    color: '#D97706',
-    polygon: null,
-    center: [46.795, 7.155], radius: 200,
-    rules: {alertEntry: false, alertExit: false},
-    assetsCount: 5, lastActivity: 'il y a 45 min',
-  },
-]
-
 const ZONE_TYPES = {
   chantier: {label: 'Chantier', color: '#2563EB', bg: '#EFF6FF'},
   depot: {label: 'Dépôt', color: '#059669', bg: '#ECFDF5'},
   restricted: {label: 'Zone restreinte', color: '#DC2626', bg: '#FEF2F2'},
   parking: {label: 'Parking', color: '#D97706', bg: '#FFFBEB'},
 }
+
+const DEFAULT_ZONES = [
+  {
+    id: 'default-1', name: 'Chantier Nord', type: 'chantier', shape: 'polygon',
+    color: '#2563EB',
+    polygon: [[46.82, 7.14], [46.83, 7.14], [46.83, 7.16], [46.82, 7.16]],
+    center: null, radius: null,
+    alertEntry: true, alertExit: true,
+    assetsCount: 12, lastActivity: 'il y a 15 min',
+  },
+  {
+    id: 'default-2', name: 'Dépôt Central', type: 'depot', shape: 'circle',
+    color: '#059669',
+    polygon: null,
+    center: [46.805, 7.13], radius: 350,
+    alertEntry: false, alertExit: true,
+    assetsCount: 8, lastActivity: 'il y a 1h',
+  },
+  {
+    id: 'default-3', name: 'Zone Interdite', type: 'restricted', shape: 'polygon',
+    color: '#DC2626',
+    polygon: [[46.84, 7.10], [46.85, 7.10], [46.85, 7.12], [46.84, 7.12]],
+    center: null, radius: null,
+    alertEntry: true, alertExit: false,
+    assetsCount: 0, lastActivity: '—',
+  },
+  {
+    id: 'default-4', name: 'Parking VL', type: 'parking', shape: 'circle',
+    color: '#D97706',
+    polygon: null,
+    center: [46.795, 7.155], radius: 200,
+    alertEntry: false, alertExit: false,
+    assetsCount: 5, lastActivity: 'il y a 45 min',
+  },
+]
 
 /* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
    INTERACTIVE MAP DRAWING COMPONENT
@@ -145,17 +148,46 @@ const DrawController = ({ drawMode, drawShape, onCircleDrawn, onPolygonDrawn, on
    MAIN COMPONENT
    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
 const PremiumZones = () => {
-  const [zones, setZones] = useState(MOCK_ZONES)
+  const [zones, setZones] = useState([])
   const [selectedZone, setSelectedZone] = useState(null)
   const [search, setSearch] = useState('')
   const [showDetail, setShowDetail] = useState(false)
   const [editZone, setEditZone] = useState(null)
   const [editForm, setEditForm] = useState({})
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(false)
 
   // Draw mode state
   const [drawMode, setDrawMode] = useState(false)
   const [drawShape, setDrawShape] = useState('circle')
   const [drawPreview, setDrawPreview] = useState(null)
+
+  // Fetch zones from API
+  const fetchZones = useCallback(async () => {
+    try {
+      const res = await fetch(`${API}/api/zones`)
+      const data = await res.json()
+      if (Array.isArray(data) && data.length > 0) {
+        setZones(data)
+      } else if (Array.isArray(data) && data.length === 0 && !loading) {
+        // DB empty, keep what we have
+      } else {
+        setZones(DEFAULT_ZONES)
+      }
+    } catch {
+      setZones(DEFAULT_ZONES)
+    }
+    setLoading(false)
+  }, [loading])
+
+  useEffect(() => { fetchZones() }, [])
+
+  // WebSocket real-time
+  const {connected} = useWebSocket(useCallback((msg) => {
+    if (['zone_created', 'zone_updated', 'zone_deleted'].includes(msg.type)) {
+      fetchZones()
+    }
+  }, [fetchZones]))
 
   const filtered = zones.filter(z => {
     if (!search) return true
@@ -170,8 +202,8 @@ const PremiumZones = () => {
       type: zone?.type || 'chantier',
       shape: zone?.shape || 'circle',
       color: zone?.color || '#2563EB',
-      alertEntry: zone?.rules?.alertEntry ?? false,
-      alertExit: zone?.rules?.alertExit ?? false,
+      alertEntry: zone?.alertEntry ?? false,
+      alertExit: zone?.alertExit ?? false,
       center: zone?.center || null,
       radius: zone?.radius || 200,
       polygon: zone?.polygon || null,
@@ -209,43 +241,59 @@ const PremiumZones = () => {
     setEditZone({id: null})
   }
 
-  const saveZone = () => {
+  const saveZone = async () => {
+    setSaving(true)
     const zoneData = {
       name: editForm.name,
       type: editForm.type,
       shape: editForm.shape,
       color: editForm.color,
-      rules: {alertEntry: editForm.alertEntry, alertExit: editForm.alertExit},
-      center: editForm.shape === 'circle' ? editForm.center : null,
-      radius: editForm.shape === 'circle' ? editForm.radius : null,
-      polygon: editForm.shape === 'polygon' ? editForm.polygon : null,
+      alertEntry: editForm.alertEntry,
+      alertExit: editForm.alertExit,
+      center: editForm.shape === 'circle' ? (editForm.center || [46.815, 7.14]) : null,
+      radius: editForm.shape === 'circle' ? (editForm.radius || 200) : null,
+      polygon: editForm.shape === 'polygon' ? (editForm.polygon || [[46.81, 7.13], [46.82, 7.13], [46.82, 7.15], [46.81, 7.15]]) : null,
     }
 
-    if (editZone.id) {
-      setZones(prev => prev.map(z => z.id === editZone.id ? {...z, ...zoneData} : z))
-    } else {
-      const newZone = {
-        id: Date.now(),
-        ...zoneData,
-        assetsCount: 0,
-        lastActivity: '—',
+    try {
+      if (editZone.id && !editZone.id.startsWith('default-')) {
+        // Update existing zone
+        await fetch(`${API}/api/zones/${editZone.id}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(zoneData),
+        })
+      } else {
+        // Create new zone
+        await fetch(`${API}/api/zones`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(zoneData),
+        })
       }
-      // Default geometry if none drawn
-      if (editForm.shape === 'circle' && !editForm.center) {
-        newZone.center = [46.815, 7.14]
-        newZone.radius = 200
+      await fetchZones()
+    } catch (err) {
+      // Fallback to local
+      if (editZone.id) {
+        setZones(prev => prev.map(z => z.id === editZone.id ? {...z, ...zoneData} : z))
+      } else {
+        setZones(prev => [...prev, {id: 'local-' + Date.now(), ...zoneData, assetsCount: 0, lastActivity: '—'}])
       }
-      if (editForm.shape === 'polygon' && !editForm.polygon) {
-        newZone.polygon = [[46.81, 7.13], [46.82, 7.13], [46.82, 7.15], [46.81, 7.15]]
-      }
-      setZones(prev => [...prev, newZone])
     }
+    setSaving(false)
     setEditZone(null)
     setShowDetail(false)
   }
 
-  const deleteZone = (zoneId) => {
-    setZones(prev => prev.filter(z => z.id !== zoneId))
+  const deleteZone = async (zoneId) => {
+    try {
+      if (!zoneId.startsWith('default-')) {
+        await fetch(`${API}/api/zones/${zoneId}`, {method: 'DELETE'})
+      }
+      await fetchZones()
+    } catch {
+      setZones(prev => prev.filter(z => z.id !== zoneId))
+    }
     setShowDetail(false)
     setSelectedZone(null)
   }
@@ -258,7 +306,7 @@ const PremiumZones = () => {
         <div className="ltz-header">
           <div>
             <h1 className="ltz-title" data-testid="zones-title">Zones</h1>
-            <p className="ltz-sub">{zones.length} zones configurées - {totalAssets} assets au total</p>
+            <p className="ltz-sub">{zones.length} zones configurées - {totalAssets} assets au total {connected && <span className="ltz-ws-live"><Wifi size={10} /> Live</span>}</p>
           </div>
           <div className="ltz-header-actions">
             {!drawMode ? (
@@ -481,13 +529,13 @@ const PremiumZones = () => {
               <div className="ltz-drawer-section">
                 <span className="ltz-drawer-label">RÈGLES D'ALERTE</span>
                 <div className="ltz-drawer-rules">
-                  <div className={`ltz-rule ${selectedZone.rules.alertEntry ? 'ltz-rule--on' : ''}`}>
+                  <div className={`ltz-rule ${selectedZone.alertEntry ? 'ltz-rule--on' : ''}`}>
                     <LogIn size={14} /> Alerte entrée
-                    <span className="ltz-rule-status">{selectedZone.rules.alertEntry ? 'Activé' : 'Désactivé'}</span>
+                    <span className="ltz-rule-status">{selectedZone.alertEntry ? 'Activé' : 'Désactivé'}</span>
                   </div>
-                  <div className={`ltz-rule ${selectedZone.rules.alertExit ? 'ltz-rule--on' : ''}`}>
+                  <div className={`ltz-rule ${selectedZone.alertExit ? 'ltz-rule--on' : ''}`}>
                     <LogOut size={14} /> Alerte sortie
-                    <span className="ltz-rule-status">{selectedZone.rules.alertExit ? 'Activé' : 'Désactivé'}</span>
+                    <span className="ltz-rule-status">{selectedZone.alertExit ? 'Activé' : 'Désactivé'}</span>
                   </div>
                 </div>
               </div>
@@ -620,7 +668,9 @@ const PremiumZones = () => {
               </div>
               <div className="ltz-modal-foot">
                 <button className="ltz-modal-btn ltz-modal-btn--cancel" onClick={() => setEditZone(null)}>Annuler</button>
-                <button className="ltz-modal-btn ltz-modal-btn--save" onClick={saveZone} data-testid="zone-save-btn">Enregistrer</button>
+                <button className="ltz-modal-btn ltz-modal-btn--save" onClick={saveZone} disabled={saving} data-testid="zone-save-btn">
+                  {saving ? <><Loader2 size={14} className="ltz-spin" /> Enregistrement...</> : 'Enregistrer'}
+                </button>
               </div>
             </div>
           </div>
@@ -638,6 +688,10 @@ const STYLES = `
 .ltz-sub { font-family:'Inter',sans-serif; font-size:.875rem; color:#64748B; margin:4px 0 0; }
 .ltz-add-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; border:none; background:#2563EB; color:#FFF; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; box-shadow:0 2px 8px rgba(37,99,235,.2); }
 .ltz-add-btn:hover { background:#1D4ED8; }
+.ltz-ws-live { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; background:#ECFDF5; color:#059669; font-size:.65rem; font-weight:700; animation:ltzLivePulse 2s ease infinite; }
+@keyframes ltzLivePulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
+.ltz-spin { animation:ltzSpinAnim 1s linear infinite; }
+@keyframes ltzSpinAnim { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 .ltz-cancel-draw-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; border:none; background:#EF4444; color:#FFF; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; }
 .ltz-cancel-draw-btn:hover { background:#DC2626; }
 
