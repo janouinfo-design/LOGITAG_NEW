@@ -612,6 +612,22 @@ const PremiumReservationPlanning = () => {
                       </div>
                     )}
                     <div className="rp-drawer-actions">
+                      {r.status === 'requested' && (
+                        <>
+                          <button className="rp-btn rp-btn--success" onClick={async () => {
+                            await fetch(`${API}/api/reservations/${r.id}/approve`, {method: 'POST'})
+                            setShowDetailDrawer(null); fetchReservations()
+                          }} data-testid="action-approve">
+                            <CheckCircle2 size={14} /> Approuver
+                          </button>
+                          <button className="rp-btn rp-btn--danger" onClick={async () => {
+                            await fetch(`${API}/api/reservations/${r.id}/reject`, {method: 'POST'})
+                            setShowDetailDrawer(null); fetchReservations()
+                          }} data-testid="action-reject">
+                            <XCircle size={14} /> Rejeter
+                          </button>
+                        </>
+                      )}
                       {r.status === 'confirmed' && (
                         <button className="rp-btn rp-btn--warning" onClick={() => { setShowDetailDrawer(null); setCoForm({user_name: r.user_name, location: r.site || '', condition: 'good', comment: ''}); setShowCheckoutModal(r); }} data-testid="action-checkout">
                           <LogOut size={14} /> Check-out

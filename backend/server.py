@@ -63,6 +63,7 @@ class ReservationCreate(BaseModel):
     end_date: str
     note: Optional[str] = None
     priority: str = "normal"  # low, normal, high, urgent
+    status: str = "requested"  # requested, confirmed, in_progress, completed, cancelled
 
 class ReservationUpdate(BaseModel):
     user_name: Optional[str] = None
@@ -522,7 +523,7 @@ async def create_reservation(data: ReservationCreate):
         "end_date": end,
         "note": data.note,
         "priority": data.priority,
-        "status": "confirmed",
+        "status": data.status if data.status in ("requested", "confirmed") else "requested",
         "checkout_at": None,
         "checkout_by": None,
         "checkout_location": None,
@@ -1022,6 +1023,68 @@ async def reject_reservation(reservation_id: str):
     await create_notification("reservation_rejected", "Réservation rejetée",
         f"La réservation de {res['asset_name']} a été rejetée.", reservation_id, res["asset_id"], "error")
     return {"status": "rejected"}
+
+
+@api_router.get("/reservations/gantt")
+async def get_reservations_gantt(days: int = 14):
+    """Return reservations formatted for Gantt view, grouped by asset."""
+    now = datetime.now(timezone.utc)
+    start_range = (now - timedelta(days=3)).isoformat()
+    end_range = (now + timedelta(days=days)).isoformat()
+    reservations = await db.reservations.find(
+        {"end_date": {"$gte": start_range}, "start_date": {"$lte": end_range}},
+        {"_id": 0}
+    ).sort("start_date", 1).to_list(500)
+
+    # Group by asset
+    asset_map = {}
+    for r in reservations:
+        aid = r.get("asset_id", "unknown")
+        if aid not in asset_map:
+            asset_map[aid] = {"asset_id": aid, "asset_name": r.get("asset_name", ""), "reservations": []}
+        asset_map[aid]["reservations"].append({
+            "id": r["id"], "user_name": r.get("user_name"), "status": r.get("status"),
+            "priority": r.get("priority"), "site": r.get("site"), "address": r.get("address"),
+            "start_date": r.get("start_date"), "end_date": r.get("end_date"),
+            "note": r.get("note"), "project": r.get("project"),
+        })
+    return {"assets": list(asset_map.values()), "range_start": start_range, "range_end": end_range}
+
+
+@api_router.get("/reservations/today-summary")
+async def get_today_summary():
+    """Return operational summary for today: active reservations, upcoming, overdue, critical assets."""
+    now = datetime.now(timezone.utc)
+    today_start = now.replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+    today_end = now.replace(hour=23, minute=59, second=59).isoformat()
+    now_iso = now.isoformat()
+
+    active = await db.reservations.find(
+        {"status": "in_progress"}, {"_id": 0}
+    ).sort("end_date", 1).to_list(50)
+
+    upcoming = await db.reservations.find(
+        {"status": "confirmed", "start_date": {"$gte": now_iso, "$lte": today_end}}, {"_id": 0}
+    ).sort("start_date", 1).to_list(20)
+
+    overdue = await db.reservations.find(
+        {"status": "in_progress", "end_date": {"$lt": now_iso}}, {"_id": 0}
+    ).sort("end_date", 1).to_list(20)
+
+    pending_approval = await db.reservations.find(
+        {"status": "requested"}, {"_id": 0}
+    ).sort("created_at", -1).to_list(20)
+
+    active_alerts = await db.reservation_alerts.count_documents({"resolved": False})
+
+    return {
+        "active_count": len(active), "active": active[:10],
+        "upcoming_count": len(upcoming), "upcoming": upcoming[:10],
+        "overdue_count": len(overdue), "overdue": overdue[:10],
+        "pending_count": len(pending_approval), "pending": pending_approval[:10],
+        "alert_count": active_alerts,
+        "timestamp": now_iso,
+    }
 
 
 # ═══════════════════════════════════════════════════════════════

@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   {id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/tagdashboard/index'},
   {id: 'assets', label: 'Assets', icon: Box, path: '/view/engin/index'},
   {id: 'planning', label: 'Planning', icon: CalendarDays, path: '/timeline/index'},
+  {id: 'gantt', label: 'Gantt', icon: BarChart3, path: '/reservation/gantt'},
   {id: 'res-planning', label: 'Réservations', icon: CalendarCheck, path: '/reservation/planning'},
   {id: 'res-my', label: 'Mes réservations', icon: ClipboardList, path: '/reservation/myreservations'},
   {id: 'res-dash', label: 'KPI Réservations', icon: BarChart3, path: '/reservation/dashboard'},

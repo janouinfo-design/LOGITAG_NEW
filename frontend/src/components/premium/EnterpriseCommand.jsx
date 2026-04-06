@@ -95,6 +95,7 @@ const EnterpriseCommand = () => {
   const [changedIds, setChangedIds] = useState(new Set())
   const [externalLogs, setExternalLogs] = useState([])
   const [selectedEvent, setSelectedEvent] = useState(null)
+  const [todaySummary, setTodaySummary] = useState(null)
   const prevAssetsRef = useRef(null)
   const refreshInterval = useRef(null)
 
@@ -110,12 +111,14 @@ const EnterpriseCommand = () => {
     dispatch(fetchGateways())
     dispatch(fetchDashboard())
     try {
-      const [zRes, eRes, nRes] = await Promise.all([
-        fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=50`), fetch(`${API}/api/notifications/count`)
+      const [zRes, eRes, nRes, sumRes] = await Promise.all([
+        fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=50`), fetch(`${API}/api/notifications/count`),
+        fetch(`${API}/api/reservations/today-summary`)
       ])
       if (zRes.ok) setZones(await zRes.json())
       if (eRes.ok) setEvents(await eRes.json())
       if (nRes.ok) { const d = await nRes.json(); setNotifCount(d.count || 0) }
+      if (sumRes.ok) setTodaySummary(await sumRes.json())
     } catch {}
     // Fetch external API logs
     try {
@@ -177,9 +180,11 @@ const EnterpriseCommand = () => {
   const kpis = Array.isArray(dashData) ? dashData : []
   const kpiConfigs = [
     {label: 'Assets actifs', icon: Box, color: '#2563EB', bg: '#EFF6FF', val: kpis[0]?.counter ?? assetList.filter(a => a.etatenginname === 'active' || a.active === 1).length},
-    {label: 'Hors zone', icon: AlertTriangle, color: '#D97706', bg: '#FFFBEB', val: kpis[2]?.counter ?? 0},
-    {label: 'Alertes', icon: Bell, color: '#DC2626', bg: '#FEF2F2', val: notifCount},
-    {label: 'Batterie faible', icon: BatteryLow, color: '#8B5CF6', bg: '#F5F3FF', val: kpis[3]?.counter ?? assetList.filter(a => getBattery(a) < 20).length},
+    {label: 'Réserv. actives', icon: Calendar, color: '#059669', bg: '#ECFDF5', val: todaySummary?.active_count || 0},
+    {label: 'En attente', icon: Clock, color: '#D97706', bg: '#FFFBEB', val: todaySummary?.pending_count || 0},
+    {label: 'En retard', icon: AlertTriangle, color: '#DC2626', bg: '#FEF2F2', val: todaySummary?.overdue_count || 0},
+    {label: 'Alertes', icon: Shield, color: '#7C3AED', bg: '#F5F3FF', val: (todaySummary?.alert_count || 0) + notifCount},
+    {label: 'Batt. faible', icon: BatteryLow, color: '#EA580C', bg: '#FFF7ED', val: kpis[3]?.counter ?? assetList.filter(a => getBattery(a) < 20).length},
   ]
 
   // Filtered assets

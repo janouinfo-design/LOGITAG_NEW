@@ -128,5 +128,15 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900015,
+        "Text": "Gantt",
+        "Link": "reservation/gantt",
+        "Name": "Gantt",
+        "icon": "fa-solid fa-chart-gantt",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]

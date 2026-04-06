@@ -21,6 +21,7 @@ import PremiumMyReservations from './premium/PremiumMyReservations'
 import PremiumReservationDashboard from './premium/PremiumReservationDashboard'
 import PremiumRoles from './premium/PremiumRoles'
 import EnterpriseCommand from './premium/EnterpriseCommand'
+import PremiumGantt from './premium/PremiumGantt'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -146,6 +147,7 @@ const components = {
   'reservation/dashboard': PremiumReservationDashboard,
   'admin/roles': PremiumRoles,
   'command/center': EnterpriseCommand,
+  'reservation/gantt': PremiumGantt,
 
   // 'rapport/index': MapTest,
 
