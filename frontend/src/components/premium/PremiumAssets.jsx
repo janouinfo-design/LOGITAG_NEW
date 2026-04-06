@@ -16,7 +16,8 @@ import EnginMapLocation from '../Engin/EnginList/EnginMapLocation'
 import {
   Search, Filter, LayoutList, LayoutGrid, MapIcon, Download,
   ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Battery, MapPin, Clock, Tag,
-  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown, Pencil, Save, Loader2, Columns3, CheckSquare, Square
+  Truck, X, Eye, Wifi, WifiOff, ArrowUpDown, Pencil, Save, Loader2, Columns3, CheckSquare, Square,
+  Trash2, AlertTriangle
 } from 'lucide-react'
 
 const COLUMN_DEFS = [
@@ -92,6 +93,9 @@ const PremiumAssets = () => {
   const [visibleCols, setVisibleCols] = useState(loadSavedCols)
   const [colPanelOpen, setColPanelOpen] = useState(false)
   const [activePreset, setActivePreset] = useState('default')
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [deleteConfirm, setDeleteConfirm] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
@@ -137,6 +141,39 @@ const PremiumAssets = () => {
   }
 
   const isColVisible = (key) => visibleCols.includes(key)
+
+  // Selection helpers
+  const toggleSelectItem = (id) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+  const clearSelection = () => setSelectedIds(new Set())
+
+  const handleBulkDelete = async () => {
+    setDeleting(true)
+    const API = process.env.REACT_APP_BACKEND_URL
+    let deleted = 0
+    for (const id of selectedIds) {
+      try {
+        const item = allData.find(d => d.id === id)
+        if (item) {
+          await fetch(`${API}/api/proxy/engin/delete`, {
+            method: 'POST', headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({id: item.id})
+          })
+          deleted++
+        }
+      } catch {}
+    }
+    setDeleting(false)
+    setDeleteConfirm(false)
+    setSelectedIds(new Set())
+    loadData()
+  }
 
   const getSortValue = (item, col) => {
     switch (col) {
@@ -221,6 +258,28 @@ const PremiumAssets = () => {
   const totalPages = Math.ceil(totalFiltered / rows)
   const data = filteredItems.slice((page - 1) * rows, page * rows)
 
+  const isAllPageSelected = data.length > 0 && data.every(item => selectedIds.has(item.id))
+  const isSomeSelected = selectedIds.size > 0
+  const toggleSelectAll = () => {
+    if (isAllPageSelected) {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        data.forEach(item => next.delete(item.id))
+        return next
+      })
+    } else {
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        data.forEach(item => next.add(item.id))
+        return next
+      })
+    }
+  }
+  const selectAllFiltered = () => {
+    setSelectedIds(new Set(filteredItems.map(item => item.id)))
+  }
+
+
   const handleViewDetail = (item) => {
     dispatch(fetchValidator('engin'))
     dispatch(setSelectedEngine(item))
@@ -289,7 +348,10 @@ const PremiumAssets = () => {
     const bat = getBattery(item.batteries)
     const etat = getEtat(item)
     return (
-      <div className="lta-card" key={item.id || i} data-testid={`asset-card-${i}`}>
+      <div className={`lta-card ${selectedIds.has(item.id) ? 'lta-card--selected' : ''}`} key={item.id || i} data-testid={`asset-card-${i}`}>
+        <div className="lta-card-select" onClick={(e) => { e.stopPropagation(); toggleSelectItem(item.id); }} data-testid={`card-select-${i}`}>
+          {selectedIds.has(item.id) ? <CheckSquare size={16} className="lta-check--on" /> : <Square size={16} className="lta-check" />}
+        </div>
         <div className="lta-card-img">
           {item.image ? (
             <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
@@ -341,7 +403,10 @@ const PremiumAssets = () => {
     const bat = getBattery(item.batteries)
     const etat = getEtat(item)
     return (
-      <div className="lta-row" key={item.id || i} data-testid={`asset-row-${i}`} onClick={() => handleViewDetail(item)}>
+      <div className={`lta-row ${selectedIds.has(item.id) ? 'lta-row--selected' : ''}`} key={item.id || i} data-testid={`asset-row-${i}`} onClick={() => handleViewDetail(item)}>
+        <div className="lta-row-select" onClick={(e) => { e.stopPropagation(); toggleSelectItem(item.id); }} data-testid={`row-select-${i}`}>
+          {selectedIds.has(item.id) ? <CheckSquare size={15} className="lta-check--on" /> : <Square size={15} className="lta-check" />}
+        </div>
         {isColVisible('image') && <div className="lta-row-img">
           {item.image ? (
             <img src={`${API_BASE_URL_IMAGE}${item.image}`} alt="" />
@@ -547,6 +612,47 @@ const PremiumAssets = () => {
           </div>
         </div>
 
+        {/* BULK ACTION BAR */}
+        {isSomeSelected && (
+          <div className="lta-bulk-bar" data-testid="bulk-action-bar">
+            <div className="lta-bulk-info">
+              <CheckSquare size={15} />
+              <span><strong>{selectedIds.size}</strong> asset{selectedIds.size > 1 ? 's' : ''} sélectionné{selectedIds.size > 1 ? 's' : ''}</span>
+              {selectedIds.size < filteredItems.length && (
+                <button className="lta-bulk-link" onClick={selectAllFiltered} data-testid="select-all-filtered">
+                  Sélectionner les {filteredItems.length}
+                </button>
+              )}
+            </div>
+            <div className="lta-bulk-actions">
+              <button className="lta-bulk-btn lta-bulk-btn--danger" onClick={() => setDeleteConfirm(true)} data-testid="bulk-delete-btn">
+                <Trash2 size={14} /> Supprimer
+              </button>
+              <button className="lta-bulk-btn" onClick={clearSelection} data-testid="clear-selection-btn">
+                <X size={14} /> Annuler
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION */}
+        {deleteConfirm && (
+          <div className="lta-confirm-overlay" onClick={() => !deleting && setDeleteConfirm(false)}>
+            <div className="lta-confirm-modal" onClick={e => e.stopPropagation()} data-testid="delete-confirm-modal">
+              <div className="lta-confirm-icon"><AlertTriangle size={32} /></div>
+              <h3 className="lta-confirm-title">Confirmer la suppression</h3>
+              <p className="lta-confirm-text">Voulez-vous vraiment supprimer <strong>{selectedIds.size} asset{selectedIds.size > 1 ? 's' : ''}</strong> ? Cette action est irréversible.</p>
+              <div className="lta-confirm-btns">
+                <button className="lta-confirm-btn lta-confirm-btn--cancel" onClick={() => setDeleteConfirm(false)} disabled={deleting}>Annuler</button>
+                <button className="lta-confirm-btn lta-confirm-btn--delete" onClick={handleBulkDelete} disabled={deleting} data-testid="confirm-delete-btn">
+                  {deleting ? <Loader2 size={14} className="lta-spin" /> : <Trash2 size={14} />}
+                  {deleting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* CONTENT */}
         {loading && (!data || data.length === 0) ? (
           <div className="lta-loading" data-testid="assets-loading">
@@ -564,6 +670,9 @@ const PremiumAssets = () => {
         ) : (
           <div className="lta-list" data-testid="assets-list">
             <div className="lta-list-head">
+              <span className="lta-lh-select" onClick={toggleSelectAll} data-testid="select-all-checkbox">
+                {isAllPageSelected ? <CheckSquare size={15} className="lta-check--on" /> : <Square size={15} className="lta-check" />}
+              </span>
               {isColVisible('image') && <span style={{width: 56}} />}
               {isColVisible('reference') && <span className="lta-lh-col lta-lh-col--main lta-lh-sort" onClick={() => handleSort('reference')} data-testid="sort-reference">
                 Asset {sortCol === 'reference' && <ArrowUpDown size={11} className={sortDir === 'desc' ? 'lta-sort-desc' : ''} />}
@@ -964,6 +1073,40 @@ const STYLES = `
 .lta-edit-btn--save:disabled { opacity:.6; cursor:not-allowed; }
 @keyframes ltaSpin { to{transform:rotate(360deg)} }
 .lta-spin { animation:ltaSpin .8s linear infinite; }
+
+/* ── SELECTION & BULK ACTIONS ── */
+.lta-card-select { position:absolute; top:8px; left:8px; z-index:5; cursor:pointer; padding:2px; }
+.lta-card { position:relative; }
+.lta-card--selected { box-shadow:inset 0 0 0 2px #2563EB; }
+.lta-check { color:#CBD5E1; transition:color .1s; }
+.lta-check--on { color:#2563EB; }
+.lta-row-select { flex-shrink:0; width:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+.lta-row--selected { background:#EFF6FF !important; }
+.lta-lh-select { flex-shrink:0; width:28px; display:flex; align-items:center; justify-content:center; cursor:pointer; }
+
+.lta-bulk-bar { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; background:#EFF6FF; border:1.5px solid #BFDBFE; border-radius:12px; margin-bottom:16px; animation:ltaSlideDown .2s ease; }
+@keyframes ltaSlideDown { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+.lta-bulk-info { display:flex; align-items:center; gap:8px; font-family:'Inter',sans-serif; font-size:.82rem; color:#1E40AF; }
+.lta-bulk-link { background:none; border:none; color:#2563EB; font-family:'Inter',sans-serif; font-size:.75rem; font-weight:600; cursor:pointer; text-decoration:underline; }
+.lta-bulk-actions { display:flex; gap:8px; }
+.lta-bulk-btn { display:inline-flex; align-items:center; gap:5px; padding:7px 14px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
+.lta-bulk-btn:hover { border-color:#94A3B8; }
+.lta-bulk-btn--danger { border-color:#FECACA; color:#DC2626; background:#FEF2F2; }
+.lta-bulk-btn--danger:hover { background:#FEE2E2; border-color:#EF4444; }
+
+/* Confirm modal */
+.lta-confirm-overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); backdrop-filter:blur(4px); z-index:1200; display:flex; align-items:center; justify-content:center; }
+.lta-confirm-modal { background:#FFF; border-radius:16px; padding:32px; max-width:420px; width:90%; box-shadow:0 20px 40px rgba(0,0,0,.15); text-align:center; }
+.lta-confirm-icon { color:#F59E0B; margin-bottom:12px; }
+.lta-confirm-title { font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:800; color:#0F172A; margin:0 0 8px; }
+.lta-confirm-text { font-family:'Inter',sans-serif; font-size:.85rem; color:#64748B; margin:0 0 24px; line-height:1.5; }
+.lta-confirm-btns { display:flex; gap:10px; justify-content:center; }
+.lta-confirm-btn { display:inline-flex; align-items:center; gap:5px; padding:10px 20px; border-radius:10px; font-family:'Inter',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .12s; }
+.lta-confirm-btn--cancel { border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; }
+.lta-confirm-btn--cancel:hover { border-color:#94A3B8; }
+.lta-confirm-btn--delete { border:none; background:#DC2626; color:#FFF; box-shadow:0 2px 8px rgba(220,38,38,.2); }
+.lta-confirm-btn--delete:hover { background:#B91C1C; }
+.lta-confirm-btn--delete:disabled { opacity:.6; cursor:not-allowed; }
 `
 
 export default PremiumAssets
