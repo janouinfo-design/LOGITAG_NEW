@@ -1,8 +1,9 @@
 import {useState, useEffect, useCallback} from 'react'
+import {useWebSocket} from '../../hooks/useWebSocket'
 import {
   BarChart3, CalendarDays, Truck, Clock, AlertTriangle, CheckCircle2, XCircle,
   ArrowUp, ArrowDown, TrendingUp, MapPin, Users, Bell, Eye, X, Loader2,
-  LogIn, LogOut, FileText, Timer, RotateCcw
+  LogIn, LogOut, FileText, Timer, RotateCcw, Wifi
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -32,6 +33,13 @@ const PremiumReservationDashboard = () => {
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
+
+  // WebSocket real-time
+  const {connected} = useWebSocket(useCallback((msg) => {
+    if (msg.type === 'notification' || msg.type?.startsWith('reservation_')) {
+      fetchAll()
+    }
+  }, [fetchAll]))
 
   const markRead = async (id) => {
     await fetch(`${API}/api/notifications/${id}/read`, {method: 'PUT'})
@@ -95,6 +103,7 @@ const PremiumReservationDashboard = () => {
             <p className="rdb-sub">Vue d'ensemble des réservations et alertes</p>
           </div>
           <button className="rdb-refresh" onClick={fetchAll}><RotateCcw size={14} /> Actualiser</button>
+          {connected && <span className="rdb-ws-live" data-testid="ws-indicator"><Wifi size={10} /> Live</span>}
         </div>
 
         {/* KPI Cards */}
@@ -198,6 +207,8 @@ const STYLES = `
 .rdb-sub { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; margin:4px 0 0; }
 .rdb-refresh { display:inline-flex; align-items:center; gap:6px; padding:8px 16px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:#475569; cursor:pointer; transition:all .15s; }
 .rdb-refresh:hover { border-color:#2563EB; color:#2563EB; }
+.rdb-ws-live { display:inline-flex; align-items:center; gap:3px; padding:4px 10px; border-radius:10px; background:#ECFDF5; color:#059669; font-family:'Inter',sans-serif; font-size:.68rem; font-weight:700; animation:rdbLivePulse 2s ease infinite; }
+@keyframes rdbLivePulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
 
 /* KPI Grid */
 .rdb-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:24px; }

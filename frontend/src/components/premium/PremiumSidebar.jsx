@@ -5,7 +5,7 @@ import {
   LayoutDashboard, Map, Box, Activity, Bell, Settings,
   ChevronLeft, ChevronRight, MapPin, Users, LogOut,
   Radio, FileBarChart, UserCircle, CalendarDays, Moon, Sun,
-  CalendarCheck, ClipboardList, BarChart3
+  CalendarCheck, ClipboardList, BarChart3, Shield
 } from 'lucide-react'
 import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
   {id: 'alerts', label: 'Alertes', icon: Bell, path: '/alert/index'},
   {id: 'users', label: 'Utilisateurs', icon: UserCircle, path: '/view/staff/index'},
+  {id: 'roles', label: 'Rôles', icon: Shield, path: '/admin/roles'},
   {id: 'gateway', label: 'Gateway', icon: Radio, path: '/gateway/index'},
   {id: 'reports', label: 'Rapports', icon: FileBarChart, path: '/rapport/index'},
   {id: 'clients', label: 'Clients', icon: Users, path: '/customer/index'},

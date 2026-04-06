@@ -108,5 +108,15 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900013,
+        "Text": "Rôles & Permissions",
+        "Link": "admin/roles",
+        "Name": "Rôles & Permissions",
+        "icon": "fa-solid fa-shield",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]

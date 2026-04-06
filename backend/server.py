@@ -1,13 +1,14 @@
-from fastapi import FastAPI, APIRouter, Request, Response, HTTPException
+from fastapi import FastAPI, APIRouter, Request, Response, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.responses import StreamingResponse
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
+import json
 from pathlib import Path
 from pydantic import BaseModel, Field, ConfigDict
-from typing import List, Optional
+from typing import List, Optional, Set
 import uuid
 from datetime import datetime, timezone, timedelta
 import httpx
@@ -103,6 +104,9 @@ async def create_notification(ntype: str, title: str, message: str, reservation_
         "created_at": datetime.now(timezone.utc).isoformat(),
     }
     await db.notifications.insert_one(doc)
+    doc.pop("_id", None)
+    # Broadcast via WebSocket
+    await ws_manager.broadcast("notification", {"notification": doc, "event": ntype})
     return doc
 
 
@@ -208,6 +212,7 @@ async def create_reservation(data: ReservationCreate):
 
     # Remove _id before returning
     reservation.pop("_id", None)
+    await ws_manager.broadcast("reservation_created", reservation)
     return reservation
 
 
@@ -402,6 +407,7 @@ async def drag_drop_reservation(reservation_id: str, data: DragDropUpdate):
         "created_at": now_iso,
     })
     updated = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    await ws_manager.broadcast("reservation_moved", updated)
     return updated
 
 
@@ -452,6 +458,9 @@ async def ble_position_check(reservation_id: str):
         ble_data["error"] = "API externe indisponible"
 
     return ble_data
+
+
+@api_router.post("/reservations/{reservation_id}/cancel")
 async def cancel_reservation(reservation_id: str):
     res = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
     if not res:
@@ -469,6 +478,7 @@ async def cancel_reservation(reservation_id: str):
     })
     await create_notification("reservation_cancelled", "Réservation annulée",
         f"La réservation de {res['asset_name']} a été annulée.", reservation_id, res["asset_id"], "warning")
+    await ws_manager.broadcast("reservation_cancelled", {"id": reservation_id, "asset_name": res["asset_name"]})
     return {"status": "cancelled"}
 
 
@@ -539,6 +549,7 @@ async def checkout_reservation(reservation_id: str, data: CheckOutData):
         f"{res['asset_name']} sorti par {data.user_name}", reservation_id, res["asset_id"])
 
     updated = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    await ws_manager.broadcast("reservation_checkout", updated)
     return updated
 
 
@@ -570,6 +581,7 @@ async def checkin_reservation(reservation_id: str, data: CheckInData):
         f"{res['asset_name']} retourné par {data.user_name}", reservation_id, res["asset_id"])
 
     updated = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})
+    await ws_manager.broadcast("reservation_checkin", updated)
     return updated
 
 
@@ -664,7 +676,8 @@ async def check_permission(user_id: str, permission: str):
 
 @api_router.get("/reservations/export/csv")
 async def export_reservations_csv(status: Optional[str] = None):
-    import csv, io
+    import csv
+    import io
     query = {}
     if status:
         query["status"] = status
@@ -857,6 +870,49 @@ app.add_middleware(
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+
+# ═══════════════════════════════════════════════════════════════
+#  WEBSOCKET MANAGER
+# ═══════════════════════════════════════════════════════════════
+
+class ConnectionManager:
+    def __init__(self):
+        self.active_connections: Set[WebSocket] = set()
+
+    async def connect(self, websocket: WebSocket):
+        await websocket.accept()
+        self.active_connections.add(websocket)
+
+    def disconnect(self, websocket: WebSocket):
+        self.active_connections.discard(websocket)
+
+    async def broadcast(self, event_type: str, data: dict):
+        message = json.dumps({"type": event_type, "data": data, "timestamp": datetime.now(timezone.utc).isoformat()})
+        dead = set()
+        for conn in self.active_connections:
+            try:
+                await conn.send_text(message)
+            except Exception:
+                dead.add(conn)
+        for d in dead:
+            self.active_connections.discard(d)
+
+ws_manager = ConnectionManager()
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await ws_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            # heartbeat/ping support
+            if data == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception:
+        ws_manager.disconnect(websocket)
 
 @app.on_event("shutdown")
 async def shutdown_db_client():

@@ -2,11 +2,12 @@ import {useState, useEffect, useCallback, useMemo} from 'react'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
 import {fetchSites, getSites} from '../Site/slice/site.slice'
+import {useWebSocket} from '../../hooks/useWebSocket'
 import {
   CalendarDays, ChevronLeft, ChevronRight, Filter, Plus, X, Search,
   Truck, MapPin, Clock, User, AlertTriangle, CheckCircle2, XCircle,
   LogIn, LogOut, Eye, Loader2, ChevronDown, ArrowRight, Calendar as CalIcon,
-  Wifi, WifiOff, Battery, GripVertical
+  Wifi, WifiOff, Battery, GripVertical, Download
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -72,6 +73,13 @@ const PremiumReservationPlanning = () => {
     } catch { setReservations([]) }
     setLoading(false)
   }, [])
+
+  // WebSocket real-time
+  const {connected} = useWebSocket(useCallback((msg) => {
+    if (['reservation_created', 'reservation_moved', 'reservation_checkout', 'reservation_checkin', 'reservation_cancelled'].includes(msg.type)) {
+      fetchReservations()
+    }
+  }, [fetchReservations]))
 
   useEffect(() => {
     fetchReservations()
@@ -288,11 +296,16 @@ const PremiumReservationPlanning = () => {
         <div className="rp-header">
           <div>
             <h1 className="rp-title" data-testid="planning-title">Réservation & Planning</h1>
-            <p className="rp-sub">{filtered.length} réservation{filtered.length !== 1 ? 's' : ''} {filterStatus !== 'all' ? `(${STATUS_MAP[filterStatus]?.label})` : ''}</p>
+            <p className="rp-sub">{filtered.length} réservation{filtered.length !== 1 ? 's' : ''} {filterStatus !== 'all' ? `(${STATUS_MAP[filterStatus]?.label})` : ''} {connected && <span className="rp-ws-live" data-testid="ws-indicator"><Wifi size={10} /> Live</span>}</p>
           </div>
-          <button className="rp-create-btn" onClick={() => setShowCreateModal(true)} data-testid="create-reservation-btn">
-            <Plus size={16} /> Nouvelle réservation
-          </button>
+          <div style={{display:'flex',gap:'8px',alignItems:'center'}}>
+            <button className="rp-export-btn" onClick={async () => { const r = await fetch(`${API}/api/reservations/export/csv`); if(r.ok){const b=await r.blob();const u=window.URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`planning_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();window.URL.revokeObjectURL(u)} }} data-testid="planning-export-csv">
+              <Download size={14} /> CSV
+            </button>
+            <button className="rp-create-btn" onClick={() => setShowCreateModal(true)} data-testid="create-reservation-btn">
+              <Plus size={16} /> Nouvelle réservation
+            </button>
+          </div>
         </div>
 
         {/* Toolbar */}
@@ -627,6 +640,10 @@ const STYLES = `
 .rp-sub { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; margin:4px 0 0; }
 .rp-create-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:12px; border:none; background:linear-gradient(135deg,#2563EB,#1D4ED8); color:#FFF; font-family:'Manrope',sans-serif; font-size:.84rem; font-weight:700; cursor:pointer; box-shadow:0 4px 14px rgba(37,99,235,.25); transition:all .15s; }
 .rp-create-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(37,99,235,.3); }
+.rp-export-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 16px; border-radius:12px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:#475569; cursor:pointer; transition:all .15s; }
+.rp-export-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.rp-ws-live { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; background:#ECFDF5; color:#059669; font-size:.65rem; font-weight:700; animation:rpLivePulse 2s ease infinite; }
+@keyframes rpLivePulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
 
 /* Toolbar */
 .rp-toolbar { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:20px; padding:14px 20px; background:#FFF; border-radius:14px; border:1px solid #E2E8F0; }

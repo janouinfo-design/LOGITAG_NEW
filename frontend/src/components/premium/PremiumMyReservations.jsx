@@ -1,8 +1,9 @@
 import {useState, useEffect, useCallback} from 'react'
+import {useWebSocket} from '../../hooks/useWebSocket'
 import {
   CalendarDays, Search, X, Filter, Clock, User, MapPin, Truck, Eye,
   LogIn, LogOut, CheckCircle2, XCircle, AlertTriangle, Loader2, ChevronDown,
-  FileText, ArrowRight
+  FileText, ArrowRight, Download, Wifi, WifiOff
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -30,6 +31,7 @@ const PremiumMyReservations = () => {
   const [search, setSearch] = useState('')
   const [showDetail, setShowDetail] = useState(null)
   const [actionLoading, setActionLoading] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
 
   // Checkout/Checkin modal
   const [coModal, setCoModal] = useState(null)
@@ -47,7 +49,35 @@ const PremiumMyReservations = () => {
     setLoading(false)
   }, [])
 
+  // WebSocket real-time updates
+  const {connected} = useWebSocket(useCallback((msg) => {
+    if (['reservation_created', 'reservation_moved', 'reservation_checkout', 'reservation_checkin', 'reservation_cancelled'].includes(msg.type)) {
+      fetchData()
+    }
+  }, [fetchData]))
+
   useEffect(() => { fetchData() }, [fetchData])
+
+  // Export CSV
+  const handleExportCSV = async (statusFilter) => {
+    setExportLoading(true)
+    try {
+      const params = statusFilter && statusFilter !== 'all' ? `?status=${statusFilter}` : ''
+      const res = await fetch(`${API}/api/reservations/export/csv${params}`)
+      if (res.ok) {
+        const blob = await res.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `reservations${statusFilter && statusFilter !== 'all' ? '_' + statusFilter : ''}_${new Date().toISOString().slice(0,10)}.csv`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+      }
+    } catch {}
+    setExportLoading(false)
+  }
 
   const filtered = reservations.filter(r => {
     if (tab === 'active' && !['confirmed', 'in_progress', 'requested'].includes(r.status)) return false
@@ -102,7 +132,12 @@ const PremiumMyReservations = () => {
         <div className="mr-header">
           <div>
             <h1 className="mr-title" data-testid="myres-title">Mes Réservations</h1>
-            <p className="mr-sub">{filtered.length} réservation{filtered.length !== 1 ? 's' : ''}</p>
+            <p className="mr-sub">{filtered.length} réservation{filtered.length !== 1 ? 's' : ''} {connected && <span className="mr-ws-live" data-testid="ws-indicator"><Wifi size={10} /> Live</span>}</p>
+          </div>
+          <div className="mr-header-actions">
+            <button className="mr-export-btn" onClick={() => handleExportCSV(tab === 'active' ? null : null)} disabled={exportLoading} data-testid="export-csv-btn">
+              {exportLoading ? <Loader2 size={14} className="mr-spin" /> : <Download size={14} />} Export CSV
+            </button>
           </div>
         </div>
 
@@ -249,9 +284,15 @@ const PremiumMyReservations = () => {
 
 const STYLES = `
 .mr { max-width:100%; }
-.mr-header { margin-bottom:20px; }
+.mr-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.mr-header-actions { display:flex; gap:8px; }
 .mr-title { font-family:'Manrope',sans-serif; font-size:1.5rem; font-weight:800; color:#0F172A; margin:0; }
-.mr-sub { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; margin:4px 0 0; }
+.mr-sub { font-family:'Inter',sans-serif; font-size:.82rem; color:#64748B; margin:4px 0 0; display:flex; align-items:center; gap:8px; }
+.mr-ws-live { display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; background:#ECFDF5; color:#059669; font-size:.65rem; font-weight:700; animation:mrPulse 2s ease infinite; }
+@keyframes mrPulse { 0%,100%{opacity:1;} 50%{opacity:.6;} }
+.mr-export-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 16px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:#475569; cursor:pointer; transition:all .15s; }
+.mr-export-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.mr-export-btn:disabled { opacity:.4; cursor:not-allowed; }
 .mr-toolbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
 .mr-tabs { display:flex; background:#F1F5F9; border-radius:10px; padding:3px; }
 .mr-tab { padding:8px 20px; border-radius:8px; border:none; background:transparent; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; color:#64748B; cursor:pointer; transition:all .12s; }

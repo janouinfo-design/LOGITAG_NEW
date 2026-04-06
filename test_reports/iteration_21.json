@@ -1,0 +1,131 @@
+{
+  "summary": "Iteration 21 testing complete. All new features working: Cancel endpoint bug fix (decorator was missing), CSV export, Roles & Permissions page, WebSocket real-time updates. Backend: 13/13 tests passed. Frontend: All UI features verified.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: POST /api/reservations/{id}/cancel returns 404 for non-existent ID (bug fix verified)",
+    "Backend: POST /api/reservations/{id}/cancel works for existing reservation",
+    "Backend: GET /api/reservations/export/csv returns CSV with correct headers",
+    "Backend: GET /api/reservations/export/csv?status=confirmed filters correctly",
+    "Backend: GET /api/roles returns roles list and permissions",
+    "Backend: POST /api/roles/assign assigns role to user",
+    "Backend: POST /api/roles/assign with invalid role returns 400",
+    "Backend: GET /api/roles/users returns users with roles",
+    "Backend: GET /api/roles/check/{user_id}/{permission} checks permission",
+    "Backend: WebSocket /ws endpoint exists",
+    "Backend: GET /api/reservations still works",
+    "Backend: GET /api/reservations/kpis still works",
+    "Backend: GET /api/notifications still works",
+    "Frontend: 'Mes Réservations' page shows Export CSV button",
+    "Frontend: 'Mes Réservations' page shows Live WebSocket indicator",
+    "Frontend: 'Réservation & Planning' page shows CSV export button",
+    "Frontend: 'Réservation & Planning' page shows Live indicator",
+    "Frontend: 'KPI Réservations' dashboard shows Live indicator",
+    "Frontend: 'Rôles & Permissions' page loads correctly",
+    "Frontend: Roles page shows 4 role cards (Super Admin, Admin Client, Manager, Terrain)",
+    "Frontend: Roles page shows permissions matrix",
+    "Frontend: Roles page shows 'Assigner un rôle' button",
+    "Frontend: Assign role modal opens with all fields",
+    "Frontend: Sidebar shows 'Rôles' menu item with Shield icon"
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_iteration21.py",
+    "/app/test_reports/pytest/pytest_iteration21.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "server.py: Cancel endpoint decorator fix at line 463 is correct (@api_router.post)",
+    "server.py: CSV export endpoint properly returns CSV with Content-Disposition header",
+    "server.py: Roles endpoints properly implement RBAC with ROLE_PERMISSIONS dict",
+    "server.py: WebSocket manager properly handles connections and broadcasts",
+    "PremiumMyReservations.jsx: Export CSV button and WebSocket hook properly integrated",
+    "PremiumReservationPlanning.jsx: CSV export and WebSocket indicator working",
+    "PremiumReservationDashboard.jsx: WebSocket Live indicator properly displayed",
+    "PremiumRoles.jsx: Complete roles management UI with permissions matrix",
+    "PremiumSidebar.jsx: 'Rôles' nav item added with Shield icon at correct position",
+    "useWebSocket.js: WebSocket hook properly handles connection, reconnection, and heartbeat"
+  ],
+  "updated_files": [
+    "/app/backend/tests/test_iteration21.py"
+  ],
+  "success_rate": {
+    "backend": "100% (13/13 tests passed)",
+    "frontend": "100% (all features working)"
+  },
+  "test_credentials": {
+    "username": "admin",
+    "password": "user@1234"
+  },
+  "seed_data_creation": "Used existing seed data from previous iterations",
+  "retest_needed": false,
+  "should_main_agent_self_test": true,
+  "context_for_next_testing_agent": "Iteration 21 features fully tested. Key data-testids: export-csv-btn, ws-indicator, planning-export-csv, roles-page, roles-title, roles-grid, permissions-matrix, assign-role-btn, assign-modal, assign-user-id, assign-user-name, assign-submit, role-opt-{role}. WebSocket connects to wss://logitag-dashboard-v2.preview.emergentagent.com/ws. Roles endpoint at /api/roles. CSV export at /api/reservations/export/csv.",
+  "features_tested": {
+    "bug_fix_cancel_decorator": {
+      "status": "Fixed and Working",
+      "endpoint": "POST /api/reservations/{id}/cancel",
+      "details": "Decorator @api_router.post was missing at line 463, now fixed"
+    },
+    "csv_export": {
+      "status": "Working",
+      "endpoints": [
+        "GET /api/reservations/export/csv",
+        "GET /api/reservations/export/csv?status={status}"
+      ],
+      "frontend_buttons": [
+        "My Reservations: Export CSV button",
+        "Planning: CSV button"
+      ]
+    },
+    "roles_permissions": {
+      "status": "Working",
+      "endpoints": [
+        "GET /api/roles",
+        "POST /api/roles/assign",
+        "GET /api/roles/users",
+        "GET /api/roles/check/{user_id}/{permission}"
+      ],
+      "frontend_page": "/admin/roles",
+      "features": [
+        "Role cards (Super Admin, Admin Client, Manager, Terrain)",
+        "Permissions matrix",
+        "Assign role modal",
+        "Users list with roles"
+      ]
+    },
+    "websocket_realtime": {
+      "status": "Working",
+      "endpoint": "/ws",
+      "frontend_integration": [
+        "My Reservations: Live indicator",
+        "Planning: Live indicator",
+        "KPI Dashboard: Live indicator"
+      ],
+      "events": [
+        "reservation_created",
+        "reservation_moved",
+        "reservation_checkout",
+        "reservation_checkin",
+        "reservation_cancelled",
+        "notification"
+      ]
+    },
+    "sidebar_roles_menu": {
+      "status": "Working",
+      "location": "PremiumSidebar.jsx",
+      "nav_item": "Rôles with Shield icon",
+      "path": "/admin/roles"
+    }
+  },
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
