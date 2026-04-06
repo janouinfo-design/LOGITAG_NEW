@@ -53,10 +53,12 @@ const ZONE_TYPES = {
 }
 
 const PremiumZones = () => {
-  const [zones] = useState(MOCK_ZONES)
+  const [zones, setZones] = useState(MOCK_ZONES)
   const [selectedZone, setSelectedZone] = useState(null)
   const [search, setSearch] = useState('')
   const [showDetail, setShowDetail] = useState(false)
+  const [editZone, setEditZone] = useState(null)
+  const [editForm, setEditForm] = useState({})
 
   const filtered = zones.filter(z => {
     if (!search) return true
@@ -64,6 +66,33 @@ const PremiumZones = () => {
   })
 
   const totalAssets = zones.reduce((s, z) => s + z.assetsCount, 0)
+
+  const openEdit = (zone) => {
+    setEditForm({
+      name: zone?.name || '',
+      type: zone?.type || 'chantier',
+      color: zone?.color || '#2563EB',
+      alertEntry: zone?.rules?.alertEntry ?? false,
+      alertExit: zone?.rules?.alertExit ?? false,
+    })
+    setEditZone(zone || {id: null})
+  }
+
+  const saveZone = () => {
+    if (editZone.id) {
+      setZones(prev => prev.map(z => z.id === editZone.id ? {...z, name: editForm.name, type: editForm.type, color: editForm.color, rules: {alertEntry: editForm.alertEntry, alertExit: editForm.alertExit}} : z))
+    } else {
+      setZones(prev => [...prev, {id: Date.now(), name: editForm.name, type: editForm.type, color: editForm.color, rules: {alertEntry: editForm.alertEntry, alertExit: editForm.alertExit}, assetsCount: 0, lastActivity: '—', polygon: [[46.81, 7.13], [46.82, 7.13], [46.82, 7.15], [46.81, 7.15]]}])
+    }
+    setEditZone(null)
+    setShowDetail(false)
+  }
+
+  const deleteZone = (zoneId) => {
+    setZones(prev => prev.filter(z => z.id !== zoneId))
+    setShowDetail(false)
+    setSelectedZone(null)
+  }
 
   return (
     <>
@@ -75,7 +104,7 @@ const PremiumZones = () => {
             <h1 className="ltz-title" data-testid="zones-title">Zones</h1>
             <p className="ltz-sub">{zones.length} zones configurées - {totalAssets} assets au total</p>
           </div>
-          <button className="ltz-add-btn" data-testid="zones-add-btn">
+          <button className="ltz-add-btn" onClick={() => openEdit(null)} data-testid="zones-add-btn">
             <Plus size={16} /> Nouvelle zone
           </button>
         </div>
@@ -197,8 +226,61 @@ const PremiumZones = () => {
               </div>
             </div>
             <div className="ltz-drawer-footer">
-              <button className="ltz-drawer-btn ltz-drawer-btn--outline"><Edit3 size={14} /> Modifier</button>
-              <button className="ltz-drawer-btn ltz-drawer-btn--danger"><Trash2 size={14} /> Supprimer</button>
+              <button className="ltz-drawer-btn ltz-drawer-btn--outline" onClick={() => openEdit(selectedZone)} data-testid="zone-edit-btn"><Edit3 size={14} /> Modifier</button>
+              <button className="ltz-drawer-btn ltz-drawer-btn--danger" onClick={() => deleteZone(selectedZone.id)} data-testid="zone-delete-btn"><Trash2 size={14} /> Supprimer</button>
+            </div>
+          </div>
+        )}
+
+        {/* Zone Edit Modal */}
+        {editZone && (
+          <div className="ltz-modal-bg" onClick={() => setEditZone(null)} data-testid="zone-edit-overlay">
+            <div className="ltz-modal" onClick={(e) => e.stopPropagation()} data-testid="zone-edit-modal">
+              <div className="ltz-modal-head">
+                <h2>{editZone.id ? 'Modifier la zone' : 'Nouvelle zone'}</h2>
+                <button className="ltz-modal-close" onClick={() => setEditZone(null)}><X size={18} /></button>
+              </div>
+              <div className="ltz-modal-body">
+                <div className="ltz-edit-field">
+                  <label>Nom de la zone</label>
+                  <input type="text" value={editForm.name} onChange={(e) => setEditForm(p => ({...p, name: e.target.value}))} placeholder="Ex: Chantier Nord" data-testid="zone-edit-name" />
+                </div>
+                <div className="ltz-edit-row">
+                  <div className="ltz-edit-field" style={{flex: 1}}>
+                    <label>Type</label>
+                    <select value={editForm.type} onChange={(e) => setEditForm(p => ({...p, type: e.target.value}))} data-testid="zone-edit-type">
+                      {Object.entries(ZONE_TYPES).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
+                    </select>
+                  </div>
+                  <div className="ltz-edit-field" style={{flex: 1}}>
+                    <label>Couleur</label>
+                    <div className="ltz-color-row">
+                      {['#2563EB', '#059669', '#DC2626', '#D97706', '#8B5CF6', '#EC4899'].map(c => (
+                        <button key={c} className={`ltz-color-btn ${editForm.color === c ? 'ltz-color-btn--active' : ''}`} style={{background: c}} onClick={() => setEditForm(p => ({...p, color: c}))} />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <div className="ltz-edit-field">
+                  <label>Règles d'alerte</label>
+                  <div className="ltz-toggle-row">
+                    <label className="ltz-toggle-label" data-testid="zone-edit-alert-entry">
+                      <input type="checkbox" checked={editForm.alertEntry} onChange={(e) => setEditForm(p => ({...p, alertEntry: e.target.checked}))} />
+                      <span className="ltz-toggle-switch" />
+                      <LogIn size={14} /> Alerte entrée
+                    </label>
+                    <label className="ltz-toggle-label" data-testid="zone-edit-alert-exit">
+                      <input type="checkbox" checked={editForm.alertExit} onChange={(e) => setEditForm(p => ({...p, alertExit: e.target.checked}))} />
+                      <span className="ltz-toggle-switch" />
+                      <LogOut size={14} /> Alerte sortie
+                    </label>
+                  </div>
+                </div>
+              </div>
+              <div className="ltz-modal-foot">
+                <button className="ltz-modal-btn ltz-modal-btn--cancel" onClick={() => setEditZone(null)}>Annuler</button>
+                <button className="ltz-modal-btn ltz-modal-btn--save" onClick={saveZone} data-testid="zone-save-btn">Enregistrer</button>
+              </div>
             </div>
           </div>
         )}
@@ -268,6 +350,36 @@ const STYLES = `
 .ltz-drawer-btn--outline:hover { border-color:#2563EB; color:#2563EB; }
 .ltz-drawer-btn--danger { border:1.5px solid #FEE2E2; background:#FEF2F2; color:#DC2626; }
 .ltz-drawer-btn--danger:hover { background:#FEE2E2; }
+
+/* ── Zone Edit Modal ── */
+.ltz-modal-bg { position:fixed; inset:0; background:rgba(15,23,42,.45); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+.ltz-modal { background:#FFF; border-radius:16px; width:100%; max-width:520px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden; animation:ltSlideIn .2s ease; }
+.ltz-modal-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #F1F5F9; }
+.ltz-modal-head h2 { font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:800; color:#0F172A; margin:0; }
+.ltz-modal-close { width:36px; height:36px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.ltz-modal-close:hover { border-color:#EF4444; color:#EF4444; }
+.ltz-modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.ltz-edit-field { display:flex; flex-direction:column; gap:5px; }
+.ltz-edit-field label { font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.04em; }
+.ltz-edit-field input, .ltz-edit-field select { padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FAFBFC; font-family:'Inter',sans-serif; font-size:.85rem; color:#0F172A; outline:none; transition:all .2s; }
+.ltz-edit-field input:focus, .ltz-edit-field select:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#FFF; }
+.ltz-edit-row { display:flex; gap:14px; }
+.ltz-color-row { display:flex; gap:8px; margin-top:4px; }
+.ltz-color-btn { width:28px; height:28px; border-radius:8px; border:2px solid transparent; cursor:pointer; transition:all .12s; }
+.ltz-color-btn:hover { transform:scale(1.1); }
+.ltz-color-btn--active { border-color:#0F172A; box-shadow:0 0 0 3px rgba(0,0,0,.1); }
+.ltz-toggle-row { display:flex; flex-direction:column; gap:10px; }
+.ltz-toggle-label { display:flex; align-items:center; gap:10px; font-family:'Inter',sans-serif; font-size:.82rem; color:#475569; cursor:pointer; }
+.ltz-toggle-label input { display:none; }
+.ltz-toggle-switch { width:36px; height:20px; border-radius:10px; background:#E2E8F0; position:relative; transition:background .2s; flex-shrink:0; }
+.ltz-toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:16px; height:16px; border-radius:50%; background:#FFF; transition:transform .2s; }
+.ltz-toggle-label input:checked + .ltz-toggle-switch { background:#2563EB; }
+.ltz-toggle-label input:checked + .ltz-toggle-switch::after { transform:translateX(16px); }
+.ltz-modal-foot { display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid #F1F5F9; }
+.ltz-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.ltz-modal-btn--cancel { border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; }
+.ltz-modal-btn--save { border:none; background:#2563EB; color:#FFF; box-shadow:0 2px 8px rgba(37,99,235,.2); }
+.ltz-modal-btn--save:hover { background:#1D4ED8; }
 `
 
 export default PremiumZones

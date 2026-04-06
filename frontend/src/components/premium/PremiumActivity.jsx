@@ -4,7 +4,7 @@ import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
 import {API_BASE_URL_IMAGE} from '../../api/config'
 import {
   Clock, LogIn, LogOut, Wifi, WifiOff, AlertTriangle,
-  Filter, Search, X, ChevronDown, MapPin, Truck, Battery
+  Filter, Search, X, ChevronDown, MapPin, Truck, Battery, Calendar
 } from 'lucide-react'
 
 const EVENT_TYPES = [
@@ -13,6 +13,13 @@ const EVENT_TYPES = [
   {key: 'exit', label: 'Sorties', icon: LogOut, color: '#D64B70', bg: '#FDF2F8'},
   {key: 'alert', label: 'Alertes', icon: AlertTriangle, color: '#D97706', bg: '#FFFBEB'},
   {key: 'offline', label: 'Hors ligne', icon: WifiOff, color: '#94A3B8', bg: '#F1F5F9'},
+]
+
+const TIME_RANGES = [
+  {key: 'today', label: "Aujourd'hui"},
+  {key: 'week', label: 'Semaine'},
+  {key: 'month', label: 'Mois'},
+  {key: 'custom', label: 'Personnalisé'},
 ]
 
 const generateEvents = (engines) => {
@@ -54,6 +61,9 @@ const PremiumActivity = () => {
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
+  const [timeRange, setTimeRange] = useState('today')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -61,7 +71,22 @@ const PremiumActivity = () => {
   }, [dispatch])
 
   const events = generateEvents(engines)
-  const filtered = events.filter((e) => {
+  const now = new Date()
+  const timeFiltered = events.filter((e) => {
+    if (timeRange === 'today') {
+      return e.time.toDateString() === now.toDateString()
+    } else if (timeRange === 'week') {
+      const weekAgo = new Date(now.getTime() - 7 * 86400000)
+      return e.time >= weekAgo
+    } else if (timeRange === 'month') {
+      const monthAgo = new Date(now.getTime() - 30 * 86400000)
+      return e.time >= monthAgo
+    } else if (timeRange === 'custom' && customFrom && customTo) {
+      return e.time >= new Date(customFrom) && e.time <= new Date(customTo + 'T23:59:59')
+    }
+    return true
+  })
+  const filtered = timeFiltered.filter((e) => {
     if (filter !== 'all' && e.type !== filter) return false
     if (search) {
       const t = search.toLowerCase()
@@ -98,6 +123,28 @@ const PremiumActivity = () => {
               </div>
             )
           })}
+        </div>
+
+        {/* Time Range */}
+        <div className="ltact-time-bar" data-testid="activity-time-range">
+          <Calendar size={14} style={{color: '#94A3B8'}} />
+          {TIME_RANGES.map(tr => (
+            <button
+              key={tr.key}
+              className={`ltact-time-btn ${timeRange === tr.key ? 'ltact-time-btn--active' : ''}`}
+              onClick={() => setTimeRange(tr.key)}
+              data-testid={`activity-time-${tr.key}`}
+            >
+              {tr.label}
+            </button>
+          ))}
+          {timeRange === 'custom' && (
+            <div className="ltact-custom-dates">
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} data-testid="activity-date-from" />
+              <span>→</span>
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} data-testid="activity-date-to" />
+            </div>
+          )}
         </div>
 
         {/* Toolbar */}
@@ -180,6 +227,16 @@ const STYLES = `
 .ltact-stat-label { font-family:'Inter',sans-serif; font-size:.78rem; color:#64748B; }
 
 .ltact-toolbar { display:flex; align-items:center; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+
+/* Time range bar */
+.ltact-time-bar { display:flex; align-items:center; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.ltact-time-btn { padding:7px 16px; border-radius:20px; border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.ltact-time-btn:hover { border-color:#2563EB; color:#2563EB; }
+.ltact-time-btn--active { background:#2563EB; color:#FFF; border-color:#2563EB; box-shadow:0 2px 6px rgba(37,99,235,.2); }
+.ltact-custom-dates { display:flex; align-items:center; gap:8px; margin-left:8px; }
+.ltact-custom-dates input { padding:6px 12px; border-radius:8px; border:1.5px solid #E2E8F0; font-family:'Inter',sans-serif; font-size:.78rem; color:#0F172A; outline:none; }
+.ltact-custom-dates input:focus { border-color:#2563EB; }
+.ltact-custom-dates span { color:#94A3B8; font-size:.8rem; }
 .ltact-search-wrap { position:relative; flex:1; min-width:200px; max-width:340px; }
 .ltact-search-ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94A3B8; pointer-events:none; }
 .ltact-search { width:100%; padding:9px 32px 9px 38px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-size:.82rem; font-family:'Inter',sans-serif; color:#0F172A; outline:none; transition:all .2s; }

@@ -4,7 +4,7 @@ import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
 import {API_BASE_URL_IMAGE} from '../../api/config'
 import {
   Bell, AlertTriangle, BatteryLow, WifiOff, MapPin,
-  Check, X, Search, Filter, Eye, Clock, Truck
+  Check, X, Search, Filter, Eye, Clock, Truck, Calendar
 } from 'lucide-react'
 
 const ALERT_TYPES = [
@@ -12,6 +12,13 @@ const ALERT_TYPES = [
   {key: 'zone', label: 'Hors zone', icon: MapPin, color: '#DC2626', bg: '#FEF2F2'},
   {key: 'battery', label: 'Batterie', icon: BatteryLow, color: '#D97706', bg: '#FFFBEB'},
   {key: 'offline', label: 'Hors ligne', icon: WifiOff, color: '#94A3B8', bg: '#F1F5F9'},
+]
+
+const TIME_RANGES_ALERT = [
+  {key: 'today', label: "Aujourd'hui"},
+  {key: 'week', label: 'Semaine'},
+  {key: 'month', label: 'Mois'},
+  {key: 'custom', label: 'Personnalisé'},
 ]
 
 const SEVERITY = {
@@ -89,6 +96,9 @@ const PremiumAlerts = () => {
   const [filter, setFilter] = useState('all')
   const [search, setSearch] = useState('')
   const [resolvedMap, setResolvedMap] = useState({})
+  const [timeRange, setTimeRange] = useState('today')
+  const [customFrom, setCustomFrom] = useState('')
+  const [customTo, setCustomTo] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -96,12 +106,20 @@ const PremiumAlerts = () => {
   }, [dispatch])
 
   const alerts = generateAlerts(engines)
+  const now = new Date()
+  const timeFilteredAlerts = alerts.filter((a) => {
+    if (timeRange === 'today') return a.time.toDateString() === now.toDateString()
+    if (timeRange === 'week') return a.time >= new Date(now.getTime() - 7 * 86400000)
+    if (timeRange === 'month') return a.time >= new Date(now.getTime() - 30 * 86400000)
+    if (timeRange === 'custom' && customFrom && customTo) return a.time >= new Date(customFrom) && a.time <= new Date(customTo + 'T23:59:59')
+    return true
+  })
 
   const toggleResolved = (id) => {
     setResolvedMap(prev => ({...prev, [id]: !prev[id]}))
   }
 
-  const filtered = alerts.filter(a => {
+  const filtered = timeFilteredAlerts.filter(a => {
     if (filter !== 'all' && a.type !== filter) return false
     if (search) {
       const t = search.toLowerCase()
@@ -110,7 +128,7 @@ const PremiumAlerts = () => {
     return true
   })
 
-  const unresolvedCount = alerts.filter(a => !a.resolved && !resolvedMap[a.id]).length
+  const unresolvedCount = timeFilteredAlerts.filter(a => !a.resolved && !resolvedMap[a.id]).length
 
   return (
     <>
@@ -143,6 +161,23 @@ const PremiumAlerts = () => {
               </div>
             )
           })}
+        </div>
+
+        {/* Time Range */}
+        <div className="ltalert-time-bar" data-testid="alerts-time-range">
+          <Calendar size={14} style={{color: '#94A3B8'}} />
+          {TIME_RANGES_ALERT.map(tr => (
+            <button key={tr.key} className={`ltalert-time-btn ${timeRange === tr.key ? 'ltalert-time-btn--active' : ''}`} onClick={() => setTimeRange(tr.key)} data-testid={`alert-time-${tr.key}`}>
+              {tr.label}
+            </button>
+          ))}
+          {timeRange === 'custom' && (
+            <div className="ltalert-custom-dates">
+              <input type="date" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
+              <span>→</span>
+              <input type="date" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
+            </div>
+          )}
         </div>
 
         {/* Toolbar */}
@@ -234,6 +269,16 @@ const STYLES = `
 .ltalert-stat-label { font-family:'Inter',sans-serif; font-size:.78rem; color:#64748B; margin-top:2px; }
 
 .ltalert-toolbar { display:flex; align-items:center; gap:14px; margin-bottom:20px; flex-wrap:wrap; }
+
+/* Time range bar */
+.ltalert-time-bar { display:flex; align-items:center; gap:6px; margin-bottom:16px; flex-wrap:wrap; }
+.ltalert-time-btn { padding:7px 16px; border-radius:20px; border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.ltalert-time-btn:hover { border-color:#DC2626; color:#DC2626; }
+.ltalert-time-btn--active { background:#DC2626; color:#FFF; border-color:#DC2626; box-shadow:0 2px 6px rgba(220,38,38,.2); }
+.ltalert-custom-dates { display:flex; align-items:center; gap:8px; margin-left:8px; }
+.ltalert-custom-dates input { padding:6px 12px; border-radius:8px; border:1.5px solid #E2E8F0; font-family:'Inter',sans-serif; font-size:.78rem; color:#0F172A; outline:none; }
+.ltalert-custom-dates input:focus { border-color:#DC2626; }
+.ltalert-custom-dates span { color:#94A3B8; font-size:.8rem; }
 .ltalert-search-wrap { position:relative; flex:1; min-width:200px; max-width:340px; }
 .ltalert-search-ico { position:absolute; left:12px; top:50%; transform:translateY(-50%); color:#94A3B8; pointer-events:none; }
 .ltalert-search { width:100%; padding:9px 32px 9px 38px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-size:.82rem; font-family:'Inter',sans-serif; color:#0F172A; outline:none; transition:all .2s; }

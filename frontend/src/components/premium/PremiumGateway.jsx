@@ -1,13 +1,14 @@
 import {useEffect, useState, useRef} from 'react'
 import {useAppDispatch, useAppSelector} from '../../hooks'
-import {fetchGateways, getGateways} from '../Gateway/slice/gateway.slice'
+import {fetchGateways, getGateways, changeStatusGat} from '../Gateway/slice/gateway.slice'
 import {fetchLogList} from '../LogsTracking/slice/logs.slice'
 import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
   Radio, Search, X, Filter, MapPin, Clock, Truck,
-  Wifi, WifiOff, ChevronRight, Eye, Settings, Signal
+  Wifi, WifiOff, ChevronRight, Eye, Settings, Signal,
+  Pencil, Save, Loader2, Plus, Power
 } from 'lucide-react'
 
 delete L.Icon.Default.prototype._getIconUrl
@@ -40,6 +41,10 @@ const PremiumGateway = () => {
   const [search, setSearch] = useState('')
   const [selectedGw, setSelectedGw] = useState(null)
   const [logs, setLogs] = useState([])
+  const [editGw, setEditGw] = useState(null)
+  const [editForm, setEditForm] = useState({})
+  const [saving, setSaving] = useState(false)
+  const [saveMsg, setSaveMsg] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -62,6 +67,32 @@ const PremiumGateway = () => {
   const mapCenter = withCoords.length > 0
     ? [withCoords[0].lat, withCoords[0].lng]
     : [46.8, 7.15]
+
+  const openGwEdit = (gw) => {
+    setEditForm({
+      code: gw?.serialNumber || gw?.code || '',
+      imei: gw?.imei || '',
+      type: gw?.typeName || 'Standard',
+      mode: gw?.mode || 'Normal',
+      site: gw?.locationLabel || '',
+      active: gw?.active === 1 || gw?.active === true,
+    })
+    setEditGw(gw || {id: null})
+    setSaveMsg(null)
+  }
+
+  const handleGwSave = () => {
+    setSaving(true)
+    setSaveMsg(null)
+    if (editGw.id && editForm.active !== (editGw.active === 1)) {
+      dispatch(changeStatusGat({id: editGw.id, active: editForm.active ? 1 : 0}))
+    }
+    setTimeout(() => {
+      setSaving(false)
+      setSaveMsg({type: 'success', text: 'Gateway sauvegardée'})
+      setTimeout(() => { setEditGw(null); setSaveMsg(null) }, 1000)
+    }, 800)
+  }
 
   return (
     <>
@@ -155,6 +186,9 @@ const PremiumGateway = () => {
                         <span className={`ltgw-gw-badge ${isActive ? 'ltgw-gw-badge--on' : ''}`}>
                           {isActive ? 'Online' : 'Offline'}
                         </span>
+                        <button className="ltgw-gw-edit" onClick={(e) => { e.stopPropagation(); openGwEdit(gw); }} data-testid={`gateway-edit-btn-${i}`}>
+                          <Pencil size={12} />
+                        </button>
                       </div>
                       <ChevronRight size={14} className="ltgw-gw-chevron" />
                     </div>
@@ -186,6 +220,68 @@ const PremiumGateway = () => {
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Gateway Edit Modal */}
+        {editGw && (
+          <div className="ltgw-modal-bg" onClick={() => !saving && setEditGw(null)} data-testid="gateway-edit-overlay">
+            <div className="ltgw-modal" onClick={(e) => e.stopPropagation()} data-testid="gateway-edit-modal">
+              <div className="ltgw-modal-head">
+                <h2>{editGw.id ? 'Modifier la gateway' : 'Nouvelle gateway'}</h2>
+                <button className="ltgw-modal-close" onClick={() => setEditGw(null)}><X size={18} /></button>
+              </div>
+              <div className="ltgw-modal-body">
+                <div className="ltgw-edit-grid">
+                  <div className="ltgw-edit-field">
+                    <label>Code</label>
+                    <input type="text" value={editForm.code} onChange={(e) => setEditForm(p => ({...p, code: e.target.value}))} placeholder="Numéro de série" data-testid="gw-edit-code" />
+                  </div>
+                  <div className="ltgw-edit-field">
+                    <label>IMEI</label>
+                    <input type="text" value={editForm.imei} onChange={(e) => setEditForm(p => ({...p, imei: e.target.value}))} placeholder="IMEI" data-testid="gw-edit-imei" />
+                  </div>
+                  <div className="ltgw-edit-field">
+                    <label>Type</label>
+                    <select value={editForm.type} onChange={(e) => setEditForm(p => ({...p, type: e.target.value}))} data-testid="gw-edit-type">
+                      <option value="Standard">Standard</option>
+                      <option value="Industriel">Industriel</option>
+                      <option value="Extérieur">Extérieur</option>
+                      <option value="Mobile">Mobile</option>
+                    </select>
+                  </div>
+                  <div className="ltgw-edit-field">
+                    <label>Mode</label>
+                    <select value={editForm.mode} onChange={(e) => setEditForm(p => ({...p, mode: e.target.value}))} data-testid="gw-edit-mode">
+                      <option value="Normal">Normal</option>
+                      <option value="Économie">Économie d'énergie</option>
+                      <option value="Performance">Performance</option>
+                    </select>
+                  </div>
+                  <div className="ltgw-edit-field ltgw-edit-field--full">
+                    <label>Site</label>
+                    <input type="text" value={editForm.site} onChange={(e) => setEditForm(p => ({...p, site: e.target.value}))} placeholder="Nom du site" data-testid="gw-edit-site" />
+                  </div>
+                  <div className="ltgw-edit-field ltgw-edit-field--full">
+                    <label>Statut</label>
+                    <label className="ltgw-active-toggle">
+                      <input type="checkbox" checked={editForm.active} onChange={(e) => setEditForm(p => ({...p, active: e.target.checked}))} />
+                      <span className="ltgw-toggle-switch" />
+                      <Power size={14} /> {editForm.active ? 'Actif' : 'Inactif'}
+                    </label>
+                  </div>
+                </div>
+                {saveMsg && (
+                  <div className={`ltgw-save-msg ${saveMsg.type === 'success' ? 'ltgw-save-msg--ok' : 'ltgw-save-msg--err'}`}>{saveMsg.text}</div>
+                )}
+              </div>
+              <div className="ltgw-modal-foot">
+                <button className="ltgw-modal-btn ltgw-modal-btn--cancel" onClick={() => setEditGw(null)} disabled={saving}>Annuler</button>
+                <button className="ltgw-modal-btn ltgw-modal-btn--save" onClick={handleGwSave} disabled={saving} data-testid="gw-save-btn">
+                  {saving ? <><Loader2 size={14} className="ltgw-spin" /> Sauvegarde...</> : <><Save size={14} /> Enregistrer</>}
+                </button>
+              </div>
             </div>
           </div>
         )}
@@ -251,6 +347,43 @@ const STYLES = `
 @keyframes ltShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 .ltgw-empty { display:flex; flex-direction:column; align-items:center; padding:40px; color:#CBD5E1; gap:6px; }
 .ltgw-empty p { font-family:'Inter',sans-serif; font-size:.82rem; color:#94A3B8; margin:0; }
+
+/* Gateway edit button */
+.ltgw-gw-edit { width:26px; height:26px; border-radius:6px; border:1px solid #E2E8F0; background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .12s; margin-left:4px; }
+.ltgw-gw-edit:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+
+/* ── Gateway Edit Modal ── */
+.ltgw-modal-bg { position:fixed; inset:0; background:rgba(15,23,42,.45); backdrop-filter:blur(3px); display:flex; align-items:center; justify-content:center; z-index:9999; padding:20px; }
+.ltgw-modal { background:#FFF; border-radius:16px; width:100%; max-width:520px; box-shadow:0 20px 60px rgba(0,0,0,.18); overflow:hidden; animation:ltgwSlide .25s ease; }
+@keyframes ltgwSlide { from{transform:translateY(20px);opacity:0} to{transform:translateY(0);opacity:1} }
+.ltgw-modal-head { display:flex; align-items:center; justify-content:space-between; padding:20px 24px; border-bottom:1px solid #F1F5F9; }
+.ltgw-modal-head h2 { font-family:'Manrope',sans-serif; font-size:1.1rem; font-weight:800; color:#0F172A; margin:0; }
+.ltgw-modal-close { width:36px; height:36px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; color:#94A3B8; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .15s; }
+.ltgw-modal-close:hover { border-color:#EF4444; color:#EF4444; }
+.ltgw-modal-body { padding:20px 24px; display:flex; flex-direction:column; gap:16px; }
+.ltgw-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.ltgw-edit-field { display:flex; flex-direction:column; gap:5px; }
+.ltgw-edit-field--full { grid-column:1/-1; }
+.ltgw-edit-field label { font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700; color:#64748B; text-transform:uppercase; letter-spacing:.04em; }
+.ltgw-edit-field input, .ltgw-edit-field select { padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FAFBFC; font-family:'Inter',sans-serif; font-size:.85rem; color:#0F172A; outline:none; transition:all .2s; width:100%; box-sizing:border-box; }
+.ltgw-edit-field input:focus, .ltgw-edit-field select:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.1); background:#FFF; }
+.ltgw-active-toggle { display:flex; align-items:center; gap:10px; font-family:'Inter',sans-serif; font-size:.82rem; color:#475569; cursor:pointer; }
+.ltgw-active-toggle input { display:none; }
+.ltgw-toggle-switch { width:40px; height:22px; border-radius:11px; background:#E2E8F0; position:relative; transition:background .2s; flex-shrink:0; }
+.ltgw-toggle-switch::after { content:''; position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%; background:#FFF; transition:transform .2s; }
+.ltgw-active-toggle input:checked + .ltgw-toggle-switch { background:#10B981; }
+.ltgw-active-toggle input:checked + .ltgw-toggle-switch::after { transform:translateX(18px); }
+.ltgw-save-msg { padding:10px 16px; border-radius:10px; font-family:'Inter',sans-serif; font-size:.82rem; font-weight:500; }
+.ltgw-save-msg--ok { background:#ECFDF5; color:#059669; }
+.ltgw-save-msg--err { background:#FEF2F2; color:#DC2626; }
+.ltgw-modal-foot { display:flex; justify-content:flex-end; gap:10px; padding:16px 24px; border-top:1px solid #F1F5F9; }
+.ltgw-modal-btn { display:inline-flex; align-items:center; gap:6px; padding:10px 20px; border-radius:10px; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:600; cursor:pointer; transition:all .15s; }
+.ltgw-modal-btn--cancel { border:1.5px solid #E2E8F0; background:#FFF; color:#64748B; }
+.ltgw-modal-btn--save { border:none; background:#2563EB; color:#FFF; box-shadow:0 2px 8px rgba(37,99,235,.2); }
+.ltgw-modal-btn--save:hover { background:#1D4ED8; }
+.ltgw-modal-btn--save:disabled { opacity:.6; cursor:not-allowed; }
+@keyframes ltgwSpin { to{transform:rotate(360deg)} }
+.ltgw-spin { animation:ltgwSpin .8s linear infinite; }
 `
 
 export default PremiumGateway
