@@ -5,7 +5,7 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 
 ## Tech Stack
 - **Frontend**: React 18, Redux Toolkit, TailwindCSS, Shadcn/Lucide-react, Leaflet, FullCalendar
-- **Backend**: FastAPI + MongoDB (local) + Proxy vers API externe
+- **Backend**: FastAPI + MongoDB (local) + Proxy vers API externe + WebSocket
 - **External API**: omniyat.is-certified.com:82/logitag_node/
 - **Auth**: admin / user@1234
 
@@ -13,22 +13,27 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 ```
 /app/
 ├── backend/
-│   └── server.py                   # FastAPI: proxy + reservations + notifications API
-├── frontend/src/components/premium/
-│   ├── PremiumLayout.jsx           # Multi-tenant client selector
-│   ├── PremiumSidebar.jsx          # Dark mode toggle
-│   ├── PremiumDashboard.jsx
-│   ├── PremiumAssets.jsx           # Column presets
-│   ├── PremiumAssetDetail.jsx
-│   ├── PremiumMap.jsx              # Slide-over detail
-│   ├── PremiumPlanning.jsx         # FullCalendar Gantt
-│   ├── PremiumReservationPlanning.jsx  # NEW: Reservation calendar
-│   ├── PremiumMyReservations.jsx       # NEW: My reservations
-│   ├── PremiumReservationDashboard.jsx # NEW: KPI Dashboard + Alerts
-│   ├── PremiumActivity.jsx, PremiumAlerts.jsx
-│   ├── PremiumZones.jsx, PremiumUsers.jsx, PremiumGateway.jsx
-│   ├── PremiumSettings.jsx, PremiumReports.jsx
-/app/frontend/src/logitag-dark.css
+│   └── server.py                   # FastAPI: proxy + reservations + notifications + roles + WebSocket
+├── frontend/src/
+│   ├── components/premium/
+│   │   ├── PremiumLayout.jsx           # Multi-tenant client selector
+│   │   ├── PremiumSidebar.jsx          # Dark mode toggle, notification badge
+│   │   ├── PremiumDashboard.jsx
+│   │   ├── PremiumAssets.jsx           # Column presets
+│   │   ├── PremiumAssetDetail.jsx
+│   │   ├── PremiumMap.jsx              # Slide-over detail
+│   │   ├── PremiumPlanning.jsx         # FullCalendar Gantt
+│   │   ├── PremiumReservationPlanning.jsx  # Reservation calendar + D&D + CSV export + WS
+│   │   ├── PremiumMyReservations.jsx       # My reservations + CSV export + WS
+│   │   ├── PremiumReservationDashboard.jsx # KPI Dashboard + Alerts + WS
+│   │   ├── PremiumRoles.jsx                # NEW: Roles & Permissions management
+│   │   ├── PremiumActivity.jsx, PremiumAlerts.jsx
+│   │   ├── PremiumZones.jsx, PremiumUsers.jsx, PremiumGateway.jsx
+│   │   └── PremiumSettings.jsx, PremiumReports.jsx
+│   ├── hooks/
+│   │   └── useWebSocket.js             # NEW: WebSocket hook for real-time
+│   ├── logitag-dark.css
+│   └── cors/config/config.js
 ```
 
 ## Completed Features
@@ -38,69 +43,83 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - Reports builder (Asset/Site), Multi-tenant, Column presets, Dark mode, Mobile responsive
 
 ### Phase 13 - RESERVATION MODULE (DONE - Apr 6, 2026)
-Complete asset reservation and planning system with 4 phases:
+Complete asset reservation and planning system:
+- Backend: 14+ API endpoints (CRUD, anti-conflict, check-in/out, KPIs, planning, availability)
+- Frontend: Calendar with D&D, My Reservations list, KPI Dashboard, Alerts center
+- BLE Integration: compares actual position vs reserved site
+- Notification system with sidebar badge
 
-**Phase 1 - Backend (100% tested)**
-- MongoDB collections: `reservations`, `reservation_logs`, `notifications`
-- 14 API endpoints:
-  - POST /api/reservations (create with anti-conflict validation)
-  - GET /api/reservations (list with status/asset/user/site/date filters)
-  - GET /api/reservations/{id} (detail with audit logs)
-  - PUT /api/reservations/{id} (update with anti-conflict)
-  - POST /api/reservations/{id}/cancel, approve, reject
-  - POST /api/reservations/{id}/checkout, checkin
-  - GET /api/reservations/kpis (dashboard KPIs)
-  - GET /api/reservations/planning (calendar data)
-  - GET /api/reservations/availability/{asset_id}
-  - GET/PUT /api/notifications (CRUD, mark read, count)
-- Anti-conflict: Returns 409 for overlapping reservations on same asset
-- Statuts: confirmed, in_progress, completed, cancelled, requested, rejected, expired
-- Audit trail: reservation_logs collection tracks all actions
+### Phase 14 - EXPORT CSV + ROLES + WEBSOCKET (DONE - Apr 6, 2026)
+1. **Bug Fix**: Fixed missing @api_router.post decorator on cancel_reservation endpoint
+2. **CSV Export**: 
+   - Backend: GET /api/reservations/export/csv with optional status filter
+   - Frontend: Export CSV buttons on "Mes Réservations" and "Planning" pages
+3. **Roles & Permissions**:
+   - Backend: GET /api/roles, POST /api/roles/assign, GET /api/roles/users, GET /api/roles/check/{user_id}/{permission}
+   - 4 roles: super_admin, admin_client, manager, terrain
+   - Frontend: Full PremiumRoles.jsx page with role cards, permissions matrix, assign modal
+4. **WebSocket Real-Time**:
+   - Backend: WebSocket endpoint at /ws with ConnectionManager
+   - Auto-broadcasts on: reservation created/moved/checkout/checkin/cancelled + notifications
+   - Frontend: useWebSocket hook with auto-reconnect + heartbeat
+   - "Live" indicator on Mes Réservations, Planning, KPI Dashboard pages
 
-**Phase 2 - Planning Page**
-- Calendar views: Jour / Semaine / Mois
-- Color-coded events by status
-- Create reservation modal (asset, user, team, project, site, dates, priority, note)
-- Detail drawer (slide-over) with reservation info
-- Filters: status, site, search
-- Navigation: prev/next, today
+**Testing**: iteration_21.json - 100% backend (13/13) + 100% frontend
 
-**Phase 3 - Mes Réservations**
-- Active/History tabs
-- Reservation cards with status badges (En cours, Confirmé, En retard)
-- Quick actions: Check-out, Check-in, Cancel, View detail
-- Check-out modal: responsable, lieu, état, commentaire
-- Check-in modal: responsable, état retour, commentaire
-- Overdue indicator (red badge "En retard")
+## DB Schema (Local MongoDB `test_database`)
+- reservations: {id, asset_id, asset_name, start_date, end_date, user_name, status, site, priority, ...}
+- reservation_logs: {id, reservation_id, action, user, details, created_at}
+- notifications: {id, type, title, message, severity, read, created_at}
+- user_roles: {id, user_id, user_name, role, permissions, assigned_at}
+- maintenance_records: {id, asset_id, asset_name, type, status, start_date, end_date}
 
-**Phase 4 - Dashboard KPI + Centre d'alertes**
-- 6 KPI cards: Totales, En cours, Confirmées, Aujourd'hui, En retard, Terminées
-- Centre d'alertes in-app: notifications with severity (error/warning/info)
-- "Tout marquer lu" functionality
-- Top 5 assets les plus réservés
-- Réservations récentes avec badges de statut
-- Actualiser button
+## API Endpoints
+### Reservations
+- POST /api/reservations (create with anti-conflict)
+- GET /api/reservations (list with filters)
+- GET /api/reservations/{id} (detail with logs)
+- PUT /api/reservations/{id} (update)
+- PUT /api/reservations/{id}/drag (D&D move)
+- POST /api/reservations/{id}/cancel|approve|reject
+- POST /api/reservations/{id}/checkout|checkin
+- GET /api/reservations/kpis
+- GET /api/reservations/planning
+- GET /api/reservations/availability/{asset_id}
+- GET /api/reservations/export/csv
+- GET /api/reservations/{id}/ble-check
 
-**Testing**: iteration_20.json - 100% backend (20/20) + 100% frontend
+### Roles
+- GET /api/roles
+- POST /api/roles/assign
+- GET /api/roles/users
+- GET /api/roles/check/{user_id}/{permission}
+
+### Notifications
+- GET /api/notifications
+- PUT /api/notifications/{id}/read
+- PUT /api/notifications/read-all
+- GET /api/notifications/count
+
+### Maintenance
+- POST /api/maintenance
+- GET /api/maintenance
+- PUT /api/maintenance/{id}/complete
+
+### WebSocket
+- WS /ws (real-time events)
 
 ## Pending/Future Tasks
 
-### P1 - Reservation Enhancement
-- Drag & drop réservations dans le planning
-- Intégration BLE: comparer site prévu vs position réelle
-- Alertes push / email (intégration SendGrid)
-- Scan QR/NFC pour check-out rapide
+### P2 - Next
+- Maintenance records UI (registres de maintenance des assets)
+- Scan QR/NFC (check-in/out rapide, orienté mobile)
 
-### P2 - Advanced
-- Rôles/Permissions (super admin, admin client, manager, utilisateur terrain)
-- WebSocket temps réel pour alertes
-- Maintenance records module
-
-### P3 - Extended
-- Dark mode vérification complète mobile
+### P3 - Backlog
+- Notifications automatiques via Email et Push (reporté par l'utilisateur)
 - Multi-language
-- Export CSV/PDF des réservations
+- Dark mode mobile vérification complète
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_20.json`
-- `/app/backend/tests/test_reservations.py` (pytest)
+- `/app/test_reports/iteration_1.json` through `iteration_21.json`
+- `/app/backend/tests/test_reservations.py`
+- `/app/backend/tests/test_iteration21.py`
