@@ -64,7 +64,16 @@ Complete asset reservation and planning system:
    - Frontend: useWebSocket hook with auto-reconnect + heartbeat
    - "Live" indicator on Mes Réservations, Planning, KPI Dashboard pages
 
-**Testing**: iteration_21.json - 100% backend (13/13) + 100% frontend
+### Phase 15 - ZONES CERCLES PERSONNALISÉS (DONE - Apr 6, 2026)
+- **Cercles et Polygones**: Support complet pour les deux formes géométriques sur la carte
+- **Sélecteur de forme**: Modal avec choix Cercle/Polygone lors de la création/édition
+- **Slider de rayon**: 50m à 2000m pour les zones circulaires
+- **Dessin interactif**: Outil "Dessiner sur la carte" avec curseur crosshair
+- **DrawController**: Composant Leaflet interactif (clic centre + clic rayon pour cercle, multi-clic pour polygone)
+- **Détails enrichis**: Drawer affiche coordonnées centre, rayon, et badge de forme
+- **Stats**: Compteur de cercles et polygones dans la barre de statistiques
+
+**Testing**: iteration_22.json - 100% frontend (12/12)
 
 ## DB Schema (Local MongoDB `test_database`)
 - reservations: {id, asset_id, asset_name, start_date, end_date, user_name, status, site, priority, ...}
