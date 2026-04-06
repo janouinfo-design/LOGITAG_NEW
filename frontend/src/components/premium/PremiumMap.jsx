@@ -7,7 +7,8 @@ import MarkerClusterGroup from 'react-leaflet-cluster'
 import L from 'leaflet'
 import {
   Search, X, Filter, Layers, MapPin, Battery, Clock, Calendar,
-  Crosshair, Truck, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, Navigation
+  Crosshair, Truck, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, Eye, Navigation,
+  Box, Tag, Shield, ArrowDownToLine, ArrowUpFromLine, Signal
 } from 'lucide-react'
 import {useNavigate} from 'react-router-dom'
 
@@ -66,6 +67,7 @@ const PremiumMap = () => {
   const [sbPage, setSbPage] = useState(1)
   const sbRows = 15
   const mapRef = useRef(null)
+  const [detailItem, setDetailItem] = useState(null)
 
   useEffect(() => {
     setLoading(true)
@@ -420,11 +422,8 @@ const PremiumMap = () => {
 
                         {/* Actions */}
                         <div className="ltmap-popup-actions">
-                          <button onClick={() => {
-                            dispatch(setSelectedEngine(item))
-                            navigate('/asset/detail')
-                          }} className="ltmap-popup-btn">
-                            <Eye size={11} /> Voir détails
+                          <button onClick={() => setDetailItem(item)} className="ltmap-popup-btn">
+                            <Eye size={11} /> Plus de détails
                           </button>
                         </div>
                       </div>
@@ -456,9 +455,113 @@ const PremiumMap = () => {
             </span>
           </div>
         </div>
+
+        {/* ── DETAIL SLIDE-OVER PANEL ── */}
+        {detailItem && (
+          <div className="ltmap-detail-bg" onClick={() => setDetailItem(null)} data-testid="map-detail-overlay">
+            <div className="ltmap-detail-panel" onClick={(e) => e.stopPropagation()} data-testid="map-detail-panel">
+              {/* Header */}
+              <div className="ltmap-detail-head">
+                <div className="ltmap-detail-head-left">
+                  <div className="ltmap-detail-avatar">
+                    {detailItem.image ? (
+                      <img src={`${API_BASE_URL_IMAGE}${detailItem.image}`} alt="" />
+                    ) : (
+                      <Truck size={22} />
+                    )}
+                  </div>
+                  <div>
+                    <h2 className="ltmap-detail-name">{detailItem.label || detailItem.reference || 'Asset'}</h2>
+                    <span className="ltmap-detail-ref">{detailItem.reference}</span>
+                  </div>
+                </div>
+                <button className="ltmap-detail-close" onClick={() => setDetailItem(null)} data-testid="map-detail-close">
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Status chips */}
+              <div className="ltmap-detail-chips">
+                {detailItem.etatenginname && (
+                  <span className={`ltmap-detail-chip ${detailItem.etatenginname === 'reception' ? 'ltmap-detail-chip--in' : 'ltmap-detail-chip--out'}`}>
+                    {detailItem.etatenginname === 'reception' ? <><ArrowDownToLine size={12} /> Entrée</> : <><ArrowUpFromLine size={12} /> Sortie</>}
+                  </span>
+                )}
+                {detailItem.statuslabel && (
+                  <span className="ltmap-detail-chip" style={{borderColor: detailItem.statusbgColor || '#94A3B8', color: detailItem.statusbgColor || '#64748B'}}>
+                    {detailItem.statuslabel}
+                  </span>
+                )}
+              </div>
+
+              {/* Mini Map */}
+              {(() => {
+                const lat = parseFloat(detailItem.last_lat || detailItem.latitude || 0)
+                const lng = parseFloat(detailItem.last_lng || detailItem.longitude || 0)
+                const hasCoords = lat !== 0 && lng !== 0
+                return hasCoords ? (
+                  <div className="ltmap-detail-minimap">
+                    <MapContainer center={[lat, lng]} zoom={14} style={{width: '100%', height: '100%'}} zoomControl={false} dragging={false} scrollWheelZoom={false}>
+                      <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" />
+                      <Marker position={[lat, lng]} />
+                    </MapContainer>
+                    <div className="ltmap-detail-coords">
+                      <MapPin size={11} /> {lat.toFixed(5)}, {lng.toFixed(5)}
+                    </div>
+                  </div>
+                ) : null
+              })()}
+
+              {/* Info rows */}
+              <div className="ltmap-detail-body">
+                <DetailRow icon={Box} label="Famille" value={detailItem.famille} color={detailItem.familleBgcolor} />
+                <DetailRow icon={Shield} label="Statut" value={detailItem.statuslabel} />
+                <DetailRow icon={Battery} label="Batterie" value={detailItem.batteries ? `${detailItem.batteries}%` : 'N/A'} valueColor={parseInt(detailItem.batteries) >= 50 ? '#059669' : parseInt(detailItem.batteries) >= 20 ? '#F59E0B' : '#EF4444'} />
+                <DetailRow icon={MapPin} label="Site" value={detailItem.LocationObjectname || detailItem.enginAddress} />
+                <DetailRow icon={Tag} label="Tag" value={detailItem.labeltag || detailItem.tagname} />
+                <DetailRow icon={Clock} label="Dernière activité" value={detailItem.last_date ? formatTimeAgo(detailItem.last_date) : detailItem.enginLastSeen || 'N/A'} />
+                <DetailRow icon={Calendar} label="Arrivée" value={detailItem.last_date || detailItem.enginLastSeen || 'N/A'} />
+                <DetailRow icon={Signal} label="Mouvement" value={detailItem.etatenginname === 'reception' ? 'Entrée zone' : detailItem.etatenginname === 'exit' ? 'Sortie zone' : detailItem.etatenginname || 'N/A'} />
+                {detailItem.brand && <DetailRow icon={Truck} label="Marque" value={detailItem.brand} />}
+                {detailItem.model && <DetailRow icon={Box} label="Modèle" value={detailItem.model} />}
+                {detailItem.vin && <DetailRow icon={Tag} label="VIN" value={detailItem.vin} />}
+              </div>
+
+              {/* Action button */}
+              <div className="ltmap-detail-footer">
+                <button className="ltmap-detail-full-btn" onClick={() => { dispatch(setSelectedEngine(detailItem)); navigate('/asset/detail'); }} data-testid="map-detail-full-btn">
+                  <Eye size={14} /> Voir la fiche complète
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
+}
+
+const DetailRow = ({icon: Icon, label, value, color, valueColor}) => (
+  <div className="ltmap-detail-row">
+    <div className="ltmap-detail-row-left">
+      <Icon size={14} className="ltmap-detail-row-icon" />
+      <span className="ltmap-detail-row-label">{label}</span>
+    </div>
+    <span className="ltmap-detail-row-value" style={color ? {color} : valueColor ? {color: valueColor} : {}}>
+      {value || '—'}
+    </span>
+  </div>
+)
+
+const formatTimeAgo = (dateStr) => {
+  if (!dateStr) return 'N/A'
+  const diff = Date.now() - new Date(dateStr).getTime()
+  const mins = Math.floor(diff / 60000)
+  if (mins < 60) return `Il y a ${mins} min`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `Il y a ${hours}h`
+  const days = Math.floor(hours / 24)
+  return `Il y a ${days}j`
 }
 
 const MAP_STYLES = `
@@ -701,6 +804,91 @@ const MAP_STYLES = `
     .ltmap-container { left: 0 !important; bottom: 45vh; }
     .ltmap-sb-toggle { display: none; }
   }
+
+  /* ── DETAIL SLIDE-OVER PANEL ── */
+  .ltmap-detail-bg {
+    position: fixed; inset: 0; background: rgba(15,23,42,.35); backdrop-filter: blur(2px);
+    z-index: 9999; display: flex; justify-content: flex-end;
+  }
+  .ltmap-detail-panel {
+    width: 420px; max-width: 95vw; height: 100vh; background: #FFF;
+    box-shadow: -12px 0 48px rgba(0,0,0,.15);
+    display: flex; flex-direction: column;
+    animation: ltmapSlideIn .25s ease;
+  }
+  @keyframes ltmapSlideIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
+
+  .ltmap-detail-head {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 20px 24px; border-bottom: 1px solid #F1F5F9; flex-shrink: 0;
+  }
+  .ltmap-detail-head-left { display: flex; align-items: center; gap: 14px; }
+  .ltmap-detail-avatar {
+    width: 52px; height: 52px; border-radius: 14px; overflow: hidden;
+    background: linear-gradient(135deg, #EFF6FF, #DBEAFE); border: 2px solid #E2E8F0;
+    display: flex; align-items: center; justify-content: center; color: #2563EB; flex-shrink: 0;
+  }
+  .ltmap-detail-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .ltmap-detail-name { font-family: 'Manrope', sans-serif; font-size: 1.15rem; font-weight: 800; color: #0F172A; margin: 0; letter-spacing: -.02em; }
+  .ltmap-detail-ref { font-family: 'Inter', sans-serif; font-size: .75rem; color: #94A3B8; }
+  .ltmap-detail-close {
+    width: 38px; height: 38px; border-radius: 10px; border: 1.5px solid #E2E8F0;
+    background: #FFF; color: #94A3B8; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all .15s; flex-shrink: 0;
+  }
+  .ltmap-detail-close:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+
+  /* Chips */
+  .ltmap-detail-chips {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 14px 24px; border-bottom: 1px solid #F1F5F9; flex-shrink: 0;
+  }
+  .ltmap-detail-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 14px; border-radius: 20px; border: 1.5px solid #E2E8F0;
+    font-family: 'Inter', sans-serif; font-size: .75rem; font-weight: 600; color: #475569;
+  }
+  .ltmap-detail-chip--in { background: #ECFDF5; border-color: #A7F3D0; color: #059669; }
+  .ltmap-detail-chip--out { background: #FEF2F2; border-color: #FECACA; color: #DC2626; }
+
+  /* Mini map */
+  .ltmap-detail-minimap {
+    height: 180px; position: relative; flex-shrink: 0; border-bottom: 1px solid #F1F5F9;
+  }
+  .ltmap-detail-minimap .leaflet-container { height: 100%; border-radius: 0; }
+  .ltmap-detail-coords {
+    position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%);
+    background: rgba(255,255,255,.92); backdrop-filter: blur(6px);
+    padding: 4px 14px; border-radius: 20px; border: 1px solid #E2E8F0;
+    font-family: 'Inter', sans-serif; font-size: .68rem; font-weight: 600; color: #475569;
+    display: flex; align-items: center; gap: 5px; z-index: 500;
+  }
+
+  /* Info rows */
+  .ltmap-detail-body { flex: 1; overflow-y: auto; padding: 0; }
+  .ltmap-detail-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 24px; border-bottom: 1px solid #F8FAFC;
+    transition: background .12s;
+  }
+  .ltmap-detail-row:hover { background: #FAFBFC; }
+  .ltmap-detail-row-left { display: flex; align-items: center; gap: 10px; }
+  .ltmap-detail-row-icon { color: #94A3B8; }
+  .ltmap-detail-row-label { font-family: 'Inter', sans-serif; font-size: .78rem; color: #64748B; }
+  .ltmap-detail-row-value { font-family: 'Manrope', sans-serif; font-size: .85rem; font-weight: 700; color: #0F172A; text-align: right; max-width: 55%; word-break: break-word; }
+
+  /* Footer */
+  .ltmap-detail-footer {
+    padding: 16px 24px; border-top: 1px solid #F1F5F9; flex-shrink: 0;
+  }
+  .ltmap-detail-full-btn {
+    width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;
+    padding: 12px; border-radius: 12px; border: none;
+    background: #2563EB; color: #FFF;
+    font-family: 'Manrope', sans-serif; font-size: .88rem; font-weight: 700;
+    cursor: pointer; transition: all .15s;
+    box-shadow: 0 4px 12px rgba(37,99,235,.2);
+  }
+  .ltmap-detail-full-btn:hover { background: #1D4ED8; box-shadow: 0 6px 16px rgba(37,99,235,.3); }
 `
 
 export default PremiumMap
