@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback, useRef} from 'react'
+import {useState, useEffect, useCallback, useRef, useMemo} from 'react'
 import {useNavigate} from 'react-router-dom'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
@@ -14,7 +14,8 @@ import {
   LogIn, LogOut, Wifi, WifiOff, Truck, Radio, ChevronRight,
   ChevronLeft, Eye, Signal, BarChart3, Layers, Target, Menu,
   Calendar, Shield, FileBarChart, ChevronsDown, ChevronsUp,
-  BatteryMedium, BatteryFull, BatteryCharging, Bluetooth, Loader2
+  BatteryMedium, BatteryFull, BatteryCharging, Bluetooth, Loader2,
+  Download, RefreshCw
 } from 'lucide-react'
 
 const API = process.env.REACT_APP_BACKEND_URL
@@ -89,29 +90,62 @@ const EnterpriseCommand = () => {
   const [events, setEvents] = useState([])
   const [notifCount, setNotifCount] = useState(0)
   const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [lastRefresh, setLastRefresh] = useState(null)
+  const [refreshing, setRefreshing] = useState(false)
+  const [changedIds, setChangedIds] = useState(new Set())
+  const prevAssetsRef = useRef(null)
+  const refreshInterval = useRef(null)
 
   const assetList = Array.isArray(engines) ? engines : []
   const routerList = Array.isArray(gateways) ? gateways : []
   const routersWithCoords = routerList.filter(r => r.lat && r.lng && r.lat !== 0)
 
   // Fetch data
-  useEffect(() => {
-    const load = async () => {
-      dispatch(fetchEngines({page: 1, PageSize: 500}))
-      dispatch(fetchGateways())
-      dispatch(fetchDashboard())
-      try {
-        const [zRes, eRes, nRes] = await Promise.all([
-          fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=30`), fetch(`${API}/api/notifications/count`)
-        ])
-        if (zRes.ok) setZones(await zRes.json())
-        if (eRes.ok) setEvents(await eRes.json())
-        if (nRes.ok) { const d = await nRes.json(); setNotifCount(d.count || 0) }
-      } catch {}
-      setLoading(false)
-    }
-    load()
+  const refreshData = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true)
+    else setRefreshing(true)
+    dispatch(fetchEngines({page: 1, PageSize: 500}))
+    dispatch(fetchGateways())
+    dispatch(fetchDashboard())
+    try {
+      const [zRes, eRes, nRes] = await Promise.all([
+        fetch(`${API}/api/zones`), fetch(`${API}/api/zones/events?limit=30`), fetch(`${API}/api/notifications/count`)
+      ])
+      if (zRes.ok) setZones(await zRes.json())
+      if (eRes.ok) setEvents(await eRes.json())
+      if (nRes.ok) { const d = await nRes.json(); setNotifCount(d.count || 0) }
+    } catch {}
+    setLastRefresh(new Date())
+    if (!silent) setLoading(false)
+    else setRefreshing(false)
   }, [dispatch])
+
+  useEffect(() => {
+    refreshData()
+    // Auto-refresh every 30 seconds
+    refreshInterval.current = setInterval(() => refreshData(true), 30000)
+    return () => { if (refreshInterval.current) clearInterval(refreshInterval.current) }
+  }, [refreshData])
+
+  // Detect changed assets (position/status/battery)
+  useEffect(() => {
+    if (!prevAssetsRef.current || !assetList.length) {
+      prevAssetsRef.current = assetList
+      return
+    }
+    const changed = new Set()
+    assetList.forEach(a => {
+      const prev = prevAssetsRef.current.find(p => p.id === a.id)
+      if (prev && (prev.lat !== a.lat || prev.lng !== a.lng || prev.etatenginname !== a.etatenginname || prev.batteryLevelInPercent !== a.batteryLevelInPercent)) {
+        changed.add(a.id)
+      }
+    })
+    if (changed.size > 0) {
+      setChangedIds(changed)
+      setTimeout(() => setChangedIds(new Set()), 4000)
+    }
+    prevAssetsRef.current = assetList
+  }, [assetList])
 
   // WebSocket
   const {connected} = useWebSocket(useCallback((msg) => {
@@ -121,7 +155,44 @@ const EnterpriseCommand = () => {
     if (msg.type === 'notification') {
       fetch(`${API}/api/notifications/count`).then(r => r.json()).then(d => setNotifCount(d.count || 0)).catch(() => {})
     }
-  }, []))
+    if (msg.type === 'asset_update' || msg.type === 'reservation_update') {
+      refreshData(true)
+    }
+  }, [refreshData]))
+
+  // Export Timeline as CSV
+  const exportTimelineCSV = useCallback(() => {
+    if (!events.length) return
+    const rows = [['Événement', 'Asset', 'Zone', 'Heure']]
+    events.forEach(ev => {
+      const meta = EVENT_META[ev.event_type] || {label: ev.event_type}
+      rows.push([
+        meta.label, ev.asset_name || ev.asset_id || '',
+        ev.zone_name || '', ev.timestamp ? new Date(ev.timestamp).toLocaleString('fr-FR') : ''
+      ])
+    })
+    const csv = rows.map(r => r.map(c => `"${(c||'').replace(/"/g,'""')}"`).join(',')).join('\n')
+    const blob = new Blob(['\ufeff' + csv], {type: 'text/csv;charset=utf-8;'})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url; a.download = `timeline_${new Date().toISOString().slice(0,10)}.csv`
+    a.click(); URL.revokeObjectURL(url)
+  }, [events])
+
+  const exportTimelinePDF = useCallback(async () => {
+    if (!events.length) return
+    const printWin = window.open('', '_blank')
+    const rows = events.map(ev => {
+      const meta = EVENT_META[ev.event_type] || {label: ev.event_type}
+      return `<tr><td>${meta.label}</td><td>${ev.asset_name || ev.asset_id || ''}</td><td>${ev.zone_name || ''}</td><td>${ev.timestamp ? new Date(ev.timestamp).toLocaleString('fr-FR') : ''}</td></tr>`
+    }).join('')
+    printWin.document.write(`<!DOCTYPE html><html><head><title>Timeline LOGITAG</title>
+      <style>body{font-family:Inter,sans-serif;padding:24px;}h1{font-size:18px;margin-bottom:16px;}table{border-collapse:collapse;width:100%;}th,td{border:1px solid #E2E8F0;padding:8px 12px;text-align:left;font-size:13px;}th{background:#F1F5F9;font-weight:700;}</style>
+      </head><body><h1>Timeline - Événements LOGITAG</h1><p style="color:#64748B;font-size:12px;">Exporté le ${new Date().toLocaleString('fr-FR')}</p>
+      <table><thead><tr><th>Événement</th><th>Asset</th><th>Zone</th><th>Heure</th></tr></thead><tbody>${rows}</tbody></table></body></html>`)
+    printWin.document.close()
+    setTimeout(() => printWin.print(), 500)
+  }, [events])
 
   // KPIs from dashboard data
   const kpis = Array.isArray(dashData) ? dashData : []
@@ -173,7 +244,15 @@ const EnterpriseCommand = () => {
               {sidebarOpen ? <ChevronLeft size={18} /> : <ChevronRight size={18} />}
             </button>
             <div className="ec-topbar-kpis" data-testid="topbar-kpis">
-              {kpiConfigs.map((k, i) => {
+              {loading ? [...Array(4)].map((_, i) => (
+                <div key={i} className="ec-kpi ec-kpi--skeleton" style={{animationDelay: `${i * 0.08}s`}}>
+                  <div className="ec-skeleton-dot ec-skeleton-dot--kpi" />
+                  <div style={{display:'flex', flexDirection:'column', gap: 3}}>
+                    <div className="ec-skeleton-line" style={{width: 32, height: 14}} />
+                    <div className="ec-skeleton-line" style={{width: 52, height: 8}} />
+                  </div>
+                </div>
+              )) : kpiConfigs.map((k, i) => {
                 const Icon = k.icon
                 return (
                   <div key={i} className="ec-kpi" data-testid={`kpi-${i}`}>
@@ -188,6 +267,10 @@ const EnterpriseCommand = () => {
             </div>
           </div>
           <div className="ec-topbar-right">
+            {lastRefresh && <span className="ec-refresh-time" data-testid="last-refresh"><Clock size={10} /> {lastRefresh.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit', second:'2-digit'})}</span>}
+            <button className={`ec-topbar-btn ${refreshing ? 'ec-refreshing' : ''}`} onClick={() => refreshData(true)} title="Rafraîchir" data-testid="manual-refresh">
+              <RefreshCw size={15} />
+            </button>
             {connected && <span className="ec-live-badge" data-testid="ws-live"><Wifi size={10} /> Live</span>}
             <button className="ec-topbar-btn ec-notif-btn" onClick={() => navigate('/alert/index')} data-testid="topbar-notif">
               <Bell size={17} />
@@ -214,14 +297,31 @@ const EnterpriseCommand = () => {
               ))}
             </div>
             <div className="ec-assets-list" data-testid="assets-list">
-              {loading ? <div className="ec-loading"><Loader2 size={20} className="ec-spin" /></div> :
+              {loading ? (
+                <div className="ec-skeleton-list">
+                  {[...Array(8)].map((_, i) => (
+                    <div key={i} className="ec-skeleton-item" style={{animationDelay: `${i * 0.06}s`}}>
+                      <div className="ec-skeleton-dot" />
+                      <div className="ec-skeleton-text">
+                        <div className="ec-skeleton-line ec-skeleton-line--name" />
+                        <div className="ec-skeleton-line ec-skeleton-line--loc" />
+                      </div>
+                      <div className="ec-skeleton-meta">
+                        <div className="ec-skeleton-line ec-skeleton-line--stat" />
+                        <div className="ec-skeleton-line ec-skeleton-line--bat" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) :
                 filtered.length === 0 ? <div className="ec-empty">Aucun asset trouvé</div> :
                 filtered.map((asset, i) => {
                   const bat = getBattery(asset)
                   const status = asset.etatenginname || 'active'
                   const isSelected = selectedAsset?.id === asset.id
+                  const isChanged = changedIds.has(asset.id)
                   return (
-                    <div key={asset.id || i} className={`ec-asset-item ${isSelected ? 'ec-asset-item--selected' : ''}`} onClick={() => selectAsset(asset)} data-testid={`asset-item-${i}`}>
+                    <div key={asset.id || i} className={`ec-asset-item ${isSelected ? 'ec-asset-item--selected' : ''} ${isChanged ? 'ec-asset-item--changed' : ''}`} onClick={() => selectAsset(asset)} style={{animationDelay: `${Math.min(i, 20) * 0.02}s`}} data-testid={`asset-item-${i}`}>
                       <div className="ec-asset-dot" style={{background: getStatusColor(status)}} />
                       <div className="ec-asset-info">
                         <span className="ec-asset-name">{asset.fname || asset.label || `Asset ${i + 1}`}</span>
@@ -352,7 +452,11 @@ const EnterpriseCommand = () => {
           <div className="ec-timeline" data-testid="enterprise-timeline">
             <div className="ec-timeline-head">
               <h3 className="ec-timeline-title"><Activity size={15} /> Événements récents</h3>
-              <button className="ec-timeline-close" onClick={() => setTimelineOpen(false)}><ChevronsDown size={16} /></button>
+              <div className="ec-timeline-actions">
+                <button className="ec-export-btn" onClick={exportTimelineCSV} title="Exporter CSV" data-testid="export-timeline-csv"><Download size={13} /> CSV</button>
+                <button className="ec-export-btn" onClick={exportTimelinePDF} title="Exporter PDF" data-testid="export-timeline-pdf"><FileBarChart size={13} /> PDF</button>
+                <button className="ec-timeline-close" onClick={() => setTimelineOpen(false)}><ChevronsDown size={16} /></button>
+              </div>
             </div>
             <div className="ec-timeline-list">
               {events.length === 0 ? <span className="ec-timeline-empty">Aucun événement</span> :
@@ -403,6 +507,9 @@ const STYLES = `
 .ec-notif-count { position:absolute; top:-4px; right:-4px; min-width:16px; height:16px; border-radius:8px; background:#EF4444; color:#FFF; font-family:'Inter',sans-serif; font-size:.55rem; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0 3px; }
 .ec-live-badge { display:inline-flex; align-items:center; gap:3px; padding:3px 8px; border-radius:8px; background:#ECFDF5; color:#059669; font-family:'Inter',sans-serif; font-size:.6rem; font-weight:700; animation:ecPulse 2s ease infinite; }
 @keyframes ecPulse { 0%,100%{opacity:1;} 50%{opacity:.5;} }
+.ec-refresh-time { font-family:'Inter',sans-serif; font-size:.58rem; color:#94A3B8; display:inline-flex; align-items:center; gap:3px; white-space:nowrap; }
+.ec-refreshing svg { animation:ecSpin 1s linear infinite; }
+@keyframes ecSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 
 /* ── BODY ── */
 .ec-body { display:flex; flex:1; overflow:hidden; position:relative; }
@@ -427,11 +534,13 @@ const STYLES = `
 .ec-assets-list { flex:1; overflow-y:auto; padding:0 8px 8px; }
 .ec-loading { display:flex; align-items:center; justify-content:center; padding:40px; color:#94A3B8; }
 .ec-spin { animation:ecSpin 1s linear infinite; }
-@keyframes ecSpin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
 .ec-empty { padding:40px 16px; text-align:center; font-family:'Inter',sans-serif; font-size:.78rem; color:#94A3B8; }
-.ec-asset-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:all .12s; margin-bottom:1px; }
+.ec-asset-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; cursor:pointer; transition:all .12s; margin-bottom:1px; animation:ecFadeIn .25s ease both; }
+@keyframes ecFadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 .ec-asset-item:hover { background:#F8FAFC; }
 .ec-asset-item--selected { background:#EFF6FF; box-shadow:inset 0 0 0 1.5px #2563EB; }
+.ec-asset-item--changed { animation:ecHighlight 2s ease; }
+@keyframes ecHighlight { 0%{background:#FEF3C7;box-shadow:inset 0 0 0 1.5px #F59E0B} 100%{background:transparent;box-shadow:none} }
 .ec-asset-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
 .ec-asset-info { flex:1; min-width:0; }
 .ec-asset-name { display:block; font-family:'Manrope',sans-serif; font-size:.78rem; font-weight:700; color:#0F172A; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
@@ -478,7 +587,10 @@ const STYLES = `
 @keyframes ecSlideUp { from{max-height:0;opacity:0} to{max-height:200px;opacity:1} }
 .ec-timeline-head { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; border-bottom:1px solid #F1F5F9; }
 .ec-timeline-title { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:800; color:#0F172A; margin:0; display:flex; align-items:center; gap:7px; }
+.ec-timeline-actions { display:flex; align-items:center; gap:6px; }
 .ec-timeline-close { background:none; border:none; color:#94A3B8; cursor:pointer; }
+.ec-export-btn { display:inline-flex; align-items:center; gap:4px; padding:5px 10px; border-radius:7px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.62rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
+.ec-export-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
 .ec-timeline-list { display:flex; gap:0; overflow-x:auto; padding:10px 20px; scrollbar-width:thin; }
 .ec-timeline-item { display:flex; align-items:center; gap:8px; padding:8px 14px; border-radius:8px; background:#FAFBFC; margin-right:8px; flex-shrink:0; min-width:200px; border:1px solid #F1F5F9; transition:all .12s; }
 .ec-timeline-item:hover { border-color:#CBD5E1; }
@@ -499,7 +611,24 @@ const STYLES = `
   .ec-assets--closed { width:0; }
   .ec-detail { position:absolute; right:0; top:0; bottom:0; z-index:20; box-shadow:-8px 0 20px rgba(0,0,0,.1); }
   .ec-topbar-kpis { display:none; }
+  .ec-refresh-time { display:none; }
 }
+
+/* ── SKELETON LOADING ── */
+.ec-skeleton-list { padding:0 8px; }
+.ec-skeleton-item { display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px; margin-bottom:2px; animation:ecSkeletonFadeIn .4s ease both; }
+@keyframes ecSkeletonFadeIn { from{opacity:0} to{opacity:1} }
+.ec-skeleton-dot { width:8px; height:8px; border-radius:50%; background:#E2E8F0; animation:ecShimmer 1.5s ease-in-out infinite; }
+.ec-skeleton-dot--kpi { width:30px; height:30px; border-radius:8px; background:#E2E8F0; animation:ecShimmer 1.5s ease-in-out infinite; }
+.ec-skeleton-text { flex:1; display:flex; flex-direction:column; gap:4px; }
+.ec-skeleton-meta { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
+.ec-skeleton-line { border-radius:4px; background:#E2E8F0; animation:ecShimmer 1.5s ease-in-out infinite; }
+.ec-skeleton-line--name { width:65%; height:12px; }
+.ec-skeleton-line--loc { width:45%; height:8px; }
+.ec-skeleton-line--stat { width:36px; height:10px; }
+.ec-skeleton-line--bat { width:28px; height:8px; }
+.ec-kpi--skeleton { min-width:100px; }
+@keyframes ecShimmer { 0%{opacity:.4} 50%{opacity:.8} 100%{opacity:.4} }
 `
 
 export default EnterpriseCommand
