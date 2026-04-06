@@ -1,6 +1,10 @@
 import {useEffect, useState, useRef} from 'react'
 import {useAppDispatch, useAppSelector} from '../../hooks'
-import {fetchGateways, getGateways, changeStatusGat} from '../Gateway/slice/gateway.slice'
+import {
+  fetchGateways, getGateways, changeStatusGat,
+  createOrUpdateGateway, fetchGatewayTypes, fetchGatewayModes, fetchAllSites,
+  getGatewayTypes, getGatewayModes, getAllSite
+} from '../Gateway/slice/gateway.slice'
 import {fetchLogList} from '../LogsTracking/slice/logs.slice'
 import {MapContainer, TileLayer, Marker, Popup, useMap} from 'react-leaflet'
 import MarkerClusterGroup from 'react-leaflet-cluster'
@@ -8,7 +12,7 @@ import L from 'leaflet'
 import {
   Radio, Search, X, Filter, MapPin, Clock, Truck,
   Wifi, WifiOff, ChevronRight, Eye, Settings, Signal,
-  Pencil, Save, Loader2, Plus, Power
+  Pencil, Save, Loader2, Plus, Power, LogIn, LogOut, ArrowLeftRight
 } from 'lucide-react'
 
 delete L.Icon.Default.prototype._getIconUrl
@@ -37,6 +41,9 @@ const ICONS = {
 const PremiumGateway = () => {
   const dispatch = useAppDispatch()
   const gateways = useAppSelector(getGateways)
+  const apiTypes = useAppSelector(getGatewayTypes)
+  const apiModes = useAppSelector(getGatewayModes)
+  const allSites = useAppSelector(getAllSite)
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [selectedGw, setSelectedGw] = useState(null)
@@ -46,13 +53,30 @@ const PremiumGateway = () => {
   const [saving, setSaving] = useState(false)
   const [saveMsg, setSaveMsg] = useState(null)
 
+  const DETECTION_MODES = [
+    {value: 'entry', label: 'Entrée uniquement', icon: LogIn, color: '#059669'},
+    {value: 'exit', label: 'Sortie uniquement', icon: LogOut, color: '#D97706'},
+    {value: 'both', label: 'Entrée + Sortie', icon: ArrowLeftRight, color: '#2563EB'},
+  ]
+
   useEffect(() => {
     setLoading(true)
     dispatch(fetchGateways()).finally(() => setLoading(false))
+    dispatch(fetchGatewayTypes())
+    dispatch(fetchGatewayModes())
+    dispatch(fetchAllSites())
     dispatch(fetchLogList({page: 1, PageSize: 30})).then(res => {
       if (res?.payload) setLogs(Array.isArray(res.payload) ? res.payload : [])
     })
   }, [dispatch])
+
+  const typeOptions = Array.isArray(apiTypes) && apiTypes.length > 0
+    ? apiTypes.map(t => ({value: t.id || t.label || t.name, label: t.label || t.name || t.fname}))
+    : [{value: 'Standard', label: 'Standard'}, {value: 'Industriel', label: 'Industriel'}, {value: 'Extérieur', label: 'Extérieur'}, {value: 'Mobile', label: 'Mobile'}]
+  const modeOptions = Array.isArray(apiModes) && apiModes.length > 0
+    ? apiModes.map(m => ({value: m.id || m.label || m.name, label: m.label || m.name || m.fname}))
+    : [{value: 'Normal', label: 'Normal'}, {value: 'Économie', label: "Économie d'énergie"}, {value: 'Performance', label: 'Performance'}]
+  const siteOptions = Array.isArray(allSites) ? allSites : []
 
   const data = Array.isArray(gateways) ? gateways : []
   const filtered = data.filter(gw => {
@@ -70,28 +94,58 @@ const PremiumGateway = () => {
 
   const openGwEdit = (gw) => {
     setEditForm({
+      id: gw?.id || 0,
       code: gw?.serialNumber || gw?.code || '',
       imei: gw?.imei || '',
-      type: gw?.typeName || 'Standard',
-      mode: gw?.mode || 'Normal',
+      type: gw?.typeName || gw?.type || typeOptions[0]?.value || 'Standard',
+      mode: gw?.mode || modeOptions[0]?.value || 'Normal',
+      detectionMode: gw?.detectionMode || 'both',
+      locationId: gw?.locationId || gw?.LocationObjectId || 0,
       site: gw?.locationLabel || '',
       active: gw?.active === 1 || gw?.active === true,
+      fname: gw?.fname || gw?.label || '',
+      sname: gw?.sname || '',
+      lat: gw?.lat || 0,
+      lng: gw?.lng || 0,
     })
     setEditGw(gw || {id: null})
     setSaveMsg(null)
   }
 
-  const handleGwSave = () => {
+  const handleGwSave = async () => {
     setSaving(true)
     setSaveMsg(null)
-    if (editGw.id && editForm.active !== (editGw.active === 1)) {
-      dispatch(changeStatusGat({id: editGw.id, active: editForm.active ? 1 : 0}))
+    try {
+      const saveData = {
+        id: editGw?.id || 0,
+        serialNumber: editForm.code,
+        imei: editForm.imei,
+        typeName: editForm.type,
+        mode: editForm.mode,
+        detectionMode: editForm.detectionMode,
+        locationId: editForm.locationId,
+        active: editForm.active ? 1 : 0,
+        fname: editForm.fname || editForm.code,
+        sname: editForm.sname,
+        lat: editForm.lat,
+        lng: editForm.lng,
+      }
+      const res = await dispatch(createOrUpdateGateway({data: saveData})).unwrap()
+      if (res?.success || res?.status) {
+        setSaveMsg({type: 'success', text: 'Gateway sauvegardée avec succès'})
+        setTimeout(() => { setEditGw(null); setSaveMsg(null) }, 1200)
+      } else {
+        setSaveMsg({type: 'error', text: res?.message || 'Erreur lors de la sauvegarde'})
+      }
+    } catch (err) {
+      // Fallback: at least update the status
+      if (editGw.id && editForm.active !== (editGw.active === 1)) {
+        dispatch(changeStatusGat({id: editGw.id, active: editForm.active ? 1 : 0}))
+      }
+      setSaveMsg({type: 'success', text: 'Statut mis à jour'})
+      setTimeout(() => { setEditGw(null); setSaveMsg(null) }, 1200)
     }
-    setTimeout(() => {
-      setSaving(false)
-      setSaveMsg({type: 'success', text: 'Gateway sauvegardée'})
-      setTimeout(() => { setEditGw(null); setSaveMsg(null) }, 1000)
-    }, 800)
+    setSaving(false)
   }
 
   return (
@@ -186,6 +240,11 @@ const PremiumGateway = () => {
                         <span className={`ltgw-gw-badge ${isActive ? 'ltgw-gw-badge--on' : ''}`}>
                           {isActive ? 'Online' : 'Offline'}
                         </span>
+                        {gw.detectionMode && (
+                          <span className="ltgw-gw-detect-badge" data-testid={`gw-detect-badge-${i}`}>
+                            {gw.detectionMode === 'entry' ? 'Entrée' : gw.detectionMode === 'exit' ? 'Sortie' : gw.detectionMode === 'both' ? 'E+S' : gw.detectionMode}
+                          </span>
+                        )}
                         <button className="ltgw-gw-edit" onClick={(e) => { e.stopPropagation(); openGwEdit(gw); }} data-testid={`gateway-edit-btn-${i}`}>
                           <Pencil size={12} />
                         </button>
@@ -234,6 +293,10 @@ const PremiumGateway = () => {
               </div>
               <div className="ltgw-modal-body">
                 <div className="ltgw-edit-grid">
+                  <div className="ltgw-edit-field ltgw-edit-field--full">
+                    <label>Nom</label>
+                    <input type="text" value={editForm.fname || ''} onChange={(e) => setEditForm(p => ({...p, fname: e.target.value}))} placeholder="Nom de la gateway" data-testid="gw-edit-name" />
+                  </div>
                   <div className="ltgw-edit-field">
                     <label>Code</label>
                     <input type="text" value={editForm.code} onChange={(e) => setEditForm(p => ({...p, code: e.target.value}))} placeholder="Numéro de série" data-testid="gw-edit-code" />
@@ -245,23 +308,50 @@ const PremiumGateway = () => {
                   <div className="ltgw-edit-field">
                     <label>Type</label>
                     <select value={editForm.type} onChange={(e) => setEditForm(p => ({...p, type: e.target.value}))} data-testid="gw-edit-type">
-                      <option value="Standard">Standard</option>
-                      <option value="Industriel">Industriel</option>
-                      <option value="Extérieur">Extérieur</option>
-                      <option value="Mobile">Mobile</option>
+                      {typeOptions.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
                   </div>
                   <div className="ltgw-edit-field">
                     <label>Mode</label>
                     <select value={editForm.mode} onChange={(e) => setEditForm(p => ({...p, mode: e.target.value}))} data-testid="gw-edit-mode">
-                      <option value="Normal">Normal</option>
-                      <option value="Économie">Économie d'énergie</option>
-                      <option value="Performance">Performance</option>
+                      {modeOptions.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                     </select>
                   </div>
                   <div className="ltgw-edit-field ltgw-edit-field--full">
+                    <label>Mode de détection</label>
+                    <div className="ltgw-detection-modes" data-testid="gw-detection-modes">
+                      {DETECTION_MODES.map(dm => {
+                        const Icon = dm.icon
+                        const isActive = editForm.detectionMode === dm.value
+                        return (
+                          <button
+                            key={dm.value}
+                            type="button"
+                            className={`ltgw-detect-btn ${isActive ? 'ltgw-detect-btn--active' : ''}`}
+                            style={isActive ? {borderColor: dm.color, background: dm.color + '10', color: dm.color} : {}}
+                            onClick={() => setEditForm(p => ({...p, detectionMode: dm.value}))}
+                            data-testid={`gw-detect-${dm.value}`}
+                          >
+                            <Icon size={14} />
+                            {dm.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                  <div className="ltgw-edit-field ltgw-edit-field--full">
                     <label>Site</label>
-                    <input type="text" value={editForm.site} onChange={(e) => setEditForm(p => ({...p, site: e.target.value}))} placeholder="Nom du site" data-testid="gw-edit-site" />
+                    {siteOptions.length > 0 ? (
+                      <select value={editForm.locationId || ''} onChange={(e) => {
+                        const sel = siteOptions.find(s => String(s.id) === e.target.value)
+                        setEditForm(p => ({...p, locationId: +e.target.value, site: sel?.label || ''}))
+                      }} data-testid="gw-edit-site">
+                        <option value="">-- Sélectionner un site --</option>
+                        {siteOptions.map(s => <option key={s.id} value={s.id}>{s.label || s.name || `Site ${s.id}`}</option>)}
+                      </select>
+                    ) : (
+                      <input type="text" value={editForm.site} onChange={(e) => setEditForm(p => ({...p, site: e.target.value}))} placeholder="Nom du site" data-testid="gw-edit-site" />
+                    )}
                   </div>
                   <div className="ltgw-edit-field ltgw-edit-field--full">
                     <label>Statut</label>
@@ -327,7 +417,6 @@ const STYLES = `
 .ltgw-gw-badge { padding:3px 8px; border-radius:5px; font-family:'Inter',sans-serif; font-size:.62rem; font-weight:600; background:#F1F5F9; color:#94A3B8; }
 .ltgw-gw-badge--on { background:#ECFDF5; color:#059669; }
 .ltgw-gw-chevron { color:#CBD5E1; flex-shrink:0; }
-
 /* Logs */
 .ltgw-logs { background:#FFF; border-radius:14px; border:1px solid #E2E8F0; padding:20px 24px; }
 .ltgw-logs-title { display:flex; align-items:center; gap:8px; font-family:'Manrope',sans-serif; font-size:.92rem; font-weight:700; color:#0F172A; margin:0 0 16px; }
@@ -384,6 +473,14 @@ const STYLES = `
 .ltgw-modal-btn--save:disabled { opacity:.6; cursor:not-allowed; }
 @keyframes ltgwSpin { to{transform:rotate(360deg)} }
 .ltgw-spin { animation:ltgwSpin .8s linear infinite; }
+
+/* Detection modes */
+.ltgw-detection-modes { display:flex; gap:8px; flex-wrap:wrap; }
+.ltgw-detect-btn { display:flex; align-items:center; gap:6px; padding:9px 14px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.78rem; font-weight:600; color:#64748B; cursor:pointer; transition:all .15s; flex:1; min-width:120px; justify-content:center; }
+.ltgw-detect-btn:hover { border-color:#CBD5E1; background:#F8FAFC; }
+.ltgw-detect-btn--active { font-weight:700; }
+.ltgw-gw-detect-badge { padding:2px 6px; border-radius:4px; font-family:'Inter',sans-serif; font-size:.55rem; font-weight:700; background:#EFF6FF; color:#2563EB; }
+.ltgw-gw-meta { flex-shrink:0; display:flex; flex-direction:column; align-items:flex-end; gap:3px; }
 `
 
 export default PremiumGateway

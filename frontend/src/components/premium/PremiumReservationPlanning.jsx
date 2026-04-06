@@ -1,4 +1,4 @@
-import {useState, useEffect, useCallback, useMemo} from 'react'
+import {useState, useEffect, useCallback, useMemo, useRef} from 'react'
 import {useAppDispatch, useAppSelector} from '../../hooks'
 import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
 import {fetchSites, getSites} from '../Site/slice/site.slice'
@@ -50,10 +50,17 @@ const PremiumReservationPlanning = () => {
   // Create form
   const [createForm, setCreateForm] = useState({
     asset_id: '', asset_name: '', user_name: '', team: '', project: '',
-    site: '', start_date: '', end_date: '', note: '', priority: 'normal',
+    site: '', address: '', address_lat: null, address_lng: null,
+    start_date: '', end_date: '', note: '', priority: 'normal',
   })
   const [createError, setCreateError] = useState(null)
   const [createLoading, setCreateLoading] = useState(false)
+
+  // Address autocomplete
+  const [addressQuery, setAddressQuery] = useState('')
+  const [addressSuggestions, setAddressSuggestions] = useState([])
+  const [addressLoading, setAddressLoading] = useState(false)
+  const addressTimerRef = useRef(null)
 
   // Checkout/Checkin forms
   const [coForm, setCoForm] = useState({user_name: '', location: '', condition: 'good', comment: ''})
@@ -63,6 +70,28 @@ const PremiumReservationPlanning = () => {
   const [dropTarget, setDropTarget] = useState(null)
   const [bleData, setBleData] = useState(null)
   const [bleLoading, setBleLoading] = useState(false)
+
+  // Photon geocoding autocomplete (free, OSM-based)
+  const searchAddress = useCallback((query) => {
+    if (addressTimerRef.current) clearTimeout(addressTimerRef.current)
+    if (!query || query.length < 3) { setAddressSuggestions([]); return }
+    setAddressLoading(true)
+    addressTimerRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=fr`)
+        const data = await res.json()
+        const suggestions = (data.features || []).map(f => ({
+          label: [f.properties.name, f.properties.street, f.properties.housenumber, f.properties.city, f.properties.state, f.properties.country].filter(Boolean).join(', '),
+          lat: f.geometry?.coordinates?.[1],
+          lng: f.geometry?.coordinates?.[0],
+          city: f.properties.city,
+          country: f.properties.country,
+        }))
+        setAddressSuggestions(suggestions)
+      } catch { setAddressSuggestions([]) }
+      setAddressLoading(false)
+    }, 350)
+  }, [])
 
   const fetchReservations = useCallback(async () => {
     setLoading(true)
@@ -179,7 +208,8 @@ const PremiumReservationPlanning = () => {
         setCreateLoading(false); return
       }
       setShowCreateModal(false)
-      setCreateForm({asset_id: '', asset_name: '', user_name: '', team: '', project: '', site: '', start_date: '', end_date: '', note: '', priority: 'normal'})
+      setCreateForm({asset_id: '', asset_name: '', user_name: '', team: '', project: '', site: '', address: '', address_lat: null, address_lng: null, start_date: '', end_date: '', note: '', priority: 'normal'})
+      setAddressQuery(''); setAddressSuggestions([])
       fetchReservations()
     } catch { setCreateError("Erreur réseau.") }
     setCreateLoading(false)
@@ -302,7 +332,7 @@ const PremiumReservationPlanning = () => {
             <button className="rp-export-btn" onClick={async () => { const r = await fetch(`${API}/api/reservations/export/csv`); if(r.ok){const b=await r.blob();const u=window.URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=`planning_${new Date().toISOString().slice(0,10)}.csv`;document.body.appendChild(a);a.click();a.remove();window.URL.revokeObjectURL(u)} }} data-testid="planning-export-csv">
               <Download size={14} /> CSV
             </button>
-            <button className="rp-create-btn" onClick={() => setShowCreateModal(true)} data-testid="create-reservation-btn">
+            <button className="rp-create-btn" onClick={() => { setShowCreateModal(true); setAddressQuery(''); setAddressSuggestions([]) }} data-testid="create-reservation-btn">
               <Plus size={16} /> Nouvelle réservation
             </button>
           </div>
@@ -436,6 +466,36 @@ const PremiumReservationPlanning = () => {
                   </div>
                 </div>
                 <div className="rp-form-row">
+                  <div className="rp-form-field rp-form-field--full rp-address-wrap">
+                    <label><MapPin size={12} /> Adresse</label>
+                    <input
+                      value={addressQuery}
+                      onChange={e => {
+                        setAddressQuery(e.target.value)
+                        searchAddress(e.target.value)
+                        setCreateForm(f => ({...f, address: e.target.value, address_lat: null, address_lng: null}))
+                      }}
+                      placeholder="Rechercher une adresse..."
+                      data-testid="create-address"
+                    />
+                    {addressLoading && <Loader2 size={14} className="rp-spin rp-address-loader" />}
+                    {addressSuggestions.length > 0 && (
+                      <div className="rp-address-list" data-testid="address-suggestions">
+                        {addressSuggestions.map((s, i) => (
+                          <div key={i} className="rp-address-item" onClick={() => {
+                            setAddressQuery(s.label)
+                            setCreateForm(f => ({...f, address: s.label, address_lat: s.lat, address_lng: s.lng}))
+                            setAddressSuggestions([])
+                          }} data-testid={`address-item-${i}`}>
+                            <MapPin size={12} />
+                            <span>{s.label}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <div className="rp-form-row">
                   <div className="rp-form-field">
                     <label>Date début *</label>
                     <input type="datetime-local" value={createForm.start_date} onChange={e => setCreateForm(f => ({...f, start_date: e.target.value}))} data-testid="create-start" />
@@ -492,6 +552,7 @@ const PremiumReservationPlanning = () => {
                     <div className="rp-drawer-grid">
                       <div className="rp-drawer-row"><User size={13} /><label>Utilisateur</label><span>{r.user_name}</span></div>
                       <div className="rp-drawer-row"><MapPin size={13} /><label>Site</label><span>{r.site || '—'}</span></div>
+                      {r.address && <div className="rp-drawer-row"><MapPin size={13} /><label>Adresse</label><span>{r.address}</span></div>}
                       <div className="rp-drawer-row"><CalIcon size={13} /><label>Début</label><span>{new Date(r.start_date).toLocaleString('fr-FR')}</span></div>
                       <div className="rp-drawer-row"><CalIcon size={13} /><label>Fin</label><span>{new Date(r.end_date).toLocaleString('fr-FR')}</span></div>
                       {r.team && <div className="rp-drawer-row"><User size={13} /><label>Équipe</label><span>{r.team}</span></div>}
@@ -701,6 +762,16 @@ const STYLES = `
 .rp-form-field label { font-family:'Manrope',sans-serif; font-size:.72rem; font-weight:700; color:#475569; text-transform:uppercase; letter-spacing:.02em; }
 .rp-form-field input,.rp-form-field select,.rp-form-field textarea { padding:10px 14px; border-radius:10px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.82rem; color:#0F172A; outline:none; transition:all .2s; }
 .rp-form-field input:focus,.rp-form-field select:focus { border-color:#2563EB; box-shadow:0 0 0 3px rgba(37,99,235,.08); }
+
+/* Address autocomplete */
+.rp-address-wrap { position:relative; }
+.rp-address-loader { position:absolute; right:12px; top:32px; color:#94A3B8; }
+.rp-address-list { position:absolute; top:100%; left:0; right:0; background:#FFF; border:1.5px solid #E2E8F0; border-radius:10px; box-shadow:0 8px 24px rgba(0,0,0,.1); z-index:100; max-height:200px; overflow-y:auto; margin-top:4px; }
+.rp-address-item { display:flex; align-items:center; gap:8px; padding:10px 14px; cursor:pointer; font-family:'Inter',sans-serif; font-size:.78rem; color:#475569; transition:background .1s; border-bottom:1px solid #F1F5F9; }
+.rp-address-item:last-child { border-bottom:none; }
+.rp-address-item:hover { background:#EFF6FF; color:#2563EB; }
+.rp-address-item svg { color:#94A3B8; flex-shrink:0; }
+.rp-address-item:hover svg { color:#2563EB; }
 
 /* Buttons */
 .rp-btn { display:inline-flex; align-items:center; gap:6px; padding:9px 18px; border-radius:10px; border:none; font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; cursor:pointer; transition:all .12s; }

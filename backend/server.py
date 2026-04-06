@@ -56,6 +56,9 @@ class ReservationCreate(BaseModel):
     project: Optional[str] = None
     site: Optional[str] = None
     site_id: Optional[str] = None
+    address: Optional[str] = None
+    address_lat: Optional[float] = None
+    address_lng: Optional[float] = None
     start_date: str  # ISO string
     end_date: str
     note: Optional[str] = None
@@ -67,6 +70,9 @@ class ReservationUpdate(BaseModel):
     project: Optional[str] = None
     site: Optional[str] = None
     site_id: Optional[str] = None
+    address: Optional[str] = None
+    address_lat: Optional[float] = None
+    address_lng: Optional[float] = None
     start_date: Optional[str] = None
     end_date: Optional[str] = None
     note: Optional[str] = None
@@ -509,6 +515,9 @@ async def create_reservation(data: ReservationCreate):
         "project": data.project,
         "site": data.site,
         "site_id": data.site_id,
+        "address": data.address,
+        "address_lat": data.address_lat,
+        "address_lng": data.address_lng,
         "start_date": start,
         "end_date": end,
         "note": data.note,

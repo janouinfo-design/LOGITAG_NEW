@@ -11,9 +11,8 @@ import {useAppDispatch} from '../../hooks'
 import {setCurrentUser} from '../User/slice/user.slice'
 
 const NAV_ITEMS = [
-  {id: 'command', label: 'Command Center', icon: Radar, path: '/command/center'},
+  {id: 'command', label: 'Carte', icon: Radar, path: '/command/center'},
   {id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/tagdashboard/index'},
-  {id: 'map', label: 'Carte', icon: Map, path: '/tour/index'},
   {id: 'assets', label: 'Assets', icon: Box, path: '/view/engin/index'},
   {id: 'planning', label: 'Planning', icon: CalendarDays, path: '/timeline/index'},
   {id: 'res-planning', label: 'Réservations', icon: CalendarCheck, path: '/reservation/planning'},
