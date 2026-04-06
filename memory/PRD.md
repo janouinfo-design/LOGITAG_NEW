@@ -29,11 +29,24 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - Asset edit modal (13 fields), Tag Label fix, Map pagination, Photo upload
 
 ### Phase 10 - 5 Enhancements (DONE - Apr 6, 2026)
-1. **Zones edit/delete** - Modal with name, type, color picker, alert toggles (entry/exit). Modifier + Supprimer buttons functional. Nouvelle zone button wired
-2. **Activity time filters** - "Aujourd'hui", "Semaine", "Mois", "Personnalisé" chips with date pickers
-3. **Alerts time filters** - Same time range filters (today/week/month/custom) 
-4. **Users create/edit modal** - Full form: Prénom, Nom, Email, Mot de passe, Téléphone, Poste, Rôle (chips: Employé/Manager/Admin/Technicien), Actif toggle. Tabs: Identité/Contrat/Avancé. Pencil edit button per row
-5. **Gateway edit modal** - Fields: Code, IMEI, Type (dropdown), Mode (dropdown), Site, Actif toggle. Pencil edit button per gateway item
+1. Zones edit/delete modal
+2. Activity time filters (Aujourd'hui, Semaine, Mois, Personnalisé)
+3. Alerts time filters
+4. Users create/edit modal
+5. Gateway edit modal
+
+### Phase 11 - Map Slide-over + Planning Activity (DONE - Apr 6, 2026)
+- Map detail slide-over panel (replaces popup navigation)
+- Planning activity log slide-over panel
+
+### Phase 12 - Reports Redesign (DONE - Apr 6, 2026)
+- Simplified to 2 report types: **Rapport par Asset** and **Rapport par Site**
+- 3-panel builder: Type selector, Item selector (Assets/Sites), Configuration
+- Focus on entrées/sorties (no speed data)
+- Result view with: summary cards (Entrées, Sorties, Durée, Moy./jour), grouped data tables
+- Features: search, select all, date presets, auto-send config
+- Testing: 15/15 tests passed (iteration_18.json)
+- Note: Report data is MOCKED (client-side generated) due to slow external API
 
 ## Pending/Future Tasks
 
@@ -46,7 +59,7 @@ Refonte complète de l'application LOGITAG (tracking BLE d'assets) avec un nivea
 - Better FullCalendar free alternative evaluation
 
 ### P3 - Extended
-- Multi-tenant B2B / Column presets / GPS widget dashboard
+- Multi-tenant B2B / Column presets / GPS Widget dashboard
 
 ## Test Reports
-- `/app/test_reports/iteration_1.json` through `iteration_16.json`
+- `/app/test_reports/iteration_1.json` through `iteration_18.json`
