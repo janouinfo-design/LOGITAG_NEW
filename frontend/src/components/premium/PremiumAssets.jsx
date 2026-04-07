@@ -98,6 +98,7 @@ const PremiumAssets = () => {
   const [deleting, setDeleting] = useState(false)
   const [singleDeleteItem, setSingleDeleteItem] = useState(null)
   const [deleteResult, setDeleteResult] = useState(null)
+  const [deletedIds, setDeletedIds] = useState(new Set())
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
@@ -160,7 +161,7 @@ const PremiumAssets = () => {
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
     let deleted = 0, failed = 0
-    const deletedIds = new Set()
+    const newlyDeleted = []
     for (const id of selectedIds) {
       try {
         const item = allData.find(d => d.id === id)
@@ -172,15 +173,17 @@ const PremiumAssets = () => {
           const result = await resp.json()
           if (result?.result?.[0]?.typeMsg === 'success') {
             deleted++
-            deletedIds.add(id)
+            newlyDeleted.push(id)
           } else failed++
         }
       } catch { failed++ }
     }
-    // Optimistic update: remove deleted items from local state immediately
-    if (deletedIds.size > 0) {
-      setAllData(prev => prev.filter(d => !deletedIds.has(d.id)))
-      setTotalRecords(prev => prev - deletedIds.size)
+    if (newlyDeleted.length > 0) {
+      setDeletedIds(prev => {
+        const next = new Set(prev)
+        newlyDeleted.forEach(id => next.add(String(id)))
+        return next
+      })
     }
     setDeleting(false)
     setDeleteConfirm(false)
@@ -192,7 +195,6 @@ const PremiumAssets = () => {
   const handleSingleDelete = async () => {
     if (!singleDeleteItem) return
     const itemToDelete = singleDeleteItem
-    const itemId = String(itemToDelete.id)
     setDeleting(true)
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
@@ -203,14 +205,11 @@ const PremiumAssets = () => {
       })
       const result = await resp.json()
       if (result?.result?.[0]?.typeMsg === 'success') {
-        // BUG: State update is called but UI does not reflect the change
-        // The functional updater runs correctly (verified via console.log)
-        // but React does not re-render the component with the new state
-        setAllData(currentData => {
-          const newData = currentData.filter(d => String(d.id) !== itemId)
-          return newData
+        setDeletedIds(prev => {
+          const next = new Set(prev)
+          next.add(String(itemToDelete.id))
+          return next
         })
-        setTotalRecords(prev => prev - 1)
         setDeleteResult({deleted: 1, failed: 0, name: itemToDelete.reference || itemToDelete.label})
       } else {
         setDeleteResult({deleted: 0, failed: 1, error: result?.result?.[0]?.msg || 'Erreur'})
@@ -281,8 +280,10 @@ const PremiumAssets = () => {
     window.scrollTo({top: 0, behavior: 'smooth'})
   }
 
-  /* Client-side search + sort + tenant filter */
+  /* Client-side search + sort + tenant filter + exclude deleted */
   const filteredItems = allData.filter(item => {
+    // Exclude deleted items
+    if (deletedIds.has(String(item.id))) return false
     // Tenant filter
     if (tenant) {
       const cname = (item.customername || '').toLowerCase()
