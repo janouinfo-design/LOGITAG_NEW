@@ -19,7 +19,8 @@ const PremiumReservationDashboard = () => {
   const [alertRules, setAlertRules] = useState([])
   const [scanning, setScanning] = useState(false)
   const [rulesOpen, setRulesOpen] = useState(false)
-  const [tab, setTab] = useState('alerts') // 'alerts' | 'notifications'
+  const [tab, setTab] = useState('alerts')
+  const [selectedKpi, setSelectedKpi] = useState(null)
 
   const fetchAll = useCallback(async () => {
     setLoading(true)
@@ -36,7 +37,7 @@ const PremiumReservationDashboard = () => {
       const notifData = await notifRes.json()
       setNotifications(Array.isArray(notifData) ? notifData : [])
       const resData = await resRes.json()
-      setRecentRes(Array.isArray(resData) ? resData.slice(0, 10) : [])
+      setRecentRes(Array.isArray(resData) ? resData : [])
       const aData = await alertRes.json()
       setSmartAlerts(Array.isArray(aData) ? aData : [])
       setAlertStats(await statsRes.json())
@@ -133,13 +134,31 @@ const PremiumReservationDashboard = () => {
   )
 
   const kpiCards = [
-    {label: 'Réservations totales', value: kpis?.total || 0, icon: CalendarDays, color: '#2563EB', bg: '#EFF6FF'},
-    {label: 'En cours', value: kpis?.active || 0, icon: Timer, color: '#D97706', bg: '#FFFBEB'},
-    {label: 'Confirmées', value: kpis?.confirmed || 0, icon: CheckCircle2, color: '#059669', bg: '#ECFDF5'},
-    {label: "Aujourd'hui", value: kpis?.today || 0, icon: CalendarDays, color: '#6366F1', bg: '#EEF2FF'},
-    {label: 'En retard', value: kpis?.overdue || 0, icon: AlertTriangle, color: '#DC2626', bg: '#FEF2F2'},
-    {label: 'Terminées', value: kpis?.completed || 0, icon: RotateCcw, color: '#475569', bg: '#F1F5F9'},
+    {label: 'Réservations totales', value: kpis?.total || 0, icon: CalendarDays, color: '#2563EB', bg: '#EFF6FF', filter: 'all'},
+    {label: 'En cours', value: kpis?.active || 0, icon: Timer, color: '#D97706', bg: '#FFFBEB', filter: 'in_progress'},
+    {label: 'Confirmées', value: kpis?.confirmed || 0, icon: CheckCircle2, color: '#059669', bg: '#ECFDF5', filter: 'confirmed'},
+    {label: "Aujourd'hui", value: kpis?.today || 0, icon: CalendarDays, color: '#6366F1', bg: '#EEF2FF', filter: 'today'},
+    {label: 'En retard', value: kpis?.overdue || 0, icon: AlertTriangle, color: '#DC2626', bg: '#FEF2F2', filter: 'overdue'},
+    {label: 'Terminées', value: kpis?.completed || 0, icon: RotateCcw, color: '#475569', bg: '#F1F5F9', filter: 'completed'},
   ]
+
+  // Filter reservations based on selected KPI
+  const getFilteredReservations = () => {
+    if (!selectedKpi) return []
+    const now = new Date()
+    const todayStr = now.toISOString().slice(0, 10)
+    switch (selectedKpi) {
+      case 'all': return recentRes
+      case 'in_progress': return recentRes.filter(r => r.status === 'in_progress')
+      case 'confirmed': return recentRes.filter(r => r.status === 'confirmed')
+      case 'today': return recentRes.filter(r => r.start_date?.slice(0, 10) === todayStr || r.end_date?.slice(0, 10) === todayStr)
+      case 'overdue': return recentRes.filter(r => r.status === 'in_progress' && new Date(r.end_date) < now)
+      case 'completed': return recentRes.filter(r => r.status === 'completed')
+      default: return []
+    }
+  }
+  const filteredKpiRes = getFilteredReservations()
+  const selectedKpiCard = kpiCards.find(k => k.filter === selectedKpi)
 
   const unreadNotifs = notifications.filter(n => !n.read)
 
@@ -160,8 +179,15 @@ const PremiumReservationDashboard = () => {
         <div className="rdb-kpi-grid" data-testid="kpi-grid">
           {kpiCards.map((k, i) => {
             const Icon = k.icon
+            const isSelected = selectedKpi === k.filter
             return (
-              <div key={i} className="rdb-kpi" data-testid={`kpi-${i}`}>
+              <div
+                key={i}
+                className={`rdb-kpi rdb-kpi--clickable ${isSelected ? 'rdb-kpi--selected' : ''}`}
+                style={isSelected ? {borderColor: k.color, boxShadow: `0 4px 16px ${k.color}20`} : {}}
+                onClick={() => setSelectedKpi(isSelected ? null : k.filter)}
+                data-testid={`kpi-${i}`}
+              >
                 <div className="rdb-kpi-icon" style={{background: k.bg}}>
                   <Icon size={20} style={{color: k.color}} />
                 </div>
@@ -169,10 +195,50 @@ const PremiumReservationDashboard = () => {
                   <span className="rdb-kpi-val" style={{color: k.color}}>{k.value}</span>
                   <span className="rdb-kpi-label">{k.label}</span>
                 </div>
+                {isSelected && <ChevronUp size={14} style={{color: k.color, marginLeft: 'auto'}} />}
               </div>
             )
           })}
         </div>
+
+        {/* KPI Detail Panel */}
+        {selectedKpi && (
+          <div className="rdb-kpi-detail" data-testid="kpi-detail-panel">
+            <div className="rdb-kpi-detail-head">
+              <h2 style={{color: selectedKpiCard?.color}}>
+                {selectedKpiCard && <selectedKpiCard.icon size={16} />}
+                {selectedKpiCard?.label} ({filteredKpiRes.length})
+              </h2>
+              <button className="rdb-kpi-detail-close" onClick={() => setSelectedKpi(null)} data-testid="kpi-detail-close">
+                <X size={16} />
+              </button>
+            </div>
+            {filteredKpiRes.length === 0 ? (
+              <div className="rdb-kpi-detail-empty">Aucune réservation dans cette catégorie</div>
+            ) : (
+              <div className="rdb-kpi-detail-grid">
+                {filteredKpiRes.map((r, i) => {
+                  const st = STATUS_MAP[r.status] || STATUS_MAP.confirmed
+                  const isOverdue = r.status === 'in_progress' && new Date(r.end_date) < new Date()
+                  const fmtDate = (d) => d ? new Date(d).toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'}) : '—'
+                  return (
+                    <div key={r.id || i} className={`rdb-kpi-card ${isOverdue ? 'rdb-kpi-card--overdue' : ''}`} data-testid={`kpi-res-${i}`}>
+                      <div className="rdb-kpi-card-top">
+                        <span className="rdb-kpi-card-asset">{r.asset_name}</span>
+                        <span className="rdb-kpi-card-badge" style={{background: st.bg, color: st.color}}>{st.label}</span>
+                      </div>
+                      {(r.site || r.address) && (
+                        <div className="rdb-kpi-card-row"><MapPin size={11} /> {r.site || r.address}</div>
+                      )}
+                      <div className="rdb-kpi-card-row"><CalendarDays size={11} /> {fmtDate(r.start_date)} → {fmtDate(r.end_date)}</div>
+                      {r.note && <div className="rdb-kpi-card-row rdb-kpi-card-note">{r.note}</div>}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        )}
 
         <div className="rdb-two-cols">
           {/* SMART ALERTS + NOTIFICATIONS PANEL */}
@@ -329,7 +395,7 @@ const PremiumReservationDashboard = () => {
                     <div key={r.id} className="rdb-recent-item" data-testid={`recent-${i}`}>
                       <div className="rdb-recent-left">
                         <span className="rdb-recent-asset">{r.asset_name}</span>
-                        <span className="rdb-recent-user">{r.user_name} — {r.site || 'N/A'}</span>
+                        <span className="rdb-recent-user">{r.site || r.address || '—'}</span>
                       </div>
                       <span className="rdb-recent-badge" style={{background: st.bg, color: st.color}}>{st.label}</span>
                     </div>
@@ -356,11 +422,70 @@ const STYLES = `
 
 /* KPI Grid */
 .rdb-kpi-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:24px; }
-.rdb-kpi { display:flex; align-items:center; gap:14px; padding:20px; background:#FFF; border-radius:14px; border:1px solid #E2E8F0; transition:all .15s; }
-.rdb-kpi:hover { border-color:#CBD5E1; box-shadow:0 4px 12px rgba(0,0,0,.04); }
+.rdb-kpi { display:flex; align-items:center; gap:14px; padding:20px; background:#FFF; border-radius:14px; border:1.5px solid #E2E8F0; transition:all .2s; }
+.rdb-kpi--clickable { cursor:pointer; }
+.rdb-kpi--clickable:hover { border-color:#CBD5E1; box-shadow:0 6px 20px rgba(0,0,0,.06); transform:translateY(-2px); }
+.rdb-kpi--selected { transform:translateY(-2px); }
 .rdb-kpi-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
 .rdb-kpi-val { font-family:'Manrope',sans-serif; font-size:1.4rem; font-weight:800; display:block; }
 .rdb-kpi-label { font-family:'Inter',sans-serif; font-size:.72rem; color:#64748B; }
+
+/* KPI Detail Panel */
+.rdb-kpi-detail {
+  background:#FFF; border-radius:14px; border:1.5px solid #E2E8F0;
+  margin-bottom:24px; animation:rdbSlideDown .25s ease;
+  overflow:hidden;
+}
+@keyframes rdbSlideDown { from{opacity:0;max-height:0;margin-bottom:0} to{opacity:1;max-height:2000px;margin-bottom:24px} }
+.rdb-kpi-detail-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:16px 20px; border-bottom:1px solid #F1F5F9;
+}
+.rdb-kpi-detail-head h2 {
+  font-family:'Manrope',sans-serif; font-size:.92rem; font-weight:800;
+  margin:0; display:flex; align-items:center; gap:8px;
+}
+.rdb-kpi-detail-close {
+  border:none; background:#F1F5F9; color:#64748B; border-radius:8px;
+  width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+  cursor:pointer; transition:all .12s;
+}
+.rdb-kpi-detail-close:hover { background:#E2E8F0; color:#0F172A; }
+.rdb-kpi-detail-empty {
+  padding:40px; text-align:center; font-family:'Inter',sans-serif;
+  color:#94A3B8; font-size:.82rem;
+}
+.rdb-kpi-detail-grid {
+  display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+  gap:10px; padding:16px; max-height:400px; overflow-y:auto;
+}
+.rdb-kpi-card {
+  padding:14px 16px; background:#FAFBFC; border-radius:10px;
+  border:1px solid #F1F5F9; transition:all .12s;
+}
+.rdb-kpi-card:hover { border-color:#E2E8F0; background:#FFF; }
+.rdb-kpi-card--overdue { border-left:3px solid #EF4444; }
+.rdb-kpi-card-top {
+  display:flex; align-items:center; justify-content:space-between;
+  gap:8px; margin-bottom:6px;
+}
+.rdb-kpi-card-asset {
+  font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:800;
+  color:#0F172A; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.rdb-kpi-card-badge {
+  display:inline-flex; padding:2px 8px; border-radius:12px;
+  font-family:'Inter',sans-serif; font-size:.58rem; font-weight:700; flex-shrink:0;
+}
+.rdb-kpi-card-row {
+  display:flex; align-items:center; gap:5px;
+  font-family:'Inter',sans-serif; font-size:.68rem; color:#64748B;
+}
+.rdb-kpi-card-row svg { color:#94A3B8; flex-shrink:0; }
+.rdb-kpi-card-note {
+  font-style:italic; color:#94A3B8; margin-top:2px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
 
 /* Two columns */
 .rdb-two-cols { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
