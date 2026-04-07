@@ -39,8 +39,16 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Toast résultat final (succès/échec) affiché 8 secondes
 - Tests: iteration_36 (100% - 12/12 tests passés)
 
+### Pagination Carte/Command Center (DONE - Apr 7, 2026)
+- Ajout pagination sidebar assets: 30 items/page avec boutons prev/next
+- Fix loading state bloqué par API logs externe (rendu non-bloquant)
+- Reset automatique page 1 lors de changement de filtre ou recherche
+- Pagination masquée quand résultats < 30 items
+- Fallback "Chargement des assets..." si Redux n'a pas encore chargé
+- Tests: iteration_37 (100% - 11/11 tests passés)
+
 ## Notes
-- L'API externe retourne toujours PageSize=500 depuis sa base plus large → compteur reste ~500 après suppressions
+- L'API externe retourne toujours PageSize=500 depuis sa base plus large
 - Les suppressions sont permanentes dans l'API externe
 
 ## Backlog
@@ -50,4 +58,4 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Backlog: Refactoring PremiumAssets.jsx (~1320 lignes) en sous-composants
 
 ## Test Reports
-- /app/test_reports/iteration_1.json through iteration_36.json
+- /app/test_reports/iteration_1.json through iteration_37.json
