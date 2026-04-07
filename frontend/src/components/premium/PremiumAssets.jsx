@@ -124,6 +124,7 @@ const PremiumAssets = () => {
   const [deleteResult, setDeleteResult] = useState(null)
   const [deletedIds, setDeletedIds] = useState(() => loadDeletedIds())
   const [pendingDelete, setPendingDelete] = useState(null)
+  const [bulkProgress, setBulkProgress] = useState(null)
   const undoTimerRef = useRef(null)
 
   // Persist deletedIds to localStorage
@@ -209,7 +210,9 @@ const PremiumAssets = () => {
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
     let deleted = 0, failed = 0
+    const total = selectedIds.size
     const newlyDeleted = []
+    
     for (const id of selectedIds) {
       try {
         const item = allData.find(d => d.id === id)
@@ -221,23 +224,33 @@ const PremiumAssets = () => {
           const result = await resp.json()
           if (result?.result?.[0]?.typeMsg === 'success') {
             deleted++
-            newlyDeleted.push(id)
+            newlyDeleted.push(String(id))
           } else failed++
-        }
+        } else failed++
       } catch { failed++ }
+      // Update progress
+      setBulkProgress({done: deleted + failed, total, deleted, failed})
     }
+    
+    // Update deletedIds for visual removal
     if (newlyDeleted.length > 0) {
       setDeletedIds(prev => {
         const next = new Set(prev)
-        newlyDeleted.forEach(id => next.add(String(id)))
+        newlyDeleted.forEach(id => next.add(id))
         return next
       })
     }
+    
+    // Clear states and show result
     setDeleting(false)
     setDeleteConfirm(false)
     setSelectedIds(new Set())
-    setDeleteResult({deleted, failed})
-    setTimeout(() => setDeleteResult(null), 6000)
+    setBulkProgress(null)
+    
+    // Force show result toast
+    const resultMsg = {deleted, failed, total}
+    setDeleteResult(resultMsg)
+    setTimeout(() => setDeleteResult(null), 8000)
   }
 
   const handleSingleDelete = () => {
@@ -752,6 +765,21 @@ const PremiumAssets = () => {
               <button className="lta-bulk-btn" onClick={clearSelection} data-testid="clear-selection-btn">
                 <X size={14} /> Annuler
               </button>
+            </div>
+          </div>
+        )}
+
+        {/* BULK DELETE PROGRESS OVERLAY */}
+        {bulkProgress && (
+          <div className="lta-confirm-overlay" data-testid="bulk-progress-overlay">
+            <div className="lta-confirm-modal" style={{textAlign:'center'}}>
+              <Loader2 size={36} className="lta-spin" style={{color:'#3B82F6', margin:'0 auto 12px'}} />
+              <h3 className="lta-confirm-title">Suppression en cours...</h3>
+              <p className="lta-confirm-text">{bulkProgress.done} / {bulkProgress.total} traités</p>
+              <div style={{background:'#E5E7EB', borderRadius:8, height:8, margin:'12px 0', overflow:'hidden'}}>
+                <div style={{background: bulkProgress.failed > 0 ? '#F59E0B' : '#3B82F6', height:'100%', width:`${(bulkProgress.done/bulkProgress.total)*100}%`, borderRadius:8, transition:'width .2s'}} />
+              </div>
+              <p style={{fontSize:'.78rem', color:'#6B7280'}}>{bulkProgress.deleted} supprimé{bulkProgress.deleted > 1 ? 's' : ''}{bulkProgress.failed > 0 ? `, ${bulkProgress.failed} échoué${bulkProgress.failed > 1 ? 's' : ''}` : ''}</p>
             </div>
           </div>
         )}
