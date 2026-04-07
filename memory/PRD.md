@@ -23,44 +23,19 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 │   └── seed.py             # Test data seeding
 ```
 
-## Completed Features
-
-### Phase 1-20 - ALL DONE
-- Full Premium SaaS UI (14+ pages), Reservation Module, Advanced Geofencing, WebSocket
-- Enterprise Command Center, Skeleton Loading, Rich Timeline Journal, Auto-refresh
-
-### Phase 21 - CHECKBOXES ASSETS + ALERTES SMART (DONE)
-- Multi-selection checkboxes, bulk delete, select all
-- Phase A: Smart Alert engine (5 rule types, scan, resolve, stats)
-- Tests: iteration_29 (7/7), iteration_30 (22/22)
-
-### Phase B - VUE GANTT PLANNING (DONE)
-- Gantt timeline: 1 ligne/asset, barres colorées, toolbar, zoom, filtres
-- Backend: GET /api/reservations/gantt?days=14
-- Test: iteration_31 (42/42)
-
-### Phase C - WORKFLOW APPROBATION (DONE)
-- Approve/Reject buttons in Gantt detail panel
-- Backend: POST /api/reservations/{id}/approve et /reject
-
-### Phase D - DASHBOARD OPERATIONNEL (DONE)
-- GET /api/reservations/today-summary
-- KPIs dans Command Center
+## Completed Features (All Phases Done)
 
 ### P1 - REFACTORING server.py (DONE - Apr 7, 2026)
 - server.py: 1487 lignes → 137 lignes + 7 routeurs séparés
-- shared.py pour les dépendances partagées (db, ws_manager, http_client)
-- Bug fix: ordre des routeurs (alerts_router avant reservations_router)
-- Test regression: iteration_32 (24/24 backend, frontend OK)
-
-### P2 - GRID/CARD VIEWS + PRESETS (ALREADY DONE)
-- Toggle Liste/Grille dans PremiumAssets.jsx
-- 3 presets: Vue complète, Vue standard, Vue simple
-- Configuration colonnes individuelle avec sauvegarde localStorage
+- shared.py pour les dépendances partagées
+- Test regression: iteration_32 (24/24)
 
 ### BUG FIX - SUPPRESSION ASSETS (DONE - Apr 7, 2026)
-- Problème: L'API externe exige un ID numérique, le frontend envoyait une string
-- Fix: parseInt(item.id, 10) dans PremiumAssets.jsx
+- Ajout bouton supprimer individuel (icône poubelle rouge) sur chaque carte
+- Modal de confirmation individuel avec nom de l'asset
+- Toast de résultat (succès/erreur) après suppression
+- Gestion d'erreur améliorée (vérification de la réponse API)
+- parseInt pour les IDs numériques de l'API externe
 
 ## DB Schema (Local MongoDB `test_database`)
 - reservations, reservation_logs, notifications, user_roles

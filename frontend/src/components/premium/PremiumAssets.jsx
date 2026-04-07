@@ -96,6 +96,8 @@ const PremiumAssets = () => {
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [singleDeleteItem, setSingleDeleteItem] = useState(null)
+  const [deleteResult, setDeleteResult] = useState(null)
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
@@ -155,23 +157,53 @@ const PremiumAssets = () => {
 
   const handleBulkDelete = async () => {
     setDeleting(true)
+    setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
-    let deleted = 0
+    let deleted = 0, failed = 0
     for (const id of selectedIds) {
       try {
         const item = allData.find(d => d.id === id)
         if (item) {
-          await fetch(`${API}/api/proxy/engin/delete`, {
+          const resp = await fetch(`${API}/api/proxy/engin/delete`, {
             method: 'POST', headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({id: parseInt(item.id, 10) || item.id})
           })
-          deleted++
+          const result = await resp.json()
+          if (result?.result?.[0]?.typeMsg === 'success') deleted++
+          else failed++
         }
-      } catch {}
+      } catch { failed++ }
     }
     setDeleting(false)
     setDeleteConfirm(false)
     setSelectedIds(new Set())
+    setDeleteResult({deleted, failed})
+    setTimeout(() => setDeleteResult(null), 4000)
+    loadData()
+  }
+
+  const handleSingleDelete = async () => {
+    if (!singleDeleteItem) return
+    setDeleting(true)
+    setDeleteResult(null)
+    const API = process.env.REACT_APP_BACKEND_URL
+    try {
+      const resp = await fetch(`${API}/api/proxy/engin/delete`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: parseInt(singleDeleteItem.id, 10) || singleDeleteItem.id})
+      })
+      const result = await resp.json()
+      if (result?.result?.[0]?.typeMsg === 'success') {
+        setDeleteResult({deleted: 1, failed: 0})
+      } else {
+        setDeleteResult({deleted: 0, failed: 1, error: result?.result?.[0]?.msg || 'Erreur inconnue'})
+      }
+    } catch (e) {
+      setDeleteResult({deleted: 0, failed: 1, error: e.message})
+    }
+    setDeleting(false)
+    setSingleDeleteItem(null)
+    setTimeout(() => setDeleteResult(null), 4000)
     loadData()
   }
 
@@ -390,8 +422,8 @@ const PremiumAssets = () => {
           <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); openEdit(item); }} title="Modifier" data-testid={`asset-edit-btn-${i}`}>
             <Pencil size={15} />
           </button>
-          <button className="lta-act-btn" onClick={(e) => { e.stopPropagation(); handleShowMap(item); }} title="Carte">
-            <MapIcon size={15} />
+          <button className="lta-act-btn lta-act-btn--danger" onClick={(e) => { e.stopPropagation(); setSingleDeleteItem(item); }} title="Supprimer" data-testid={`asset-delete-btn-${i}`}>
+            <Trash2 size={15} />
           </button>
         </div>
       </div>
@@ -439,6 +471,9 @@ const PremiumAssets = () => {
         {isColVisible('famille') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.famille || '—'}</span>}
         {isColVisible('tag') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.labeltag || item.tagname || '—'}</span>}
         {isColVisible('vin') && <span className="lta-row-zone" style={{fontSize: '.72rem'}}>{item.vin || '—'}</span>}
+        <button className="lta-act-btn lta-act-btn--danger lta-row-del" onClick={(e) => { e.stopPropagation(); setSingleDeleteItem(item); }} title="Supprimer" data-testid={`row-delete-btn-${i}`}>
+          <Trash2 size={14} />
+        </button>
       </div>
     )
   }
@@ -635,7 +670,7 @@ const PremiumAssets = () => {
           </div>
         )}
 
-        {/* DELETE CONFIRMATION */}
+        {/* DELETE CONFIRMATION (BULK) */}
         {deleteConfirm && (
           <div className="lta-confirm-overlay" onClick={() => !deleting && setDeleteConfirm(false)}>
             <div className="lta-confirm-modal" onClick={e => e.stopPropagation()} data-testid="delete-confirm-modal">
@@ -650,6 +685,34 @@ const PremiumAssets = () => {
                 </button>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION (SINGLE ITEM) */}
+        {singleDeleteItem && (
+          <div className="lta-confirm-overlay" onClick={() => !deleting && setSingleDeleteItem(null)}>
+            <div className="lta-confirm-modal" onClick={e => e.stopPropagation()} data-testid="single-delete-modal">
+              <div className="lta-confirm-icon"><AlertTriangle size={32} /></div>
+              <h3 className="lta-confirm-title">Supprimer cet asset ?</h3>
+              <p className="lta-confirm-text">Voulez-vous vraiment supprimer <strong>{singleDeleteItem.reference || singleDeleteItem.label || 'cet asset'}</strong> ? Cette action est irréversible.</p>
+              <div className="lta-confirm-btns">
+                <button className="lta-confirm-btn lta-confirm-btn--cancel" onClick={() => setSingleDeleteItem(null)} disabled={deleting}>Annuler</button>
+                <button className="lta-confirm-btn lta-confirm-btn--delete" onClick={handleSingleDelete} disabled={deleting} data-testid="confirm-single-delete-btn">
+                  {deleting ? <Loader2 size={14} className="lta-spin" /> : <Trash2 size={14} />}
+                  {deleting ? 'Suppression...' : 'Supprimer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* DELETE RESULT TOAST */}
+        {deleteResult && (
+          <div className={`lta-toast ${deleteResult.deleted > 0 ? 'lta-toast--success' : 'lta-toast--error'}`} data-testid="delete-toast">
+            {deleteResult.deleted > 0
+              ? `${deleteResult.deleted} asset${deleteResult.deleted > 1 ? 's' : ''} supprimé${deleteResult.deleted > 1 ? 's' : ''} avec succès`
+              : `Erreur de suppression${deleteResult.error ? ` : ${deleteResult.error}` : ''}`}
+            {deleteResult.failed > 0 && deleteResult.deleted > 0 && ` (${deleteResult.failed} échec${deleteResult.failed > 1 ? 's' : ''})`}
           </div>
         )}
 
@@ -895,6 +958,12 @@ const STYLES = `
 .lta-act-btn { flex:1; display:flex; align-items:center; justify-content:center; gap:6px; padding:10px; border:none; background:transparent; color:#64748B; cursor:pointer; transition:all .12s; font-size:.78rem; }
 .lta-act-btn + .lta-act-btn { border-left:1px solid #F1F5F9; }
 .lta-act-btn:hover { background:#EFF6FF; color:#2563EB; }
+.lta-act-btn--danger:hover { background:#FEF2F2; color:#DC2626; }
+.lta-row-del { flex:none; width:36px; padding:6px; margin-left:auto; border-radius:6px; }
+.lta-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:12px; font-family:'Inter',sans-serif; font-size:.85rem; font-weight:600; z-index:2000; box-shadow:0 8px 24px rgba(0,0,0,.15); animation:ltaToastIn .3s ease; }
+.lta-toast--success { background:#059669; color:#FFF; }
+.lta-toast--error { background:#DC2626; color:#FFF; }
+@keyframes ltaToastIn { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
 
 /* ── LIST VIEW ── */
 .lta-list { background:#FFF; border-radius:14px; border:1px solid #E2E8F0; overflow:hidden; }
