@@ -84,7 +84,7 @@ const PremiumMyReservations = () => {
     if (tab === 'past' && !['completed', 'cancelled', 'rejected', 'expired'].includes(r.status)) return false
     if (search) {
       const t = search.toLowerCase()
-      if (![r.asset_name, r.user_name, r.project, r.site].some(f => f && f.toLowerCase().includes(t))) return false
+      if (![r.asset_name, r.site, r.address].some(f => f && f.toLowerCase().includes(t))) return false
     }
     return true
   }).sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
@@ -185,9 +185,8 @@ const PremiumMyReservations = () => {
                       </div>
                     </div>
                     <div className="mr-card-meta">
-                      <span><User size={12} /> {r.user_name}</span>
                       {r.site && <span><MapPin size={12} /> {r.site}</span>}
-                      {r.project && <span><FileText size={12} /> {r.project}</span>}
+                      {r.address && <span><MapPin size={12} /> {r.address}</span>}
                     </div>
                     <div className="mr-card-dates">
                       <span><CalendarDays size={12} /> {formatDate(r.start_date)} {formatTime(r.start_date)}</span>
@@ -197,12 +196,12 @@ const PremiumMyReservations = () => {
                   </div>
                   <div className="mr-card-actions">
                     {r.status === 'confirmed' && (
-                      <button className="mr-act-btn mr-act-btn--checkout" onClick={() => { setCoForm({user_name: r.user_name, location: r.site || '', condition: 'good', comment: ''}); setCoModal(r); }} data-testid={`checkout-btn-${i}`}>
+                      <button className="mr-act-btn mr-act-btn--checkout" onClick={() => { setCoForm({user_name: '', location: r.site || '', condition: 'good', comment: ''}); setCoModal(r); }} data-testid={`checkout-btn-${i}`}>
                         <LogOut size={14} /> Sortie
                       </button>
                     )}
                     {r.status === 'in_progress' && (
-                      <button className="mr-act-btn mr-act-btn--checkin" onClick={() => { setCiForm({user_name: r.user_name, condition: 'good', comment: ''}); setCiModal(r); }} data-testid={`checkin-btn-${i}`}>
+                      <button className="mr-act-btn mr-act-btn--checkin" onClick={() => { setCiForm({user_name: '', condition: 'good', comment: ''}); setCiModal(r); }} data-testid={`checkin-btn-${i}`}>
                         <LogIn size={14} /> Retour
                       </button>
                     )}
@@ -262,12 +261,10 @@ const PremiumMyReservations = () => {
                   <div className="mr-drawer-badges"><span className="mr-badge" style={{background: st.bg, color: st.color}}>{st.label}</span></div>
                   <h2 className="mr-drawer-asset">{r.asset_name}</h2>
                   <div className="mr-drawer-grid">
-                    <div className="mr-drow"><label>Utilisateur</label><span>{r.user_name}</span></div>
                     <div className="mr-drow"><label>Site</label><span>{r.site || '—'}</span></div>
+                    {r.address && <div className="mr-drow"><label>Adresse</label><span>{r.address}</span></div>}
                     <div className="mr-drow"><label>Début</label><span>{new Date(r.start_date).toLocaleString('fr-FR')}</span></div>
                     <div className="mr-drow"><label>Fin</label><span>{new Date(r.end_date).toLocaleString('fr-FR')}</span></div>
-                    {r.team && <div className="mr-drow"><label>Équipe</label><span>{r.team}</span></div>}
-                    {r.project && <div className="mr-drow"><label>Projet</label><span>{r.project}</span></div>}
                     {r.note && <div className="mr-drow"><label>Note</label><span>{r.note}</span></div>}
                     {r.checkout_at && <><div className="mr-drow"><label>Sorti le</label><span>{new Date(r.checkout_at).toLocaleString('fr-FR')}</span></div><div className="mr-drow"><label>Sorti par</label><span>{r.checkout_by}</span></div></>}
                     {r.checkin_at && <><div className="mr-drow"><label>Retourné le</label><span>{new Date(r.checkin_at).toLocaleString('fr-FR')}</span></div><div className="mr-drow"><label>État retour</label><span>{r.checkin_condition}</span></div></>}

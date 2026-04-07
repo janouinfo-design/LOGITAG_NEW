@@ -13,7 +13,7 @@ router = APIRouter(prefix="/api")
 class ReservationCreate(BaseModel):
     asset_id: str
     asset_name: str
-    user_name: str
+    user_name: Optional[str] = None
     team: Optional[str] = None
     project: Optional[str] = None
     site: Optional[str] = None
@@ -97,13 +97,13 @@ async def create_reservation(data: ReservationCreate):
     await db.reservations.insert_one(reservation)
     await db.reservation_logs.insert_one({
         "id": str(uuid.uuid4()), "reservation_id": reservation["id"],
-        "action": "created", "user": data.user_name,
+        "action": "created", "user": data.user_name or "admin",
         "details": f"Réservation créée pour {data.asset_name}",
         "created_at": datetime.now(timezone.utc).isoformat(),
     })
     await create_notification(
         "reservation_created", "Nouvelle réservation",
-        f"{data.asset_name} réservé par {data.user_name} du {start[:10]} au {end[:10]}",
+        f"{data.asset_name} réservé du {start[:10]} au {end[:10]}",
         reservation["id"], data.asset_id,
     )
     reservation.pop("_id", None)

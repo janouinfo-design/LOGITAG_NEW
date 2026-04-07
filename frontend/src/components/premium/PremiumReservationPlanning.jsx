@@ -49,7 +49,7 @@ const PremiumReservationPlanning = () => {
 
   // Create form
   const [createForm, setCreateForm] = useState({
-    asset_id: '', asset_name: '', user_name: '', team: '', project: '',
+    asset_id: '', asset_name: '',
     site: '', address: '', address_lat: null, address_lng: null,
     start_date: '', end_date: '', note: '', priority: 'normal',
   })
@@ -193,8 +193,8 @@ const PremiumReservationPlanning = () => {
   // ── Actions ──
   const handleCreate = async () => {
     setCreateError(null)
-    if (!createForm.asset_id || !createForm.start_date || !createForm.end_date || !createForm.user_name) {
-      setCreateError("Veuillez remplir tous les champs obligatoires."); return
+    if (!createForm.asset_id || !createForm.start_date || !createForm.end_date) {
+      setCreateError("Veuillez remplir tous les champs obligatoires (Asset, Dates)."); return
     }
     setCreateLoading(true)
     try {
@@ -208,7 +208,7 @@ const PremiumReservationPlanning = () => {
         setCreateLoading(false); return
       }
       setShowCreateModal(false)
-      setCreateForm({asset_id: '', asset_name: '', user_name: '', team: '', project: '', site: '', address: '', address_lat: null, address_lng: null, start_date: '', end_date: '', note: '', priority: 'normal'})
+      setCreateForm({asset_id: '', asset_name: '', site: '', address: '', address_lat: null, address_lng: null, start_date: '', end_date: '', note: '', priority: 'normal'})
       setAddressQuery(''); setAddressSuggestions([])
       fetchReservations()
     } catch { setCreateError("Erreur réseau.") }
@@ -443,21 +443,7 @@ const PremiumReservationPlanning = () => {
                   </div>
                 </div>
                 <div className="rp-form-row">
-                  <div className="rp-form-field">
-                    <label>Utilisateur *</label>
-                    <input value={createForm.user_name} onChange={e => setCreateForm(f => ({...f, user_name: e.target.value}))} placeholder="Nom" data-testid="create-user" />
-                  </div>
-                  <div className="rp-form-field">
-                    <label>Équipe</label>
-                    <input value={createForm.team} onChange={e => setCreateForm(f => ({...f, team: e.target.value}))} placeholder="Équipe" />
-                  </div>
-                </div>
-                <div className="rp-form-row">
-                  <div className="rp-form-field">
-                    <label>Projet</label>
-                    <input value={createForm.project} onChange={e => setCreateForm(f => ({...f, project: e.target.value}))} placeholder="Projet / Chantier" />
-                  </div>
-                  <div className="rp-form-field">
+                  <div className="rp-form-field rp-form-field--full">
                     <label>Site</label>
                     <select value={createForm.site} onChange={e => setCreateForm(f => ({...f, site: e.target.value}))}>
                       <option value="">Sélectionner un site</option>
@@ -550,13 +536,10 @@ const PremiumReservationPlanning = () => {
                       <Truck size={20} /> <span className="rp-drawer-asset">{r.asset_name}</span>
                     </div>
                     <div className="rp-drawer-grid">
-                      <div className="rp-drawer-row"><User size={13} /><label>Utilisateur</label><span>{r.user_name}</span></div>
                       <div className="rp-drawer-row"><MapPin size={13} /><label>Site</label><span>{r.site || '—'}</span></div>
                       {r.address && <div className="rp-drawer-row"><MapPin size={13} /><label>Adresse</label><span>{r.address}</span></div>}
                       <div className="rp-drawer-row"><CalIcon size={13} /><label>Début</label><span>{new Date(r.start_date).toLocaleString('fr-FR')}</span></div>
                       <div className="rp-drawer-row"><CalIcon size={13} /><label>Fin</label><span>{new Date(r.end_date).toLocaleString('fr-FR')}</span></div>
-                      {r.team && <div className="rp-drawer-row"><User size={13} /><label>Équipe</label><span>{r.team}</span></div>}
-                      {r.project && <div className="rp-drawer-row"><Truck size={13} /><label>Projet</label><span>{r.project}</span></div>}
                       {r.note && <div className="rp-drawer-row"><Eye size={13} /><label>Note</label><span>{r.note}</span></div>}
                     </div>
                     {r.checkout_at && (

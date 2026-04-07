@@ -187,9 +187,9 @@ const PremiumGantt = () => {
                         onMouseLeave={() => setHoveredRes(null)}
                         onClick={() => setSelectedRes(res)}
                         data-testid={`gantt-bar-${ai}-${ri}`}
-                        title={`${res.user_name} • ${sc.label} ${pri}`}
+                        title={`${res.asset_name} • ${sc.label} ${pri}`}
                       >
-                        <span className="pg-bar-text">{res.user_name}{pri && <span className="pg-bar-pri">{pri}</span>}</span>
+                        <span className="pg-bar-text">{res.asset_name}{pri && <span className="pg-bar-pri">{pri}</span>}</span>
                       </div>
                     )
                   })}
@@ -209,7 +209,6 @@ const PremiumGantt = () => {
               <button onClick={() => setSelectedRes(null)}><XIcon size={16} /></button>
             </div>
             <div className="pg-detail-body">
-              <div className="pg-detail-row"><User size={13} /><label>Utilisateur</label><span>{selectedRes.user_name}</span></div>
               <div className="pg-detail-row"><Calendar size={13} /><label>Début</label><span>{fmtDate(selectedRes.start_date)}</span></div>
               <div className="pg-detail-row"><Calendar size={13} /><label>Fin</label><span>{fmtDate(selectedRes.end_date)}</span></div>
               <div className="pg-detail-row"><Shield size={13} /><label>Statut</label>
@@ -219,7 +218,6 @@ const PremiumGantt = () => {
               </div>
               {selectedRes.site && <div className="pg-detail-row"><MapPin size={13} /><label>Site</label><span>{selectedRes.site}</span></div>}
               {selectedRes.address && <div className="pg-detail-row"><MapPin size={13} /><label>Adresse</label><span>{selectedRes.address}</span></div>}
-              {selectedRes.project && <div className="pg-detail-row"><Truck size={13} /><label>Projet</label><span>{selectedRes.project}</span></div>}
               {selectedRes.note && <div className="pg-detail-row"><Eye size={13} /><label>Note</label><span>{selectedRes.note}</span></div>}
             </div>
             {selectedRes.status === 'requested' && (

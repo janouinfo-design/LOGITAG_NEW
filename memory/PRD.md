@@ -13,7 +13,7 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 /app/backend/
 ├── server.py               # ~137 lignes: init, middleware, proxy, websocket
 ├── shared.py               # DB, WS manager, HTTP client
-├── routes/                 # 7 routeurs séparés
+├── routes/                 # 7 routeurs séparés (alerts, maintenance, notifications, reservations, roles, seed, zones)
 ```
 
 ## Completed Features
@@ -22,34 +22,22 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 ### Phase 21: Checkboxes + Smart Alerts (DONE)
 ### Phases B/C/D: Gantt + Approbation + KPIs (DONE)
 ### P1: Refactoring server.py (DONE)
-
-### Suppression Assets (DONE - Apr 7, 2026)
-- Bouton supprimer individuel (poubelle rouge) sur chaque carte/ligne
-- Modal de confirmation + Undo 5 secondes avec barre de progression
-- Persistance des IDs supprimés dans localStorage (expire 24h)
-- Suppression en masse via checkboxes avec overlay de progression
-- Route Assets ajoutée à EXTRA_MENU (fix navigation)
-- Pagination cartes fonctionnelle (15 items/page, 34 pages)
-
-### Bulk Delete Visual Feedback (DONE - Apr 7, 2026)
-- Overlay de progression avec spinner, barre de progression et compteur (X/Y traités)
-- Fermeture immédiate du modal de confirmation au début du bulk delete
-- Pause de 600ms à 100% pour montrer la complétion
-- Auto-correction de la page de pagination si elle dépasse le total après suppression (safePage)
-- Toast résultat final (succès/échec) affiché 8 secondes
-- Tests: iteration_36 (100% - 12/12 tests passés)
-
+### Suppression Assets + Bulk Delete Visual Feedback (DONE - Apr 7, 2026)
 ### Pagination Carte/Command Center (DONE - Apr 7, 2026)
-- Ajout pagination sidebar assets: 30 items/page avec boutons prev/next
-- Fix loading state bloqué par API logs externe (rendu non-bloquant)
-- Reset automatique page 1 lors de changement de filtre ou recherche
-- Pagination masquée quand résultats < 30 items
-- Fallback "Chargement des assets..." si Redux n'a pas encore chargé
-- Tests: iteration_37 (100% - 11/11 tests passés)
+
+### Simplification Formulaire Réservation (DONE - Apr 7, 2026)
+- Supprimé les champs Utilisateur, Équipe, Projet du formulaire de création
+- Formulaire simplifié: Asset + Site + Adresse + Dates + Priorité + Note
+- Backend mis à jour: user_name est maintenant optionnel dans ReservationCreate
+- Nettoyé l'affichage dans 3 composants: PremiumReservationPlanning, PremiumGantt, PremiumMyReservations
+- Detail drawers mis à jour (supprimé Utilisateur/Équipe/Projet)
+- Gantt bars affichent maintenant le nom de l'asset au lieu du user_name
+- Testé: Création API OK sans user_name, formulaire UI validé via screenshot
 
 ## Notes
 - L'API externe retourne toujours PageSize=500 depuis sa base plus large
 - Les suppressions sont permanentes dans l'API externe
+- Les réservations existantes avec user_name restent inchangées dans la DB
 
 ## Backlog
 - P3: Registres de maintenance (UI)
