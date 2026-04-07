@@ -163,55 +163,47 @@ const PremiumMyReservations = () => {
         ) : filtered.length === 0 ? (
           <div className="mr-empty"><FileText size={40} /><p>Aucune réservation {tab === 'active' ? 'active' : 'dans l\'historique'}</p></div>
         ) : (
-          <div className="mr-list" data-testid="myres-list">
+          <div className="mr-grid" data-testid="myres-list">
             {filtered.map((r, i) => {
               const st = STATUS_MAP[r.status] || STATUS_MAP.confirmed
               const pr = PRIORITY_MAP[r.priority] || PRIORITY_MAP.normal
               const isOverdue = r.status === 'in_progress' && new Date(r.end_date) < new Date()
               return (
-                <div key={r.id} className={`mr-card ${isOverdue ? 'mr-card--overdue' : ''}`} data-testid={`res-card-${i}`}>
-                  <div className="mr-card-left">
-                    <div className="mr-card-icon" style={{background: st.bg}}>
-                      <Truck size={18} style={{color: st.color}} />
+                <div key={r.id} className={`mr-vignette ${isOverdue ? 'mr-vignette--overdue' : ''}`} data-testid={`res-card-${i}`}>
+                  <div className="mr-v-header">
+                    <div className="mr-v-icon" style={{background: st.bg}}>
+                      <Truck size={16} style={{color: st.color}} />
+                    </div>
+                    <div className="mr-v-badges">
+                      <span className="mr-badge" style={{background: st.bg, color: st.color}}>{st.label}</span>
+                      <span className="mr-badge" style={{background: pr.bg, color: pr.color}}>{pr.label}</span>
+                      {isOverdue && <span className="mr-badge mr-badge--overdue"><AlertTriangle size={9} /> Retard</span>}
                     </div>
                   </div>
-                  <div className="mr-card-body">
-                    <div className="mr-card-top">
-                      <span className="mr-card-asset">{r.asset_name}</span>
-                      <div className="mr-card-badges">
-                        <span className="mr-badge" style={{background: st.bg, color: st.color}}>{st.label}</span>
-                        <span className="mr-badge" style={{background: pr.bg, color: pr.color}}>{pr.label}</span>
-                        {isOverdue && <span className="mr-badge mr-badge--overdue"><AlertTriangle size={10} /> En retard</span>}
-                      </div>
-                    </div>
-                    <div className="mr-card-meta">
-                      {r.site && <span><MapPin size={12} /> {r.site}</span>}
-                      {r.address && <span><MapPin size={12} /> {r.address}</span>}
-                    </div>
-                    <div className="mr-card-dates">
-                      <span><CalendarDays size={12} /> {formatDate(r.start_date)} {formatTime(r.start_date)}</span>
-                      <ArrowRight size={12} />
-                      <span>{formatDate(r.end_date)} {formatTime(r.end_date)}</span>
-                    </div>
+                  <h3 className="mr-v-asset">{r.asset_name}</h3>
+                  <div className="mr-v-info">
+                    {(r.site || r.address) && <div className="mr-v-row"><MapPin size={11} /> <span>{r.site || r.address}</span></div>}
+                    <div className="mr-v-row"><CalendarDays size={11} /> <span>{formatDate(r.start_date)} {formatTime(r.start_date)}</span></div>
+                    <div className="mr-v-row"><ArrowRight size={11} /> <span>{formatDate(r.end_date)} {formatTime(r.end_date)}</span></div>
                   </div>
-                  <div className="mr-card-actions">
+                  <div className="mr-v-actions">
                     {r.status === 'confirmed' && (
-                      <button className="mr-act-btn mr-act-btn--checkout" onClick={() => { setCoForm({user_name: '', location: r.site || '', condition: 'good', comment: ''}); setCoModal(r); }} data-testid={`checkout-btn-${i}`}>
-                        <LogOut size={14} /> Sortie
+                      <button className="mr-v-btn mr-v-btn--checkout" onClick={() => { setCoForm({user_name: '', location: r.site || '', condition: 'good', comment: ''}); setCoModal(r); }} data-testid={`checkout-btn-${i}`}>
+                        <LogOut size={13} /> Sortie
                       </button>
                     )}
                     {r.status === 'in_progress' && (
-                      <button className="mr-act-btn mr-act-btn--checkin" onClick={() => { setCiForm({user_name: '', condition: 'good', comment: ''}); setCiModal(r); }} data-testid={`checkin-btn-${i}`}>
-                        <LogIn size={14} /> Retour
+                      <button className="mr-v-btn mr-v-btn--checkin" onClick={() => { setCiForm({user_name: '', condition: 'good', comment: ''}); setCiModal(r); }} data-testid={`checkin-btn-${i}`}>
+                        <LogIn size={13} /> Retour
                       </button>
                     )}
                     {!['completed', 'cancelled', 'rejected'].includes(r.status) && (
-                      <button className="mr-act-btn mr-act-btn--cancel" onClick={() => handleCancel(r.id)} data-testid={`cancel-btn-${i}`}>
-                        <XCircle size={14} />
+                      <button className="mr-v-btn mr-v-btn--cancel" onClick={() => handleCancel(r.id)} data-testid={`cancel-btn-${i}`} title="Annuler">
+                        <XCircle size={13} />
                       </button>
                     )}
-                    <button className="mr-act-btn" onClick={() => setShowDetail(r)} data-testid={`detail-btn-${i}`}>
-                      <Eye size={14} />
+                    <button className="mr-v-btn" onClick={() => setShowDetail(r)} data-testid={`detail-btn-${i}`} title="Détail">
+                      <Eye size={13} />
                     </button>
                   </div>
                 </div>
@@ -301,31 +293,43 @@ const STYLES = `
 .mr-spin { animation:mrSpin 1s linear infinite; }
 .mr-empty { display:flex; flex-direction:column; align-items:center; gap:12px; padding:60px; color:#94A3B8; }
 .mr-empty p { font-family:'Inter',sans-serif; font-size:.88rem; }
-.mr-list { display:flex; flex-direction:column; gap:10px; }
-.mr-card { display:flex; align-items:flex-start; gap:14px; padding:18px 20px; background:#FFF; border-radius:14px; border:1px solid #E2E8F0; transition:all .15s; }
-.mr-card:hover { border-color:#CBD5E1; box-shadow:0 4px 12px rgba(0,0,0,.04); }
-.mr-card--overdue { border-left:3px solid #EF4444; }
-.mr-card-left { flex-shrink:0; }
-.mr-card-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; }
-.mr-card-body { flex:1; min-width:0; }
-.mr-card-top { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
-.mr-card-asset { font-family:'Manrope',sans-serif; font-size:.92rem; font-weight:800; color:#0F172A; }
-.mr-card-badges { display:flex; gap:6px; flex-wrap:wrap; }
-.mr-badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:16px; font-family:'Inter',sans-serif; font-size:.65rem; font-weight:700; }
+
+/* ─── GRID VIGNETTES ─── */
+.mr-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:14px; }
+.mr-vignette {
+  display:flex; flex-direction:column; padding:16px 18px; background:#FFF;
+  border-radius:14px; border:1.5px solid #E2E8F0; transition:all .2s ease;
+  position:relative; overflow:hidden;
+}
+.mr-vignette:hover { border-color:#CBD5E1; box-shadow:0 8px 24px rgba(0,0,0,.06); transform:translateY(-2px); }
+.mr-vignette--overdue { border-color:#FCA5A5; }
+.mr-vignette--overdue::before {
+  content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg,#EF4444,#F97316);
+}
+.mr-v-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:10px; }
+.mr-v-icon { width:36px; height:36px; border-radius:10px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.mr-v-badges { display:flex; gap:5px; flex-wrap:wrap; }
+.mr-badge { display:inline-flex; align-items:center; gap:3px; padding:3px 9px; border-radius:14px; font-family:'Inter',sans-serif; font-size:.6rem; font-weight:700; white-space:nowrap; }
 .mr-badge--overdue { background:#FEF2F2; color:#DC2626; }
-.mr-card-meta { display:flex; gap:16px; margin-bottom:6px; flex-wrap:wrap; }
-.mr-card-meta span { display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.72rem; color:#64748B; }
-.mr-card-dates { display:flex; align-items:center; gap:6px; font-family:'Inter',sans-serif; font-size:.72rem; color:#475569; }
-.mr-card-dates svg { color:#94A3B8; }
-.mr-card-actions { display:flex; gap:6px; flex-shrink:0; align-items:flex-start; }
-.mr-act-btn { display:inline-flex; align-items:center; gap:4px; padding:7px 12px; border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF; font-family:'Inter',sans-serif; font-size:.72rem; font-weight:600; color:#475569; cursor:pointer; transition:all .12s; }
-.mr-act-btn:hover { border-color:#2563EB; color:#2563EB; }
-.mr-act-btn--checkout { border-color:#F59E0B; color:#D97706; background:#FFFBEB; }
-.mr-act-btn--checkout:hover { background:#FEF3C7; }
-.mr-act-btn--checkin { border-color:#10B981; color:#059669; background:#ECFDF5; }
-.mr-act-btn--checkin:hover { background:#D1FAE5; }
-.mr-act-btn--cancel { border-color:#EF4444; color:#DC2626; }
-.mr-act-btn--cancel:hover { background:#FEF2F2; }
+.mr-v-asset { font-family:'Manrope',sans-serif; font-size:.88rem; font-weight:800; color:#0F172A; margin:0 0 8px; line-height:1.2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mr-v-info { display:flex; flex-direction:column; gap:4px; margin-bottom:12px; }
+.mr-v-row { display:flex; align-items:center; gap:6px; font-family:'Inter',sans-serif; font-size:.7rem; color:#64748B; }
+.mr-v-row svg { color:#94A3B8; flex-shrink:0; }
+.mr-v-row span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.mr-v-actions { display:flex; gap:6px; margin-top:auto; padding-top:10px; border-top:1px solid #F1F5F9; flex-wrap:wrap; }
+.mr-v-btn {
+  display:inline-flex; align-items:center; gap:4px; padding:6px 10px;
+  border-radius:8px; border:1.5px solid #E2E8F0; background:#FFF;
+  font-family:'Inter',sans-serif; font-size:.68rem; font-weight:600; color:#475569;
+  cursor:pointer; transition:all .12s; white-space:nowrap;
+}
+.mr-v-btn:hover { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.mr-v-btn--checkout { border-color:#F59E0B; color:#D97706; background:#FFFBEB; }
+.mr-v-btn--checkout:hover { background:#FEF3C7; }
+.mr-v-btn--checkin { border-color:#10B981; color:#059669; background:#ECFDF5; }
+.mr-v-btn--checkin:hover { background:#D1FAE5; }
+.mr-v-btn--cancel { border-color:#EF4444; color:#DC2626; }
+.mr-v-btn--cancel:hover { background:#FEF2F2; }
 
 /* Modal / Drawer */
 .mr-modal-bg { position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; }
@@ -361,9 +365,11 @@ const STYLES = `
 @keyframes mrFadeIn { from{opacity:0;transform:scale(.96)} to{opacity:1;transform:scale(1)} }
 @keyframes mrSlideIn { from{transform:translateX(100%)} to{transform:translateX(0)} }
 @media(max-width:768px) {
-  .mr-card { flex-direction:column; }
-  .mr-card-actions { width:100%; justify-content:flex-end; }
+  .mr-grid { grid-template-columns:1fr; }
   .mr-drawer { width:100%; }
+}
+@media(max-width:480px) {
+  .mr-v-actions { flex-direction:column; }
 }
 `
 
