@@ -196,11 +196,19 @@ const PremiumReservationPlanning = () => {
     if (!createForm.asset_id || !createForm.start_date || !createForm.end_date) {
       setCreateError("Veuillez remplir tous les champs obligatoires (Asset, Dates)."); return
     }
+    // Auto-add default times if only date is provided (no T separator)
+    const payload = {...createForm}
+    if (payload.start_date && !payload.start_date.includes('T')) {
+      payload.start_date = `${payload.start_date}T08:00`
+    }
+    if (payload.end_date && !payload.end_date.includes('T')) {
+      payload.end_date = `${payload.end_date}T18:00`
+    }
     setCreateLoading(true)
     try {
       const res = await fetch(`${API}/api/reservations`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(createForm)
+        body: JSON.stringify(payload)
       })
       if (!res.ok) {
         const err = await res.json()
@@ -484,11 +492,11 @@ const PremiumReservationPlanning = () => {
                 <div className="rp-form-row">
                   <div className="rp-form-field">
                     <label>Date début *</label>
-                    <input type="datetime-local" value={createForm.start_date} onChange={e => setCreateForm(f => ({...f, start_date: e.target.value}))} data-testid="create-start" />
+                    <input type="date" value={createForm.start_date} onChange={e => setCreateForm(f => ({...f, start_date: e.target.value}))} data-testid="create-start" />
                   </div>
                   <div className="rp-form-field">
                     <label>Date fin *</label>
-                    <input type="datetime-local" value={createForm.end_date} onChange={e => setCreateForm(f => ({...f, end_date: e.target.value}))} data-testid="create-end" />
+                    <input type="date" value={createForm.end_date} onChange={e => setCreateForm(f => ({...f, end_date: e.target.value}))} data-testid="create-end" />
                   </div>
                 </div>
                 <div className="rp-form-row">
