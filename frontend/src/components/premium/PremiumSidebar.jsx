@@ -29,8 +29,8 @@ const NAV_SECTIONS = [
   {
     id: 'reservations', label: 'Réservations',
     items: [
-      {id: 'planning', label: 'Planning', icon: CalendarDays, path: '/timeline/index'},
-      {id: 'gantt', label: 'Gantt', icon: BarChart3, path: '/reservation/gantt'},
+      {id: 'planning', label: 'Timeline', icon: CalendarDays, path: '/timeline/index'},
+      {id: 'gantt', label: 'Planification', icon: BarChart3, path: '/reservation/gantt'},
       {id: 'res-planning', label: 'Calendrier', icon: CalendarCheck, path: '/reservation/planning'},
       {id: 'res-my', label: 'Mes réservations', icon: ClipboardList, path: '/reservation/myreservations'},
       {id: 'res-dash', label: 'KPI', icon: BarChart3, path: '/reservation/dashboard', hasNotif: true},
