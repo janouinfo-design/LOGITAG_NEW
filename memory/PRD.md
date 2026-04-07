@@ -8,7 +8,7 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Backend: FastAPI + MongoDB + Proxy API externe + WebSocket
 - Auth: admin / user@1234
 
-## Code Architecture (Post-Refactoring - Apr 7, 2026)
+## Code Architecture
 ```
 /app/backend/
 ├── server.py               # ~137 lignes: init FastAPI, middleware, proxy, websocket
@@ -29,22 +29,20 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Premium SaaS UI (14+ pages), Reservations, Geofencing, WebSocket, Command Center
 
 ### Phase 21: Checkboxes + Smart Alerts (DONE)
-- Multi-selection, bulk delete, Smart Alert engine (5 types)
 
 ### Phases B/C/D: Gantt + Approbation + KPIs (DONE)
-- Vue Gantt chronologique, Approve/Reject, Today Summary KPIs
 
 ### P1: Refactoring server.py (DONE - Apr 7, 2026)
-- 1487 → 137 lignes + 7 routeurs séparés + shared.py
+- 1487 → 137 lignes + 7 routeurs séparés
 
-### BUG FIX: Suppression des Assets (DONE - Apr 7, 2026)
-- **Cause racine** : conflit état dual useState/Redux — setAllData ne déclenchait pas de re-render
-- **Solution** : `deletedIds` Set + filtrage au rendu (ligne 284 de PremiumAssets.jsx)
-- **Résultat** : ENGIN1 supprimé → compteur 500→499, toast affiché, carte disparaît
-- Tests: iteration_33 (diagnostic) + iteration_34 (100% fixed)
-
-### P2: Grid/Card + Presets (ALREADY DONE)
-- Toggle Liste/Grille + 3 presets de colonnes
+### Suppression avec Undo (DONE - Apr 7, 2026)
+- Bouton supprimer (poubelle) sur chaque carte et ligne
+- Modal de confirmation individuel avec nom de l'asset
+- **Undo 5 secondes** : item disparaît immédiatement, toast noir avec barre de progression + bouton "Annuler"
+- Si annulé : item restauré, aucune suppression API
+- Si pas annulé après 5s : API delete exécuté, toast vert de confirmation
+- Suppression en masse (bulk) toujours disponible via checkboxes
+- Tests: iteration_35 (100% - 14/14 tests passés)
 
 ## Backlog
 - P3: Registres de maintenance (UI)
@@ -52,4 +50,4 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Backlog: Notifications Email/Push, Multi-language
 
 ## Test Reports
-- /app/test_reports/iteration_1.json through iteration_34.json
+- /app/test_reports/iteration_1.json through iteration_35.json
