@@ -163,7 +163,7 @@ const PremiumAssets = () => {
         if (item) {
           await fetch(`${API}/api/proxy/engin/delete`, {
             method: 'POST', headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({id: item.id})
+            body: JSON.stringify({id: parseInt(item.id, 10) || item.id})
           })
           deleted++
         }

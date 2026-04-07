@@ -1,0 +1,95 @@
+{
+  "summary": "Iteration 32: Backend Regression Testing after major refactoring (server.py split from 1487 lines into 7 route files). Fixed router order bug where /api/reservations/alerts was being matched by /api/reservations/{reservation_id}. Backend: 24/24 tests passed (100%). Frontend: All pages load correctly - Assets, Gantt, Planning.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [
+      {
+        "flow": "Assets page data loading",
+        "issue": "External Omniyat API slow - assets show skeleton loaders while waiting for data",
+        "affected_selectors": ["[data-testid='assets-card-grid']", "[data-testid='assets-loading']"],
+        "priority": "LOW",
+        "note": "This is expected behavior due to external API latency, not a bug"
+      }
+    ],
+    "design_issues": []
+  },
+  "passed_tests": [
+    "Backend: GET /api/ returns Hello World",
+    "Backend: POST /api/status creates status check",
+    "Backend: GET /api/reservations returns list",
+    "Backend: GET /api/reservations/gantt?days=14 returns assets grouped",
+    "Backend: GET /api/reservations/today-summary returns KPI counts",
+    "Backend: GET /api/reservations/kpis returns full KPIs",
+    "Backend: GET /api/reservations/planning returns planning reservations",
+    "Backend: GET /api/reservations/export/csv returns CSV content",
+    "Backend: GET /api/reservations/alerts/rules returns 5 rules",
+    "Backend: POST /api/reservations/alerts/scan works",
+    "Backend: GET /api/reservations/alerts?status=active returns alerts",
+    "Backend: GET /api/reservations/alerts/stats returns stats",
+    "Backend: GET /api/zones returns zones list",
+    "Backend: GET /api/zones/events returns events list",
+    "Backend: GET /api/zones/alerts returns zone alerts",
+    "Backend: GET /api/notifications returns notifications list",
+    "Backend: GET /api/notifications/count returns count",
+    "Backend: GET /api/roles returns 4 roles (super_admin, admin_client, manager, terrain)",
+    "Backend: GET /api/maintenance returns maintenance list",
+    "Backend: POST /api/reservations/{id}/approve changes status to confirmed",
+    "Backend: POST /api/reservations/{id}/reject changes status to rejected",
+    "Backend: Approve non-existent returns 404",
+    "Backend: GET /api/device/configs returns list",
+    "Backend: WebSocket /ws endpoint exists",
+    "Frontend: Assets page loads at /view/engin/index",
+    "Frontend: Assets page has view toggle (cards/list)",
+    "Frontend: Assets page has column config button",
+    "Frontend: Assets column presets work (Vue complète/Vue standard/Vue simple)",
+    "Frontend: Assets filter chips work (Tous/Entrée/Sortie)",
+    "Frontend: Gantt page loads at /reservation/gantt with 22 asset rows",
+    "Frontend: Gantt page has search, status filter, days selector",
+    "Frontend: Planning page loads at /reservation/planning with 43 reservations"
+  ],
+  "failed_tests": [],
+  "bugs_fixed": [
+    {
+      "issue": "Router order bug - /api/reservations/alerts was being matched by /api/reservations/{reservation_id}",
+      "fix": "Moved alerts_router include BEFORE reservations_router in server.py",
+      "file": "/app/backend/server.py",
+      "line": "27-28"
+    }
+  ],
+  "test_report_links": [
+    "/app/backend/tests/test_backend_regression.py",
+    "/app/test_reports/pytest/pytest_regression.xml"
+  ],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Backend refactoring successful: server.py reduced from 1487 to ~137 lines",
+    "7 route files properly organized: zones.py, reservations.py, alerts.py, notifications.py, roles.py, maintenance.py, seed.py",
+    "shared.py correctly exports db, ws_manager, http_client, create_notification",
+    "Asset delete bug fix confirmed: parseInt(item.id, 10) in PremiumAssets.jsx line 166",
+    "Router order is critical: alerts_router must be included before reservations_router to avoid route conflicts"
+  ],
+  "updated_files": [
+    "/app/backend/server.py",
+    "/app/backend/tests/test_backend_regression.py"
+  ],
+  "success_rate": {
+    "backend": "100% (24/24 tests passed)",
+    "frontend": "100% (all pages load correctly)"
+  },
+  "test_credentials": {
+    "username": "admin",
+    "password": "user@1234"
+  },
+  "seed_data_creation": "Created TEST_ prefixed reservations for approval testing during regression tests",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "Iteration 32 was a REGRESSION test after major backend refactoring. server.py was split into 7 route files. Key finding: Router order matters - alerts_router must be included before reservations_router because /api/reservations/alerts would otherwise be matched by /api/reservations/{reservation_id}. All 24 backend endpoints tested and working. Frontend pages: Assets at /view/engin/index (with column presets), Gantt at /reservation/gantt, Planning at /reservation/planning. External Omniyat API may be slow causing skeleton loaders on Assets page.",
+  "mocked_api": {
+    "has_mocked_apis": false,
+    "mocked_apis_list": []
+  }
+}
