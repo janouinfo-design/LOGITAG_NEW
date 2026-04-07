@@ -13,37 +13,34 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 /app/backend/
 ├── server.py               # ~137 lignes: init, middleware, proxy, websocket
 ├── shared.py               # DB, WS manager, HTTP client
-├── routes/                 # 7 routeurs séparés (alerts, maintenance, notifications, reservations, roles, seed, zones)
+├── routes/                 # 7 routeurs séparés
 ```
 
 ## Completed Features
 
-### All Phases 1-20 (DONE)
-### Phase 21: Checkboxes + Smart Alerts (DONE)
-### Phases B/C/D: Gantt + Approbation + KPIs (DONE)
-### P1: Refactoring server.py (DONE)
-### Suppression Assets + Bulk Delete Visual Feedback (DONE - Apr 7, 2026)
+### All Phases 1-20 + B/C/D (DONE)
+### Suppression Assets + Bulk Delete (DONE - Apr 7, 2026)
 ### Pagination Carte/Command Center (DONE - Apr 7, 2026)
-
 ### Simplification Formulaire Réservation (DONE - Apr 7, 2026)
-- Supprimé les champs Utilisateur, Équipe, Projet du formulaire de création
-- Formulaire simplifié: Asset + Site + Adresse + Dates + Priorité + Note
-- Backend mis à jour: user_name est maintenant optionnel dans ReservationCreate
-- Nettoyé l'affichage dans 3 composants: PremiumReservationPlanning, PremiumGantt, PremiumMyReservations
-- Detail drawers mis à jour (supprimé Utilisateur/Équipe/Projet)
-- Gantt bars affichent maintenant le nom de l'asset au lieu du user_name
-- Testé: Création API OK sans user_name, formulaire UI validé via screenshot
+
+### Mes Réservations en Vignettes (DONE - Apr 7, 2026)
+- Layout transformé de liste pleine largeur vers grille CSS Grid responsive
+- 5 colonnes sur desktop (auto-fill, minmax 300px), 1 colonne mobile
+- Chaque vignette: icône + badges statut/priorité, nom asset, site/adresse, dates, boutons actions
+- Cartes en retard: bordure rouge + gradient + badge "Retard"
+- Hover avec élévation et ombre
+- Actions: Sortie/Retour, Annuler, Détail (drawer latéral)
+- Tests: iteration_38 (100% - 12/12 tests passés)
 
 ## Notes
-- L'API externe retourne toujours PageSize=500 depuis sa base plus large
-- Les suppressions sont permanentes dans l'API externe
-- Les réservations existantes avec user_name restent inchangées dans la DB
+- L'API externe retourne toujours PageSize=500
+- Réservations existantes avec user_name restent en DB
 
 ## Backlog
 - P3: Registres de maintenance (UI)
 - P3: Scan QR/NFC pour check-in rapide
 - Backlog: Notifications Email/Push, Multi-language
-- Backlog: Refactoring PremiumAssets.jsx (~1320 lignes) en sous-composants
+- Backlog: Refactoring PremiumAssets.jsx en sous-composants
 
 ## Test Reports
-- /app/test_reports/iteration_1.json through iteration_37.json
+- /app/test_reports/iteration_1.json through iteration_38.json
