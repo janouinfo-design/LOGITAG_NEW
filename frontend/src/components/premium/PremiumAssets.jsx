@@ -160,6 +160,7 @@ const PremiumAssets = () => {
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
     let deleted = 0, failed = 0
+    const deletedIds = new Set()
     for (const id of selectedIds) {
       try {
         const item = allData.find(d => d.id === id)
@@ -169,42 +170,57 @@ const PremiumAssets = () => {
             body: JSON.stringify({id: parseInt(item.id, 10) || item.id})
           })
           const result = await resp.json()
-          if (result?.result?.[0]?.typeMsg === 'success') deleted++
-          else failed++
+          if (result?.result?.[0]?.typeMsg === 'success') {
+            deleted++
+            deletedIds.add(id)
+          } else failed++
         }
       } catch { failed++ }
+    }
+    // Optimistic update: remove deleted items from local state immediately
+    if (deletedIds.size > 0) {
+      setAllData(prev => prev.filter(d => !deletedIds.has(d.id)))
+      setTotalRecords(prev => prev - deletedIds.size)
     }
     setDeleting(false)
     setDeleteConfirm(false)
     setSelectedIds(new Set())
     setDeleteResult({deleted, failed})
-    setTimeout(() => setDeleteResult(null), 4000)
-    loadData()
+    setTimeout(() => setDeleteResult(null), 6000)
   }
 
   const handleSingleDelete = async () => {
     if (!singleDeleteItem) return
+    const itemToDelete = singleDeleteItem
+    const itemId = String(itemToDelete.id)
     setDeleting(true)
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
     try {
       const resp = await fetch(`${API}/api/proxy/engin/delete`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id: parseInt(singleDeleteItem.id, 10) || singleDeleteItem.id})
+        body: JSON.stringify({id: parseInt(itemToDelete.id, 10) || itemToDelete.id})
       })
       const result = await resp.json()
       if (result?.result?.[0]?.typeMsg === 'success') {
-        setDeleteResult({deleted: 1, failed: 0})
+        // BUG: State update is called but UI does not reflect the change
+        // The functional updater runs correctly (verified via console.log)
+        // but React does not re-render the component with the new state
+        setAllData(currentData => {
+          const newData = currentData.filter(d => String(d.id) !== itemId)
+          return newData
+        })
+        setTotalRecords(prev => prev - 1)
+        setDeleteResult({deleted: 1, failed: 0, name: itemToDelete.reference || itemToDelete.label})
       } else {
-        setDeleteResult({deleted: 0, failed: 1, error: result?.result?.[0]?.msg || 'Erreur inconnue'})
+        setDeleteResult({deleted: 0, failed: 1, error: result?.result?.[0]?.msg || 'Erreur'})
       }
     } catch (e) {
       setDeleteResult({deleted: 0, failed: 1, error: e.message})
     }
     setDeleting(false)
     setSingleDeleteItem(null)
-    setTimeout(() => setDeleteResult(null), 4000)
-    loadData()
+    setTimeout(() => setDeleteResult(null), 6000)
   }
 
   const getSortValue = (item, col) => {
@@ -710,7 +726,7 @@ const PremiumAssets = () => {
         {deleteResult && (
           <div className={`lta-toast ${deleteResult.deleted > 0 ? 'lta-toast--success' : 'lta-toast--error'}`} data-testid="delete-toast">
             {deleteResult.deleted > 0
-              ? `${deleteResult.deleted} asset${deleteResult.deleted > 1 ? 's' : ''} supprimé${deleteResult.deleted > 1 ? 's' : ''} avec succès`
+              ? `${deleteResult.name ? `"${deleteResult.name}"` : `${deleteResult.deleted} asset${deleteResult.deleted > 1 ? 's' : ''}`} supprimé${deleteResult.deleted > 1 ? 's' : ''} avec succès`
               : `Erreur de suppression${deleteResult.error ? ` : ${deleteResult.error}` : ''}`}
             {deleteResult.failed > 0 && deleteResult.deleted > 0 && ` (${deleteResult.failed} échec${deleteResult.failed > 1 ? 's' : ''})`}
           </div>
