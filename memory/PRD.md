@@ -11,38 +11,30 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 ## Code Architecture
 ```
 /app/backend/
-├── server.py               # ~137 lignes: init FastAPI, middleware, proxy, websocket
-├── shared.py               # DB, WebSocket manager, HTTP client, create_notification
-├── routes/
-│   ├── reservations.py     # CRUD + Gantt + Planning + Approval + Checkout/Checkin
-│   ├── alerts.py           # Smart Alerts engine, rules, scan
-│   ├── zones.py            # Geofencing, zone events, zone alerts
-│   ├── notifications.py    # Notifications CRUD
-│   ├── roles.py            # Roles & permissions
-│   ├── maintenance.py      # Maintenance records
-│   └── seed.py             # Test data seeding
+├── server.py               # ~137 lignes: init, middleware, proxy, websocket
+├── shared.py               # DB, WS manager, HTTP client
+├── routes/                 # 7 routeurs séparés
 ```
 
 ## Completed Features
 
 ### All Phases 1-20 (DONE)
-- Premium SaaS UI (14+ pages), Reservations, Geofencing, WebSocket, Command Center
-
 ### Phase 21: Checkboxes + Smart Alerts (DONE)
-
 ### Phases B/C/D: Gantt + Approbation + KPIs (DONE)
+### P1: Refactoring server.py (DONE)
 
-### P1: Refactoring server.py (DONE - Apr 7, 2026)
-- 1487 → 137 lignes + 7 routeurs séparés
+### Suppression Assets (DONE - Apr 7, 2026)
+- Bouton supprimer individuel (poubelle rouge) sur chaque carte/ligne
+- Modal de confirmation + Undo 5 secondes avec barre de progression
+- Persistance des IDs supprimés dans localStorage (expire 24h)
+- Suppression en masse via checkboxes
+- Route Assets ajoutée à EXTRA_MENU (fix navigation)
+- Pagination cartes fonctionnelle (15 items/page, 34 pages)
+- Tests: iteration_34 + iteration_35 (100%)
 
-### Suppression avec Undo (DONE - Apr 7, 2026)
-- Bouton supprimer (poubelle) sur chaque carte et ligne
-- Modal de confirmation individuel avec nom de l'asset
-- **Undo 5 secondes** : item disparaît immédiatement, toast noir avec barre de progression + bouton "Annuler"
-- Si annulé : item restauré, aucune suppression API
-- Si pas annulé après 5s : API delete exécuté, toast vert de confirmation
-- Suppression en masse (bulk) toujours disponible via checkboxes
-- Tests: iteration_35 (100% - 14/14 tests passés)
+## Notes
+- L'API externe retourne toujours PageSize=500 depuis sa base plus large → compteur reste ~500 après suppressions
+- Les suppressions sont permanentes dans l'API externe
 
 ## Backlog
 - P3: Registres de maintenance (UI)

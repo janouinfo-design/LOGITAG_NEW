@@ -138,5 +138,15 @@ export const EXTRA_MENU = [
         "color": "",
         "hasChildren": 0,
         "subMenu": []
+    },
+    {
+        "ID": 900016,
+        "Text": "Assets",
+        "Link": "view/engin/index",
+        "Name": "Assets",
+        "icon": "fa-solid fa-box",
+        "color": "",
+        "hasChildren": 0,
+        "subMenu": []
     }
 ]

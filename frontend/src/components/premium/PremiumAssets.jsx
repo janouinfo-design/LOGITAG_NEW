@@ -50,6 +50,30 @@ const loadSavedCols = () => {
 }
 
 /* Generate page numbers with ellipsis */
+const DELETED_IDS_KEY = 'logitag_deleted_asset_ids'
+
+function loadDeletedIds() {
+  try {
+    const saved = localStorage.getItem(DELETED_IDS_KEY)
+    if (saved) {
+      const parsed = JSON.parse(saved)
+      // parsed = {ids: [...], ts: timestamp}
+      // Expire after 24h
+      if (parsed.ts && Date.now() - parsed.ts < 86400000) {
+        return new Set(parsed.ids || [])
+      }
+      localStorage.removeItem(DELETED_IDS_KEY)
+    }
+  } catch {}
+  return new Set()
+}
+
+function saveDeletedIds(ids) {
+  try {
+    localStorage.setItem(DELETED_IDS_KEY, JSON.stringify({ids: [...ids], ts: Date.now()}))
+  } catch {}
+}
+
 function getPageNumbers(current, total) {
   if (total <= 7) return Array.from({length: total}, (_, i) => i + 1)
   const pages = []
@@ -98,9 +122,14 @@ const PremiumAssets = () => {
   const [deleting, setDeleting] = useState(false)
   const [singleDeleteItem, setSingleDeleteItem] = useState(null)
   const [deleteResult, setDeleteResult] = useState(null)
-  const [deletedIds, setDeletedIds] = useState(new Set())
+  const [deletedIds, setDeletedIds] = useState(() => loadDeletedIds())
   const [pendingDelete, setPendingDelete] = useState(null)
   const undoTimerRef = useRef(null)
+
+  // Persist deletedIds to localStorage
+  useEffect(() => {
+    if (deletedIds.size > 0) saveDeletedIds(deletedIds)
+  }, [deletedIds])
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
