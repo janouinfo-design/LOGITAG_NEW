@@ -89,7 +89,7 @@ const EnterpriseCommand = () => {
   const [zones, setZones] = useState([])
   const [events, setEvents] = useState([])
   const [notifCount, setNotifCount] = useState(0)
-  const [sidebarOpen, setSidebarOpen] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [refreshing, setRefreshing] = useState(false)
   const [changedIds, setChangedIds] = useState(new Set())
