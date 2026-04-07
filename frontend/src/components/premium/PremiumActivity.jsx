@@ -169,10 +169,10 @@ const PremiumActivity = () => {
           </div>
         </div>
 
-        {/* Timeline */}
-        <div className="ltact-timeline" data-testid="activity-timeline">
+        {/* Vignettes Grid */}
+        <div className="ltact-grid" data-testid="activity-timeline">
           {loading ? (
-            [...Array(6)].map((_, i) => <div key={i} className="ltact-skel" />)
+            [...Array(8)].map((_, i) => <div key={i} className="ltact-skel" />)
           ) : filtered.length === 0 ? (
             <div className="ltact-empty"><Clock size={40} strokeWidth={1} /><p>Aucun événement</p></div>
           ) : (
@@ -180,25 +180,20 @@ const PremiumActivity = () => {
               const cfg = getCfg(ev.type)
               const Icon = cfg.icon || Clock
               return (
-                <div key={ev.id} className="ltact-event" data-testid={`activity-event-${i}`}>
-                  <div className="ltact-ev-line">
-                    <div className="ltact-ev-dot" style={{background: cfg.bg, borderColor: cfg.color}}>
-                      <Icon size={14} style={{color: cfg.color}} />
+                <div key={ev.id} className="ltact-vignette" data-testid={`activity-event-${i}`}>
+                  <div className="ltact-v-header">
+                    <div className="ltact-v-icon" style={{background: cfg.bg}}>
+                      <Icon size={15} style={{color: cfg.color}} />
                     </div>
+                    <span className="ltact-v-time">{formatTime(ev.time)}</span>
                   </div>
-                  <div className="ltact-ev-card">
-                    <div className="ltact-ev-top">
-                      {ev.image && <img src={`${API_BASE_URL_IMAGE}${ev.image}`} alt="" className="ltact-ev-img" />}
-                      <div className="ltact-ev-info">
-                        <span className="ltact-ev-asset">{ev.asset}</span>
-                        <span className="ltact-ev-detail">{ev.detail}</span>
-                      </div>
-                      <span className="ltact-ev-time">{formatTime(ev.time)}</span>
-                    </div>
-                    <div className="ltact-ev-bottom">
-                      <span className="ltact-ev-zone"><MapPin size={11} /> {ev.zone}</span>
-                      <span className="ltact-ev-badge" style={{background: cfg.bg, color: cfg.color}}>{cfg.label}</span>
-                    </div>
+                  <div className="ltact-v-body">
+                    <span className="ltact-v-asset">{ev.asset}</span>
+                    <span className="ltact-v-detail">{ev.detail}</span>
+                  </div>
+                  <div className="ltact-v-footer">
+                    <span className="ltact-v-zone"><MapPin size={10} /> {ev.zone}</span>
+                    <span className="ltact-v-badge" style={{background: cfg.bg, color: cfg.color}}>{cfg.label}</span>
                   </div>
                 </div>
               )
@@ -247,28 +242,60 @@ const STYLES = `
 .ltact-chip:hover { border-color:#CBD5E1; }
 .ltact-chip--active { font-weight:600; }
 
-.ltact-timeline { display:flex; flex-direction:column; gap:0; }
-.ltact-event { display:flex; gap:14px; }
-.ltact-ev-line { display:flex; flex-direction:column; align-items:center; width:36px; flex-shrink:0; position:relative; }
-.ltact-ev-dot { width:32px; height:32px; border-radius:10px; border:1.5px solid; display:flex; align-items:center; justify-content:center; z-index:1; background:#FFF; }
-.ltact-event:not(:last-child) .ltact-ev-line::after { content:''; position:absolute; top:38px; left:50%; transform:translateX(-50%); width:2px; height:calc(100% - 10px); background:#F1F5F9; }
-.ltact-ev-card { flex:1; background:#FFF; border-radius:12px; border:1px solid #E2E8F0; padding:14px 18px; margin-bottom:12px; transition:all .12s; }
-.ltact-ev-card:hover { border-color:#CBD5E1; box-shadow:0 2px 12px rgba(0,0,0,.03); }
-.ltact-ev-top { display:flex; align-items:center; gap:12px; }
-.ltact-ev-img { width:38px; height:38px; border-radius:9px; object-fit:cover; flex-shrink:0; }
-.ltact-ev-info { flex:1; display:flex; flex-direction:column; gap:2px; min-width:0; }
-.ltact-ev-asset { font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:700; color:#0F172A; }
-.ltact-ev-detail { font-family:'Inter',sans-serif; font-size:.72rem; color:#64748B; }
-.ltact-ev-time { font-family:'Inter',sans-serif; font-size:.68rem; color:#94A3B8; white-space:nowrap; flex-shrink:0; }
-.ltact-ev-bottom { display:flex; align-items:center; justify-content:space-between; margin-top:10px; padding-top:10px; border-top:1px solid #F8FAFC; }
-.ltact-ev-zone { display:flex; align-items:center; gap:4px; font-family:'Inter',sans-serif; font-size:.7rem; color:#94A3B8; }
-.ltact-ev-badge { display:inline-flex; padding:3px 10px; border-radius:6px; font-family:'Inter',sans-serif; font-size:.65rem; font-weight:600; }
+/* Vignettes Grid */
+.ltact-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
 
-.ltact-skel { height:84px; margin-bottom:12px; border-radius:12px; background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:ltShimmer 1.5s infinite; margin-left:50px; }
+.ltact-vignette {
+  display:flex; flex-direction:column; padding:14px 16px;
+  background:#FFF; border-radius:12px; border:1.5px solid #E2E8F0;
+  transition:all .2s ease; cursor:default;
+}
+.ltact-vignette:hover { border-color:#CBD5E1; box-shadow:0 6px 20px rgba(0,0,0,.05); transform:translateY(-1px); }
+
+.ltact-v-header {
+  display:flex; align-items:center; justify-content:space-between;
+  margin-bottom:8px;
+}
+.ltact-v-icon {
+  width:32px; height:32px; border-radius:9px;
+  display:flex; align-items:center; justify-content:center; flex-shrink:0;
+}
+.ltact-v-time {
+  font-family:'Inter',sans-serif; font-size:.62rem; color:#94A3B8;
+  white-space:nowrap;
+}
+.ltact-v-body { margin-bottom:10px; }
+.ltact-v-asset {
+  font-family:'Manrope',sans-serif; font-size:.82rem; font-weight:800;
+  color:#0F172A; display:block; margin-bottom:2px;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ltact-v-detail {
+  font-family:'Inter',sans-serif; font-size:.68rem; color:#64748B;
+  display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.ltact-v-footer {
+  display:flex; align-items:center; justify-content:space-between;
+  padding-top:8px; border-top:1px solid #F1F5F9; margin-top:auto;
+}
+.ltact-v-zone {
+  display:flex; align-items:center; gap:4px;
+  font-family:'Inter',sans-serif; font-size:.65rem; color:#94A3B8;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;
+}
+.ltact-v-zone svg { flex-shrink:0; }
+.ltact-v-badge {
+  display:inline-flex; padding:2px 8px; border-radius:10px;
+  font-family:'Inter',sans-serif; font-size:.58rem; font-weight:700; flex-shrink:0;
+}
+
+.ltact-skel { height:110px; border-radius:12px; background:linear-gradient(90deg,#F1F5F9 25%,#E2E8F0 50%,#F1F5F9 75%); background-size:200% 100%; animation:ltShimmer 1.5s infinite; }
 @keyframes ltShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-.ltact-empty { display:flex; flex-direction:column; align-items:center; padding:60px; color:#CBD5E1; gap:8px; }
+.ltact-empty { display:flex; flex-direction:column; align-items:center; padding:60px; color:#CBD5E1; gap:8px; grid-column:1/-1; }
 .ltact-empty p { font-family:'Inter',sans-serif; font-size:.85rem; color:#94A3B8; margin:0; }
 .ltact-count { text-align:center; margin-top:16px; font-family:'Inter',sans-serif; font-size:.78rem; color:#94A3B8; }
+
+@media(max-width:640px) { .ltact-grid { grid-template-columns:1fr; } }
 `
 
 export default PremiumActivity

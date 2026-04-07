@@ -8,14 +8,6 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 - Backend: FastAPI + MongoDB + Proxy API externe + WebSocket
 - Auth: admin / user@1234
 
-## Code Architecture
-```
-/app/backend/
-├── server.py               # ~137 lignes: init, middleware, proxy, websocket
-├── shared.py               # DB, WS manager, HTTP client
-├── routes/                 # 7 routeurs séparés
-```
-
 ## Completed Features
 
 ### All Phases 1-20 + B/C/D (DONE)
@@ -23,15 +15,22 @@ Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tr
 ### Pagination Carte/Command Center (DONE)
 ### Simplification Formulaire Réservation (DONE)
 ### Mes Réservations en Vignettes (DONE)
+### Menu Sidebar Regroupé (DONE)
+### Dashboard KPI Cliquables (DONE)
+### Renommage Menu: Timeline + Planification (DONE)
 
-### Menu Sidebar Regroupé (DONE - Apr 7, 2026)
-- 5 catégories dépliables: Tableau de bord, Assets, Réservations, Suivi, Administration
-- Headers cliquables avec chevron animé (rotation 180deg)
-- Auto-ouverture de la section contenant la page active
-- Mode collapsed: icônes seules, sections séparées par lignes fines
-- Sidebar 240px (vs 260px avant), collapsed 64px (vs 72px)
-- Badge notification sur KPI, mode sombre toggle
-- Tests: iteration_39 (100% - 10/10 tests passés)
+### Activité en Vignettes + Déplacement Menu (DONE - Apr 7, 2026)
+- Page Activité transformée de timeline verticale en grille de vignettes responsive (3 colonnes)
+- Chaque vignette: icône type, temps relatif, nom asset, détail événement, zone, badge type
+- "Activité" déplacé de "Suivi" vers "Tableau de bord" dans le sidebar
+- Section "Suivi" ne contient plus que Alertes et Rapports
+
+## Menu Sidebar Structure
+- **Tableau de bord**: Carte, Dashboard, Activité
+- **Assets**: Liste Assets, Zones, Gateway
+- **Réservations**: Timeline, Planification, Calendrier, Mes réservations, KPI
+- **Suivi**: Alertes, Rapports
+- **Administration**: Utilisateurs, Rôles, Clients, Paramètres
 
 ## Backlog
 - P3: Registres de maintenance (UI)

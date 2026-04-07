@@ -16,6 +16,7 @@ const NAV_SECTIONS = [
     items: [
       {id: 'command', label: 'Carte', icon: Radar, path: '/command/center'},
       {id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, path: '/tagdashboard/index'},
+      {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
     ]
   },
   {
@@ -39,7 +40,6 @@ const NAV_SECTIONS = [
   {
     id: 'monitoring', label: 'Suivi',
     items: [
-      {id: 'activity', label: 'Activité', icon: Activity, path: '/LOGS/index'},
       {id: 'alerts', label: 'Alertes', icon: Bell, path: '/alert/index'},
       {id: 'reports', label: 'Rapports', icon: FileBarChart, path: '/rapport/index'},
     ]
