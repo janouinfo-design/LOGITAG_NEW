@@ -58,7 +58,7 @@ const PremiumLayout = () => {
 
         <main
           className="lt-premium-main"
-          style={isFullscreen ? {marginLeft: 0, padding: 0} : {marginLeft: collapsed ? 72 : 260}}
+          style={isFullscreen ? {marginLeft: 0, padding: 0} : {marginLeft: collapsed ? 64 : 240}}
           data-testid="premium-main"
         >
           {/* Tenant selector bar */}
