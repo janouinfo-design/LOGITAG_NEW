@@ -99,6 +99,8 @@ const PremiumAssets = () => {
   const [singleDeleteItem, setSingleDeleteItem] = useState(null)
   const [deleteResult, setDeleteResult] = useState(null)
   const [deletedIds, setDeletedIds] = useState(new Set())
+  const [pendingDelete, setPendingDelete] = useState(null)
+  const undoTimerRef = useRef(null)
 
   const formatTimeAgo = (dateStr) => {
     if (!dateStr) return '—'
@@ -156,6 +158,23 @@ const PremiumAssets = () => {
   }
   const clearSelection = () => setSelectedIds(new Set())
 
+  const executeDelete = async (itemToDelete) => {
+    const API = process.env.REACT_APP_BACKEND_URL
+    try {
+      const resp = await fetch(`${API}/api/proxy/engin/delete`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({id: parseInt(itemToDelete.id, 10) || itemToDelete.id})
+      })
+      const result = await resp.json()
+      if (result?.result?.[0]?.typeMsg === 'success') {
+        return true
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
   const handleBulkDelete = async () => {
     setDeleting(true)
     setDeleteResult(null)
@@ -192,34 +211,55 @@ const PremiumAssets = () => {
     setTimeout(() => setDeleteResult(null), 6000)
   }
 
-  const handleSingleDelete = async () => {
+  const handleSingleDelete = () => {
     if (!singleDeleteItem) return
     const itemToDelete = singleDeleteItem
-    setDeleting(true)
-    setDeleteResult(null)
-    const API = process.env.REACT_APP_BACKEND_URL
-    try {
-      const resp = await fetch(`${API}/api/proxy/engin/delete`, {
-        method: 'POST', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({id: parseInt(itemToDelete.id, 10) || itemToDelete.id})
-      })
-      const result = await resp.json()
-      if (result?.result?.[0]?.typeMsg === 'success') {
+    const itemId = String(itemToDelete.id)
+    const itemName = itemToDelete.reference || itemToDelete.label || 'Asset'
+    setSingleDeleteItem(null)
+
+    // Immediately hide from UI
+    setDeletedIds(prev => {
+      const next = new Set(prev)
+      next.add(itemId)
+      return next
+    })
+
+    // Set pending with undo countdown
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+    setPendingDelete({id: itemId, name: itemName, item: itemToDelete, countdown: 5})
+
+    // Execute actual API delete after 5 seconds
+    undoTimerRef.current = setTimeout(async () => {
+      const success = await executeDelete(itemToDelete)
+      setPendingDelete(null)
+      if (success) {
+        setDeleteResult({deleted: 1, failed: 0, name: itemName})
+      } else {
+        // Restore item if API failed
         setDeletedIds(prev => {
           const next = new Set(prev)
-          next.add(String(itemToDelete.id))
+          next.delete(itemId)
           return next
         })
-        setDeleteResult({deleted: 1, failed: 0, name: itemToDelete.reference || itemToDelete.label})
-      } else {
-        setDeleteResult({deleted: 0, failed: 1, error: result?.result?.[0]?.msg || 'Erreur'})
+        setDeleteResult({deleted: 0, failed: 1, error: 'Erreur API'})
       }
-    } catch (e) {
-      setDeleteResult({deleted: 0, failed: 1, error: e.message})
-    }
-    setDeleting(false)
-    setSingleDeleteItem(null)
-    setTimeout(() => setDeleteResult(null), 6000)
+      setTimeout(() => setDeleteResult(null), 4000)
+    }, 5000)
+  }
+
+  const handleUndoDelete = () => {
+    if (!pendingDelete) return
+    if (undoTimerRef.current) clearTimeout(undoTimerRef.current)
+    undoTimerRef.current = null
+    // Restore item in UI
+    setDeletedIds(prev => {
+      const next = new Set(prev)
+      next.delete(pendingDelete.id)
+      return next
+    })
+    setPendingDelete(null)
+    setDeleteResult(null)
   }
 
   const getSortValue = (item, col) => {
@@ -723,8 +763,20 @@ const PremiumAssets = () => {
           </div>
         )}
 
+        {/* UNDO DELETE TOAST */}
+        {pendingDelete && (
+          <div className="lta-toast lta-toast--undo" data-testid="undo-toast">
+            <div className="lta-toast-content">
+              <Trash2 size={16} />
+              <span>"{pendingDelete.name}" supprimé</span>
+              <button className="lta-undo-btn" onClick={handleUndoDelete} data-testid="undo-delete-btn">Annuler</button>
+            </div>
+            <div className="lta-undo-bar" style={{animationDuration: '5s'}} />
+          </div>
+        )}
+
         {/* DELETE RESULT TOAST */}
-        {deleteResult && (
+        {deleteResult && !pendingDelete && (
           <div className={`lta-toast ${deleteResult.deleted > 0 ? 'lta-toast--success' : 'lta-toast--error'}`} data-testid="delete-toast">
             {deleteResult.deleted > 0
               ? `${deleteResult.name ? `"${deleteResult.name}"` : `${deleteResult.deleted} asset${deleteResult.deleted > 1 ? 's' : ''}`} supprimé${deleteResult.deleted > 1 ? 's' : ''} avec succès`
@@ -980,6 +1032,12 @@ const STYLES = `
 .lta-toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%); padding:12px 24px; border-radius:12px; font-family:'Inter',sans-serif; font-size:.85rem; font-weight:600; z-index:2000; box-shadow:0 8px 24px rgba(0,0,0,.15); animation:ltaToastIn .3s ease; }
 .lta-toast--success { background:#059669; color:#FFF; }
 .lta-toast--error { background:#DC2626; color:#FFF; }
+.lta-toast--undo { background:#1E293B; color:#FFF; padding:0; overflow:hidden; }
+.lta-toast-content { display:flex; align-items:center; gap:10px; padding:12px 20px; }
+.lta-undo-btn { background:transparent; border:1px solid rgba(255,255,255,.4); color:#60A5FA; font-weight:700; font-size:.82rem; padding:4px 14px; border-radius:6px; cursor:pointer; transition:all .15s; font-family:inherit; }
+.lta-undo-btn:hover { background:rgba(96,165,250,.15); border-color:#60A5FA; }
+.lta-undo-bar { height:3px; background:linear-gradient(90deg,#60A5FA,#3B82F6); animation:ltaUndoShrink 5s linear forwards; transform-origin:left; }
+@keyframes ltaUndoShrink { from { transform:scaleX(1); } to { transform:scaleX(0); } }
 @keyframes ltaToastIn { from { opacity:0; transform:translateX(-50%) translateY(20px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
 
 /* ── LIST VIEW ── */
