@@ -206,12 +206,17 @@ const PremiumAssets = () => {
   }
 
   const handleBulkDelete = async () => {
+    // Immediately close confirm modal & show progress overlay
+    setDeleteConfirm(false)
     setDeleting(true)
     setDeleteResult(null)
     const API = process.env.REACT_APP_BACKEND_URL
     let deleted = 0, failed = 0
     const total = selectedIds.size
     const newlyDeleted = []
+    
+    // Show initial progress state
+    setBulkProgress({done: 0, total, deleted: 0, failed: 0})
     
     for (const id of selectedIds) {
       try {
@@ -241,9 +246,11 @@ const PremiumAssets = () => {
       })
     }
     
+    // Brief pause to show 100% completion
+    await new Promise(r => setTimeout(r, 600))
+    
     // Clear states and show result
     setDeleting(false)
-    setDeleteConfirm(false)
     setSelectedIds(new Set())
     setBulkProgress(null)
     
@@ -387,7 +394,10 @@ const PremiumAssets = () => {
 
   const totalFiltered = filteredItems.length
   const totalPages = Math.ceil(totalFiltered / rows)
-  const data = filteredItems.slice((page - 1) * rows, page * rows)
+  // Auto-correct page if current page exceeds total pages (e.g. after bulk delete)
+  const safePage = totalPages > 0 && page > totalPages ? totalPages : page
+  if (safePage !== page) setTimeout(() => setPage(safePage), 0)
+  const data = filteredItems.slice((safePage - 1) * rows, safePage * rows)
 
   const isAllPageSelected = data.length > 0 && data.every(item => selectedIds.has(item.id))
   const isSomeSelected = selectedIds.size > 0
@@ -894,22 +904,22 @@ const PremiumAssets = () => {
         {totalPages > 1 && (
           <div className="lta-pagination" data-testid="assets-pagination">
             <div className="lta-pg-info-left">
-              {((page - 1) * rows) + 1}–{Math.min(page * rows, totalFiltered)} sur {totalFiltered}
+              {((safePage - 1) * rows) + 1}–{Math.min(safePage * rows, totalFiltered)} sur {totalFiltered}
             </div>
             <div className="lta-pg-btns">
-              <button className="lta-pg-btn" disabled={page <= 1} onClick={() => handlePageChange(1)} title="Première page" data-testid="pg-first">
+              <button className="lta-pg-btn" disabled={safePage <= 1} onClick={() => handlePageChange(1)} title="Première page" data-testid="pg-first">
                 <ChevronsLeft size={15} />
               </button>
-              <button className="lta-pg-btn" disabled={page <= 1} onClick={() => handlePageChange(page - 1)} title="Précédent" data-testid="pg-prev">
+              <button className="lta-pg-btn" disabled={safePage <= 1} onClick={() => handlePageChange(safePage - 1)} title="Précédent" data-testid="pg-prev">
                 <ChevronLeft size={15} />
               </button>
-              {getPageNumbers(page, totalPages).map((p, i) =>
+              {getPageNumbers(safePage, totalPages).map((p, i) =>
                 p === '...' ? (
                   <span key={`dot-${i}`} className="lta-pg-dots">...</span>
                 ) : (
                   <button
                     key={p}
-                    className={`lta-pg-num ${p === page ? 'lta-pg-num--active' : ''}`}
+                    className={`lta-pg-num ${p === safePage ? 'lta-pg-num--active' : ''}`}
                     onClick={() => handlePageChange(p)}
                     data-testid={`pg-num-${p}`}
                   >
@@ -917,10 +927,10 @@ const PremiumAssets = () => {
                   </button>
                 )
               )}
-              <button className="lta-pg-btn" disabled={page >= totalPages} onClick={() => handlePageChange(page + 1)} title="Suivant" data-testid="pg-next">
+              <button className="lta-pg-btn" disabled={safePage >= totalPages} onClick={() => handlePageChange(safePage + 1)} title="Suivant" data-testid="pg-next">
                 <ChevronRight size={15} />
               </button>
-              <button className="lta-pg-btn" disabled={page >= totalPages} onClick={() => handlePageChange(totalPages)} title="Dernière page" data-testid="pg-last">
+              <button className="lta-pg-btn" disabled={safePage >= totalPages} onClick={() => handlePageChange(totalPages)} title="Dernière page" data-testid="pg-last">
                 <ChevronsRight size={15} />
               </button>
             </div>
