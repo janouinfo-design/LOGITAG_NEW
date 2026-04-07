@@ -96,6 +96,8 @@ const EnterpriseCommand = () => {
   const [externalLogs, setExternalLogs] = useState([])
   const [selectedEvent, setSelectedEvent] = useState(null)
   const [todaySummary, setTodaySummary] = useState(null)
+  const [assetPage, setAssetPage] = useState(1)
+  const ASSETS_PER_PAGE = 30
   const prevAssetsRef = useRef(null)
   const refreshInterval = useRef(null)
 
@@ -120,7 +122,10 @@ const EnterpriseCommand = () => {
       if (nRes.ok) { const d = await nRes.json(); setNotifCount(d.count || 0) }
       if (sumRes.ok) setTodaySummary(await sumRes.json())
     } catch {}
-    // Fetch external API logs
+    setLastRefresh(new Date())
+    if (!silent) setLoading(false)
+    else setRefreshing(false)
+    // Fetch external API logs in background (non-blocking)
     try {
       const logRes = await fetch(`${API}/api/proxy/logs/list`, {
         method: 'POST', headers: {'Content-Type': 'application/json'},
@@ -131,9 +136,6 @@ const EnterpriseCommand = () => {
         if (logData.response && Array.isArray(logData.response)) setExternalLogs(logData.response)
       }
     } catch {}
-    setLastRefresh(new Date())
-    if (!silent) setLoading(false)
-    else setRefreshing(false)
   }, [dispatch])
 
   useEffect(() => {
@@ -203,6 +205,11 @@ const EnterpriseCommand = () => {
   })
 
   const assetsWithCoords = filtered.filter(a => a.lat && a.lng && a.lat !== 0)
+
+  // Pagination for sidebar list
+  const totalAssetPages = Math.ceil(filtered.length / ASSETS_PER_PAGE)
+  const safeAssetPage = totalAssetPages > 0 && assetPage > totalAssetPages ? totalAssetPages : assetPage
+  const paginatedAssets = filtered.slice((safeAssetPage - 1) * ASSETS_PER_PAGE, safeAssetPage * ASSETS_PER_PAGE)
 
   const selectAsset = (asset) => {
     setSelectedAsset(asset)
@@ -411,12 +418,12 @@ const EnterpriseCommand = () => {
             </div>
             <div className="ec-assets-search">
               <Search size={14} className="ec-search-ico" />
-              <input className="ec-search-input" placeholder="Rechercher un asset..." value={search} onChange={e => setSearch(e.target.value)} data-testid="assets-search" />
+              <input className="ec-search-input" placeholder="Rechercher un asset..." value={search} onChange={e => { setSearch(e.target.value); setAssetPage(1); }} data-testid="assets-search" />
               {search && <button className="ec-search-clear" onClick={() => setSearch('')}><X size={12} /></button>}
             </div>
             <div className="ec-assets-filters" data-testid="assets-filters">
               {[{k:'all',l:'Tous'},{k:'active',l:'Actif'},{k:'exit',l:'Sorti'},{k:'nonactive',l:'Inactif'},{k:'lowbatt',l:'Batt.'}].map(f => (
-                <button key={f.k} className={`ec-filter-chip ${statusFilter === f.k ? 'ec-filter-chip--active' : ''}`} onClick={() => setStatusFilter(f.k)} data-testid={`filter-${f.k}`}>{f.l}</button>
+                <button key={f.k} className={`ec-filter-chip ${statusFilter === f.k ? 'ec-filter-chip--active' : ''}`} onClick={() => { setStatusFilter(f.k); setAssetPage(1); }} data-testid={`filter-${f.k}`}>{f.l}</button>
               ))}
             </div>
             <div className="ec-assets-list" data-testid="assets-list">
@@ -437,8 +444,8 @@ const EnterpriseCommand = () => {
                   ))}
                 </div>
               ) :
-                filtered.length === 0 ? <div className="ec-empty">Aucun asset trouvé</div> :
-                filtered.map((asset, i) => {
+                filtered.length === 0 ? <div className="ec-empty">{assetList.length === 0 ? <><Loader2 size={16} className="ec-spin" /> Chargement des assets...</> : 'Aucun asset trouvé'}</div> :
+                paginatedAssets.map((asset, i) => {
                   const bat = getBattery(asset)
                   const status = asset.etatenginname || 'active'
                   const isSelected = selectedAsset?.id === asset.id
@@ -459,6 +466,20 @@ const EnterpriseCommand = () => {
                 })
               }
             </div>
+            {/* SIDEBAR PAGINATION */}
+            {totalAssetPages > 1 && !loading && (
+              <div className="ec-sidebar-pagination" data-testid="sidebar-pagination">
+                <button className="ec-pg-btn" disabled={safeAssetPage <= 1} onClick={() => setAssetPage(safeAssetPage - 1)} data-testid="sidebar-pg-prev">
+                  <ChevronLeft size={14} />
+                </button>
+                <span className="ec-pg-info" data-testid="sidebar-pg-info">
+                  {((safeAssetPage - 1) * ASSETS_PER_PAGE) + 1}–{Math.min(safeAssetPage * ASSETS_PER_PAGE, filtered.length)} / {filtered.length}
+                </span>
+                <button className="ec-pg-btn" disabled={safeAssetPage >= totalAssetPages} onClick={() => setAssetPage(safeAssetPage + 1)} data-testid="sidebar-pg-next">
+                  <ChevronRight size={14} />
+                </button>
+              </div>
+            )}
           </aside>
 
           {/* ═══ MAP ═══ */}
@@ -720,6 +741,20 @@ const STYLES = `
 .ec-asset-meta { display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
 .ec-asset-status { font-family:'Inter',sans-serif; font-size:.6rem; font-weight:700; }
 .ec-asset-battery { display:flex; align-items:center; gap:3px; font-family:'Inter',sans-serif; font-size:.58rem; color:#64748B; }
+
+/* Sidebar Pagination */
+.ec-sidebar-pagination {
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  padding:10px 12px; border-top:1px solid #F1F5F9; flex-shrink:0;
+}
+.ec-pg-btn {
+  display:flex; align-items:center; justify-content:center;
+  width:28px; height:28px; border-radius:7px; border:1.5px solid #E2E8F0;
+  background:#FFF; color:#475569; cursor:pointer; transition:all .15s;
+}
+.ec-pg-btn:hover:not(:disabled) { border-color:#2563EB; color:#2563EB; background:#EFF6FF; }
+.ec-pg-btn:disabled { opacity:.3; cursor:not-allowed; }
+.ec-pg-info { font-family:'Inter',sans-serif; font-size:.7rem; font-weight:600; color:#64748B; white-space:nowrap; }
 
 /* ── MAP AREA ── */
 .ec-map-area { flex:1; position:relative; min-width:0; }
