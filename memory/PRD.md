@@ -1,71 +1,51 @@
 # LOGITAG - Product Requirements Document
 
 ## Problem Statement
-Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade avec une interface moderne et cohérente. **CONTRAINTE CRITIQUE** : Modifications frontend UI/UX uniquement. Aucune modification des appels API, endpoints, payloads, Redux ou logique métier.
+Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade. **CONTRAINTE** : Frontend UI/UX uniquement. Aucune modification API/Redux.
 
 ## Architecture
-- **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Leaflet, SCSS, Tailwind
-- **Backend**: API Externe Omniyat (https://omniyat.is-certified.com:82/logitag_node/) - NON modifiable
+- **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Leaflet
+- **Backend**: API Externe Omniyat - NON modifiable
 - **Auth**: admin / user@1234
 
 ## Completed Features
 
-### Phase 1 - Fondations (Completed)
-- [x] Clone et setup du repo LOGITAG_NEW
-- [x] Fix Craco, Webpack, TS/JS conflicts, ESLint
-- [x] Login page redesign (split-panel moderne)
-- [x] Thème global SaaS (`logitag-saas.css`)
-- [x] Correction icônes FontAwesome Pro → standards
-
-### Phase 2 - Dashboard (Completed)
-- [x] Dashboard "Operations Monitor" avec graphiques ApexCharts (Donut/Bar)
-- [x] Filtre de période (Aujourd'hui, 7J, 30J, Custom)
-- [x] Vue détail dynamique en bas du dashboard
-
-### Phase 3 - Vignettes Carrées (Completed)
-- [x] Vue vignettes par défaut sur EnginList, TagList, DashboardDetail
-- [x] Toggle Grille/Tableau sur toutes les listes principales
-- [x] Bouton de géolocalisation centré sur les vignettes
-- [x] Chips modernes pour config colonnes DataTable
-- [x] Option "Tous" dans les filtres
+### Phase 1-3 - Fondations + Dashboard + Vignettes (Completed)
+- [x] Thème SaaS global, login redesign, correction icônes
+- [x] Dashboard "Operations Monitor" (ApexCharts, filtres période)
+- [x] Vue vignettes par défaut + toggle Grille/Tableau sur Engins/Tags/DashboardDetail
+- [x] Chips modernes config colonnes + option "Tous" dans filtres
 
 ### Phase 4 - Pages Secondaires SaaS (Completed - 8 Avril 2026)
-- [x] Page Calendrier: Header SaaS violet + toolbar moderne
-- [x] Page Map: Header SaaS vert + carte Leaflet fonctionnelle
-- [x] Page Rapports: Header SaaS orange + layout sidebar/contenu
-- [x] Page Utilisateurs: Accessible via sidebar, header SaaS indigo
-- [x] Page Paramètres (SetupInfo): Cartes de réglages
+- [x] Calendrier, Map, Rapports, Utilisateurs, Paramètres : Headers SaaS
 
 ### Phase 5 - Journal d'Activité Timeline Immersive (Completed - 8 Avril 2026)
-- [x] Header dark premium avec nom asset + LastSeen glassmorphism
-- [x] Timeline verticale avec nœuds colorés (vert=Entrée, rouge=Sortie)
-- [x] Cartes timeline modernes: badges, durées, sites cliquables
-- [x] Indicateur "En cours" animé pour les entrées live
+- [x] Header dark premium + timeline verticale glassmorphism
+- [x] Nœuds colorés, cartes modernes, indicateur "En cours"
 
 ### Phase 6 - Fonctionnalités Avancées (Completed - 8 Avril 2026)
-- [x] P1: Toggle Grille/Tableau sur la page Rapports (214 rapports en vignettes)
-- [x] P2: Page Inventory SaaS (header rose + 3 cartes statistiques)
-- [x] P2: Page Sites/Places SaaS (header teal + badge count)
-- [x] P2: Presets de colonnes ("Vue simple" / "Vue complète") dans DataTable
-- [x] P3: Widget carte GPS temps réel sur le Dashboard (Leaflet intégré)
-- [x] P3: Filtre Entrée/Sortie (Tout/Entrées/Sorties) dans le Timeline
+- [x] Toggle Grille/Tableau Rapports, Inventory SaaS, Sites SaaS
+- [x] Presets colonnes, Widget GPS Dashboard, Filtre Timeline
 
-## Backlog (Restant)
+### Phase 7 - Rapports Avancés + Tri + Animations (Completed - 8 Avril 2026)
+- [x] **Tri rapide vignettes** : Pills Défaut/Nom/Batterie/Statut sur EnginList
+- [x] **Animations de transition** : fade-in pages, staggered cards (lt-page-in, lt-card-in)
+- [x] **Refonte Rapports 3 panneaux** : 
+  - Panneau gauche : Types (Par Engin, Par Site) sous "Rapport d'activité"
+  - Panneau centre : Sélection engins/sites (31 engins, 39 sites) avec checkboxes, search, select all
+  - Panneau droit : Configuration (titre auto, plage dates, info card)
+- [x] **RapportDisplay résumé** : Groupement par engin/site, colonnes (Site/Adresse, Entrées, Durée), carte "Au total"
+- [x] **Rapport par Site** : Affiche temps de présence de chaque engin sur le site
+
+## Backlog
 
 ### P3 (Basse priorité)
 - [ ] Mode sombre (Dark Theme)
-- [ ] Système de tri rapide sur les vues vignettes (Nom, Batterie, Statut)
-- [ ] Animations de transition entre les pages
+- [ ] Système de notifications push (batterie critique, sortie non autorisée)
 
 ## Key Files
-- `/app/frontend/src/logitag-saas.css` - Thème SaaS global
-- `/app/frontend/src/components/components.js` - Routage dynamique
-- `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Modèle vignettes
-- `/app/frontend/src/components/Engin/EnginList/EnginMapLocation.js` - Dialog Journal
-- `/app/frontend/src/components/shared/HistoryComponent/HistoryListComponent.js` - Panel Timeline
-- `/app/frontend/src/components/Engin/EnginDetail/CardHistory.jsx` - Cartes Timeline
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` - Dashboard + GPS Widget
-- `/app/frontend/src/components/shared/DatatableComponent/DataTableComponent.jsx` - DataTable + Presets
-- `/app/frontend/src/components/Repports/user-interface/RapportList/RaportList.jsx` - Rapports Grid
-- `/app/frontend/src/components/Inventory/InventoryList.js` - Inventory SaaS
-- `/app/frontend/src/components/Site/user-interface/SiteList/SiteList.js` - Sites SaaS
+- `/app/frontend/src/logitag-saas.css` - Thème global + animations + rapport CSS
+- `/app/frontend/src/components/Repports/` - Système de rapports complet
+- `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Vignettes + tri rapide
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` - Dashboard + GPS
+- `/app/frontend/src/components/shared/HistoryComponent/HistoryListComponent.js` - Timeline + filtres
