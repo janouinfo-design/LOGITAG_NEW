@@ -64,8 +64,7 @@ import VehiculesComponent from './Vehicules/user-interface/VehiculesComponent'
 import DepotComponent from './depot/user-interface/DepotComponent'
 import VehComponent from './veh/vehComponent'
 import VehList from './veh/vehList'
-// import WorkSiteList from "./WorkSite/WorkSiteList"
-// test2
+
 const components = {
   /** dadev */
   geofencing: GeofencingComponent,
@@ -124,8 +123,6 @@ const components = {
   'situationtags/index': DashboardNewComponent,
   'dashboard/customer': CustomerDashboard,
   'alert/index': AlertComponent,
-
-  // 'rapport/index': MapTest,
 
   /** Rabi */
 }

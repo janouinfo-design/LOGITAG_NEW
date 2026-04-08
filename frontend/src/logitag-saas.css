@@ -866,3 +866,174 @@
 .lt-grid-page-info strong {
   color: var(--lt-text-primary);
 }
+
+/* ══════ SETTINGS PAGE ══════ */
+.lt-settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+.lt-settings-card {
+  background: var(--lt-surface);
+  border-radius: var(--lt-radius-lg);
+  border: 1.5px solid var(--lt-border);
+  padding: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  transition: all 0.2s;
+}
+
+.lt-settings-card:hover {
+  border-color: #CBD5E1;
+  box-shadow: var(--lt-shadow);
+}
+
+.lt-settings-card-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.lt-settings-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.lt-settings-label {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--lt-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+  font-family: var(--lt-font);
+}
+
+.lt-settings-dropdown {
+  width: 100% !important;
+  border-radius: 10px !important;
+  font-family: var(--lt-font) !important;
+  font-size: 0.85rem !important;
+}
+
+/* ══════ RAPPORTS LAYOUT ══════ */
+.lt-rapports-layout {
+  display: flex;
+  gap: 20px;
+  min-height: 80vh;
+}
+
+.lt-rapports-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+}
+
+.lt-rapports-content {
+  flex: 1;
+  min-width: 0;
+  background: var(--lt-surface);
+  border-radius: var(--lt-radius-lg);
+  border: 1.5px solid var(--lt-border);
+  overflow: hidden;
+}
+
+.lt-rapport-list-wrap {
+  background: var(--lt-surface);
+  border-radius: var(--lt-radius-lg);
+  border: 1.5px solid var(--lt-border);
+  overflow: hidden;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.lt-rapport-list-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px 20px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--lt-text-primary);
+  border-bottom: 1.5px solid var(--lt-border);
+  background: #F8FAFC;
+  font-family: var(--lt-font-heading);
+}
+
+.lt-rapport-create-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 14px 20px;
+  border: none;
+  background: var(--lt-accent-light);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-family: var(--lt-font);
+}
+
+.lt-rapport-create-btn:hover {
+  background: #DBEAFE;
+}
+
+/* ══════ CALENDAR OVERRIDES ══════ */
+.lt-calendar-filter .p-dropdown {
+  border-radius: 10px !important;
+  border: 1.5px solid var(--lt-border) !important;
+  font-family: var(--lt-font) !important;
+  font-size: 0.82rem !important;
+}
+
+.lt-calendar-paginator .p-paginator {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+/* FullCalendar inside SaaS card */
+.lt-table-wrap .fc {
+  font-family: var(--lt-font);
+  border: none;
+}
+
+.lt-table-wrap .fc .fc-resource-timeline-divider {
+  border-color: var(--lt-border);
+}
+
+.lt-table-wrap .fc .fc-datagrid-cell-frame {
+  padding: 6px 8px;
+}
+
+.lt-table-wrap .fc th {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--lt-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+@media (max-width: 900px) {
+  .lt-rapports-layout {
+    flex-direction: column;
+  }
+  .lt-rapports-sidebar {
+    width: 100%;
+  }
+  .lt-rapport-list-wrap {
+    height: auto;
+    max-height: 50vh;
+  }
+  .lt-settings-grid {
+    grid-template-columns: 1fr;
+  }
+}

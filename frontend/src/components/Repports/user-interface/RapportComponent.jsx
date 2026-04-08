@@ -11,9 +11,27 @@ const RapportComponent = ({clearList}) => {
   const settingShow = useAppSelector(getShowSettingRapport)
 
   return (
-    <div className='flex flex-row '>
-      {show ? <RapportChose /> : <RapportList />}
-      {settingShow ? <RapportSetting /> : <RapportDisplay />}
+    <div className="lt-page" data-testid="rapports-page">
+      <div className="lt-page-header" data-testid="rapports-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #F59E0B, #D97706)'}}>
+            <i className="pi pi-chart-bar"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title">Rapports</h1>
+            <p className="lt-page-subtitle">Génération et consultation des rapports</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="lt-rapports-layout" data-testid="rapports-layout">
+        <div className="lt-rapports-sidebar">
+          {show ? <RapportChose /> : <RapportList />}
+        </div>
+        <div className="lt-rapports-content">
+          {settingShow ? <RapportSetting /> : <RapportDisplay />}
+        </div>
+      </div>
     </div>
   )
 }

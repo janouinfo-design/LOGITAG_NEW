@@ -290,11 +290,25 @@ const TeamList = () => {
   }, [])
 
   return (
-    <>
-      <div className='py-3 flex flex-row align-items-center'>
-        <h1 className='text-700'>
-          <OlangItem olang={'staff.list'} />
-        </h1>
+    <div className="lt-page" data-testid="users-page">
+      <div className="lt-page-header" data-testid="users-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #6366F1, #4F46E5)'}}>
+            <i className="pi pi-users"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title"><OlangItem olang={'staff.list'} /></h1>
+            <p className="lt-page-subtitle">Gestion du personnel et des accès</p>
+          </div>
+        </div>
+        <div className="lt-page-header-right">
+          {teams?.length > 0 && (
+            <div className="lt-count-badge" data-testid="users-count">
+              <i className="pi pi-users" style={{fontSize: '0.75rem'}}></i>
+              <strong>{teams.length}</strong> utilisateurs
+            </div>
+          )}
+        </div>
       </div>
       <DatatableComponent
         tableId='team-table'
@@ -312,7 +326,7 @@ const TeamList = () => {
         dialogVisible={dialogVisible}
         setDialogVisible={() => setDialogVisible((prev) => !prev)}
       />
-    </>
+    </div>
   )
 }
 

@@ -1,11 +1,9 @@
 import React, {useEffect, useState} from 'react'
-import {Divider} from 'primereact/divider'
 import {Dropdown} from 'primereact/dropdown'
-import ButtonComponent from '../../shared/ButtonComponent/ButtonComponent'
 import {useAppDispatch, useAppSelector} from '../../../hooks'
-import {createOrUpdateCompany, fetchCompany, getCompany} from '../../Company/slice/company.slice'
+import {fetchCompany, getCompany} from '../../Company/slice/company.slice'
 import {useFormik} from 'formik'
-import {createOrUpdateSetupInfo, setSelectedCompany} from '../Slice/setupInfo.slice'
+import {createOrUpdateSetupInfo} from '../Slice/setupInfo.slice'
 import {OlangItem} from '../../shared/Olang/user-interface/OlangItem/OlangItem'
 
 const SetupInfo = () => {
@@ -74,108 +72,112 @@ const SetupInfo = () => {
     dispatch(fetchCompany())
   }, [])
 
+  const settingsItems = [
+    {
+      icon: 'pi pi-globe',
+      label: <OlangItem olang='Setup.Language' />,
+      color: '#3B82F6',
+      field: 'language',
+      options: Language,
+      optionLabel: 'name',
+      placeholder: company[0]?.language || 'Select language',
+    },
+    {
+      icon: 'pi pi-clock',
+      label: <OlangItem olang='Setup.timeZoneOffset' />,
+      color: '#8B5CF6',
+      field: 'timezone',
+      options: timeZones,
+      optionLabel: 'name',
+      placeholder: company[0]?.timezone || 'Select timeZone',
+    },
+    {
+      icon: 'pi pi-arrows-h',
+      label: <OlangItem olang='Setup.distanceUnit' />,
+      color: '#10B981',
+      field: 'distanceunit',
+      options: distanceUnits,
+      optionLabel: 'name',
+      placeholder: company[0]?.distanceunit || 'Select distance Unit',
+    },
+    {
+      icon: 'pi pi-box',
+      label: <OlangItem olang='Setup.VolumeUnit' />,
+      color: '#F59E0B',
+      field: 'volumeunit',
+      options: volumeUnits,
+      optionLabel: 'name',
+      placeholder: company[0]?.volumeunit || 'Select a Volume Unit',
+    },
+    {
+      icon: 'pi pi-sun',
+      label: <OlangItem olang='Setup.temperatureUnit' />,
+      color: '#EF4444',
+      field: 'temperatureunit',
+      options: temperatureUnits,
+      optionLabel: 'name',
+      placeholder: company[0]?.temperatureunit || 'Select a Temperature Unit',
+    },
+  ]
+
   return (
-    <div>
-      <header className=' p-3'>
-        <p className='ml-4 font-bold'>
-          <OlangItem olang='Setup.Info' />
-        </p>
-        <Divider />
-      </header>
-      <section className='p-14'>
-        <div className='mr-5 mt-5 flex justify-content-between align-items-center'>
-          <span style={{userSelect: 'none'}}>
-            <OlangItem olang='Setup.Language' />
-          </span>
-          <Dropdown
-            onChange={(e) => {
-              setDisabled(true)
-              formik.setFieldValue('language', e.value)
-            }}
-            name='Language'
-            options={Language}
-            value={formik.values.language}
-            optionLabel='name'
-            placeholder={`${company[0]?.language || 'Select language'}`}
-            className='w-6 ml-8'
-          />
+    <div className="lt-page" data-testid="settings-page">
+      <div className="lt-page-header" data-testid="settings-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #64748B, #475569)'}}>
+            <i className="pi pi-cog"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title"><OlangItem olang='Setup.Info' /></h1>
+            <p className="lt-page-subtitle">Configuration globale de la plateforme</p>
+          </div>
         </div>
-        <div className='mr-5 mt-5 flex justify-content-between align-items-center'>
-          <span style={{userSelect: 'none'}}>
-            <OlangItem olang='Setup.timeZoneOffset' />
-          </span>
-          <Dropdown
-            onChange={(e) => {
-              setDisabled(true)
-              formik.setFieldValue('timezone', e.value)
-            }}
-            name='timeZone'
-            options={timeZones}
-            value={formik.values.timezone}
-            optionLabel='name'
-            placeholder={`${company[0]?.timezone || 'Select timeZone'}`}
-            className='w-6 ml-8'
-          />
-        </div>
-        <div className='mr-5 mt-5 flex justify-content-between align-items-center'>
-          <span style={{userSelect: 'none'}}>
-            <OlangItem olang='Setup.distanceUnit' />
-          </span>
-          <Dropdown
-            onChange={(e) => {
-              setDisabled(true)
-              formik.setFieldValue('distanceunit', e.value)
-            }}
-            name='distanceUnit'
-            options={distanceUnits}
-            value={formik.values.distanceunit}
-            optionLabel='name'
-            placeholder={`${company[0]?.distanceunit || 'Select distance Unit'}`}
-            className='w-6 ml-8'
-          />
-        </div>
-        <div className='mr-5 mt-5 flex justify-content-between align-items-center'>
-          <span style={{userSelect: 'none'}}>
-            <OlangItem olang='Setup.VolumeUnit' />
-          </span>
-          <Dropdown
-            value={formik.values.volumeunit}
-            onChange={(e) => {
-              setDisabled(true)
-              formik.setFieldValue('volumeunit', e.value)
-            }}
-            options={volumeUnits}
-            optionLabel='name'
-            placeholder={`${company[0]?.volumeunit || 'Select a Volume Unit'}`}
-            className='w-6'
-          />
-        </div>
-        <div className='mr-5 mt-5 flex justify-content-between align-items-center'>
-          <span style={{userSelect: 'none'}}>
-            <OlangItem olang='Setup.temperatureUnit' />
-          </span>
-          <Dropdown
-            value={formik.values.temperatureunit}
-            onChange={(e) => {
-              setDisabled(true)
-              formik.setFieldValue('temperatureunit', e.value)
-            }}
-            options={temperatureUnits}
-            optionLabel='name'
-            placeholder={`${company[0]?.temperatureunit || 'Select a Temperature Unit'}`}
-            className='w-6'
-          />
-        </div>
-        <div className='flex justify-content-end mt-6 mr-4'>
-          <ButtonComponent
-            onClick={formik.handleSubmit}
-            className={'w-11rem flex align-items-center justify-content-center'}
-            disabled={!disabled}
-          >
-            <OlangItem olang='Enregistrer' />
-          </ButtonComponent>
-        </div>
-      </section>
+      </div>
+
+      <div className="lt-settings-grid" data-testid="settings-grid">
+        {settingsItems.map((item, idx) => (
+          <div key={idx} className="lt-settings-card" data-testid={`settings-card-${item.field}`}>
+            <div className="lt-settings-card-icon" style={{background: `${item.color}12`, color: item.color}}>
+              <i className={item.icon}></i>
+            </div>
+            <div className="lt-settings-card-body">
+              <label className="lt-settings-label">{item.label}</label>
+              <Dropdown
+                onChange={(e) => {
+                  setDisabled(true)
+                  formik.setFieldValue(item.field, e.value)
+                }}
+                name={item.field}
+                options={item.options}
+                value={formik.values[item.field]}
+                optionLabel={item.optionLabel}
+                placeholder={item.placeholder}
+                className='lt-settings-dropdown'
+                style={{width: '100%', borderRadius: 10}}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div style={{display: 'flex', justifyContent: 'flex-end', marginTop: 24}}>
+        <button
+          className="lt-vcard-geo"
+          onClick={formik.handleSubmit}
+          disabled={!disabled}
+          style={{
+            width: 'auto',
+            padding: '10px 32px',
+            borderRadius: 10,
+            opacity: disabled ? 1 : 0.5,
+            cursor: disabled ? 'pointer' : 'not-allowed',
+          }}
+          data-testid="settings-save-btn"
+        >
+          <i className="pi pi-check"></i>
+          <OlangItem olang='Enregistrer' />
+        </button>
+      </div>
     </div>
   )
 }

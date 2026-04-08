@@ -383,29 +383,51 @@ const TagMapViewComponent = ({type}) => {
   }, [list])
 
   return (
-    <MapComponent
-      markerNameKey={'label'}
-      groups={['famille', {label: 'Zone', value: 'LocationObjectname'}]}
-      groupPioBy={'status'}
-      piosPosition={'topleft'}
-      pios={formatedList}
-      itemTemplate={itemTemplate}
-      pioPopupTemplate={pioPopupTemplate}
-      groupsEnter={groupEnter}
-      groupsStatus={statusList}
-      showMoreClick={showMore}
-      loadingShowMore={loading}
-      isLastPage={isLastPage}
-      onChangePagination={onPageChange}
-      totalRecords={totalRecords}
-      onSearch={handleSearch}
-      // itemDetailTemplate={itemDetailTemplate}
-      type={type || 'main'}
-      filterSt={filterStatus}
-      filterEt={filterEtat}
-      statusVal={filterSt}
-      etatVal={filterEt}
-    />
+    <div className="lt-page" data-testid="map-page">
+      <div className="lt-page-header" data-testid="map-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #10B981, #059669)'}}>
+            <i className="pi pi-map"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title">Carte des Assets</h1>
+            <p className="lt-page-subtitle">Localisation GPS en temps réel</p>
+          </div>
+        </div>
+        <div className="lt-page-header-right">
+          {totalRecords > 0 && (
+            <div className="lt-count-badge" data-testid="map-total-count">
+              <i className="pi pi-map-marker" style={{fontSize: '0.75rem'}}></i>
+              <strong>{totalRecords}</strong> positions
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="lt-table-wrap" style={{overflow: 'visible', minHeight: '70vh'}} data-testid="map-wrap">
+        <MapComponent
+          markerNameKey={'label'}
+          groups={['famille', {label: 'Zone', value: 'LocationObjectname'}]}
+          groupPioBy={'status'}
+          piosPosition={'topleft'}
+          pios={formatedList}
+          itemTemplate={itemTemplate}
+          pioPopupTemplate={pioPopupTemplate}
+          groupsEnter={groupEnter}
+          groupsStatus={statusList}
+          showMoreClick={showMore}
+          loadingShowMore={loading}
+          isLastPage={isLastPage}
+          onChangePagination={onPageChange}
+          totalRecords={totalRecords}
+          onSearch={handleSearch}
+          type={type || 'main'}
+          filterSt={filterStatus}
+          filterEt={filterEtat}
+          statusVal={filterSt}
+          etatVal={filterEt}
+        />
+      </div>
+    </div>
   )
 }
 

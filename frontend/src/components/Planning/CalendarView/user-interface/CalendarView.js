@@ -24,12 +24,9 @@ import {
   getSitesCalendar,
   setSitesCalendar,
 } from '../../slice/planing.slice'
-import {RadioButton} from 'primereact/radiobutton'
-import {Chip} from 'primereact/chip'
 import EnginMapLocation from '../../../Engin/EnginList/EnginMapLocation'
 import {Dropdown} from 'primereact/dropdown'
 import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
-import {InputText} from 'primereact/inputtext'
 import {API_BASE_URL_IMAGE} from '../../../../api/config'
 import {Image} from 'primereact/image'
 import {fetchDepots, getDepots} from '../../../depot/slice/depot.slice'
@@ -571,84 +568,92 @@ function CalendarView() {
   }, [])
 
   return (
-    <>
-      <div className='flex flex-column '>
-        <div className='flex align-items-center flex-wrap gap-3'>
-          <div className='flex align-items-center'>
-            <RadioButton
-              inputId='Engin'
-              name='engin'
-              value='engin'
-              onChange={(e) => handleSetOption(e.value)}
-              checked={option === 'engin'}
-            />
-            <label htmlFor='Engin' className='ml-2'>
-              Engin
-            </label>
+    <div className="lt-page" data-testid="calendar-page">
+      {/* SaaS Page Header */}
+      <div className="lt-page-header" data-testid="calendar-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'}}>
+            <i className="pi pi-calendar"></i>
           </div>
-          <div className='flex align-items-center'>
-            <RadioButton
-              inputId='Worksite'
-              name='worksite'
-              value='worksite'
-              onChange={(e) => handleSetOption(e.value)}
-              checked={option === 'worksite'}
-            />
-            <label htmlFor='Worksite' className='ml-2'>
-              Worksite
-            </label>
+          <div>
+            <h1 className="lt-page-title"><OlangItem olang='timeline' /></h1>
+            <p className="lt-page-subtitle">Planification et suivi des mouvements</p>
           </div>
-          <div className='flex align-items-center my-4'>
-            <div className='flex align-items-center'>
-              <InputText
-                id='searchInput'
-                type='text'
-                placeholder='search'
-                onChange={handleSearchTextChange}
-              />
+        </div>
+        <div className="lt-page-header-right">
+          {totalRecords > 0 && (
+            <div className="lt-count-badge" data-testid="calendar-total-count">
+              <i className="pi pi-box" style={{fontSize: '0.75rem'}}></i>
+              <strong>{totalRecords}</strong> assets
             </div>
+          )}
+        </div>
+      </div>
+
+      {/* Toolbar Card */}
+      <div className="lt-table-wrap" style={{marginBottom: 20}} data-testid="calendar-toolbar">
+        <div style={{padding: '16px 20px', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 14, borderBottom: '1px solid var(--lt-border)'}}>
+          {/* Source Toggle */}
+          <div className="lt-view-toggle" style={{borderRadius: 10}} data-testid="calendar-source-toggle">
+            <button
+              className={`lt-view-btn ${option === 'engin' ? 'lt-view-btn--active' : ''}`}
+              onClick={() => handleSetOption('engin')}
+              style={{width: 'auto', padding: '0 14px', fontSize: '0.78rem', fontWeight: 600, gap: 6}}
+              data-testid="calendar-toggle-engin"
+            >
+              <i className="pi pi-box" style={{fontSize: '0.75rem'}}></i> Engin
+            </button>
+            <button
+              className={`lt-view-btn ${option === 'worksite' ? 'lt-view-btn--active' : ''}`}
+              onClick={() => handleSetOption('worksite')}
+              style={{width: 'auto', padding: '0 14px', fontSize: '0.78rem', fontWeight: 600, gap: 6}}
+              data-testid="calendar-toggle-worksite"
+            >
+              <i className="pi pi-building" style={{fontSize: '0.75rem'}}></i> Worksite
+            </button>
           </div>
+
+          {/* Search */}
+          <div style={{display: 'flex', alignItems: 'center', gap: 8, border: '1.5px solid var(--lt-border)', borderRadius: 10, padding: '6px 12px', flex: '0 1 220px'}}>
+            <i className="pi pi-search" style={{color: 'var(--lt-text-muted)', fontSize: '0.8rem'}}></i>
+            <input
+              type="text"
+              placeholder="Rechercher..."
+              onChange={handleSearchTextChange}
+              value={searchText}
+              style={{border: 'none', background: 'transparent', fontFamily: 'var(--lt-font)', fontSize: '0.82rem', color: 'var(--lt-text-primary)', outline: 'none', width: '100%'}}
+              data-testid="calendar-search"
+            />
+          </div>
+
           {option === 'engin' && (
-            <div className='flex space-x-4 items-center my-4'>
-              <div className='flex items-center mx-1'>
-                <div className='inputgroup p-inputgroup flex-1'>
-                  <span className='p-inputgroup-addon'>
-                    <OlangItem olang='Status' />
-                  </span>
-                  <Dropdown
-                    id='statusFilter'
-                    value={statusFilter}
-                    options={[
-                      {label: 'All', value: 'all'},
-                      ...(Array.isArray(statusList)
-                        ? statusList.map((st) => ({
-                            label: st.label,
-                            value: st.status,
-                          }))
-                        : []),
-                    ]}
-                    onChange={handleStatusFilterChange}
-                  />
-                </div>
-              </div>
-              <div className='flex items-center mx-1'>
-                <div className='inputgroup p-inputgroup flex-1'>
-                  <span className='p-inputgroup-addon'>
-                    <OlangItem olang='Mouvement' />
-                  </span>
-                  <Dropdown
-                    id='movementFilter'
-                    value={movementFilter}
-                    options={[
-                      {label: 'All', value: 'all'},
-                      {label: 'Entrée', value: 'reception'},
-                      {label: 'Sortie', value: 'exit'},
-                    ]}
-                    onChange={handleMovementFilterChange}
-                  />
-                </div>
-              </div>
-            </div>
+            <>
+              <Dropdown
+                id='statusFilter'
+                value={statusFilter}
+                options={[
+                  {label: 'Tous Status', value: 'all'},
+                  ...(Array.isArray(statusList)
+                    ? statusList.map((st) => ({label: st.label, value: st.status}))
+                    : []),
+                ]}
+                onChange={handleStatusFilterChange}
+                className='lt-calendar-filter'
+                style={{minWidth: 140, borderRadius: 10, fontSize: '0.82rem'}}
+              />
+              <Dropdown
+                id='movementFilter'
+                value={movementFilter}
+                options={[
+                  {label: 'Tous Mouvements', value: 'all'},
+                  {label: 'Entrée', value: 'reception'},
+                  {label: 'Sortie', value: 'exit'},
+                ]}
+                onChange={handleMovementFilterChange}
+                className='lt-calendar-filter'
+                style={{minWidth: 140, borderRadius: 10, fontSize: '0.82rem'}}
+              />
+            </>
           )}
           {option === 'engin' && (
             <Paginator
@@ -658,74 +663,59 @@ function CalendarView() {
               rowsPerPageOptions={[10, 20, 30]}
               onPageChange={onPageChange}
               template={template}
+              className='lt-calendar-paginator'
             />
           )}
         </div>
-        <div className='w-full flex flex-row align-items-center justify-content-between mb-4'>
-          <div className='flex flex-row gap-2 align-items-center'>
-            <Button onClick={goToToday} rounded className='text-lg font-semibold '>
+
+        {/* Navigation Row */}
+        <div style={{padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12, borderBottom: '1px solid var(--lt-border)'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+            <button className="lt-grid-page-btn" onClick={goToToday} style={{width: 'auto', padding: '0 14px', fontWeight: 700, fontSize: '0.78rem', fontFamily: 'var(--lt-font)'}} data-testid="calendar-today-btn">
               <OlangItem olang='today' />
-            </Button>
+            </button>
             <SplitButton
-              style={{height: '40px'}}
+              style={{height: '34px'}}
               icon='pi pi-calendar'
               label={daysDisplay}
               rounded
-              className='ml-2'
+              className='ml-1'
               model={[
                 {label: '1 jour', command: () => displayTheDay(1)},
                 {label: '2 jours', command: () => displayTheDay(2)},
                 {label: '5 jours', command: () => displayTheDay(5)},
                 {label: '10 jours', command: () => displayTheDay(10)},
               ]}
-              // onClick={() => setDaysDisplay(1)}
-            ></SplitButton>
-          </div>
-          <div className='flex gap-2 flex-row align-items-center'>
-            <Button
-              // style={{height: '40px'}}
-              icon='pi pi-angle-left'
-              onClick={handlePrevClick}
-              rounded
-              outlined
-            ></Button>
-            <div className='border-2 border-blue-500 p-2 border-round-2xl text-center'>
-              <strong className='text-xl'>
-                {`${moment(currentDate.start).format('MMM D')} – ${moment(currentDate.end).format(
-                  'D, YYYY'
-                )}`}
-              </strong>
-            </div>
-            <Button
-              // style={{height: '40px'}}
-              className='ml-2'
-              icon='pi pi-angle-right'
-              rounded
-              outlined
-              onClick={handleNextClick}
-            ></Button>
-          </div>
-          <div className='flex flex-row align-items-center gap-2'>
-            <Button
-              // style={{height: '40px', width: '100px'}}
-              icon='fas fa-solid fa-circle-minus'
-              onClick={decrementSlotDuration}
-              rounded
-            ></Button>
-            <Chip
-              className='bg-blue-500 text-white text-lg font-semibold'
-              label={slotDuration.slice(0, 5)}
-              icon='pi pi-clock'
             />
-            <Button
-              // style={{height: '40px'}}
-              icon='fas fa-solid fa-circle-plus'
-              onClick={incrementSlotDuration}
-              rounded
-            ></Button>
+          </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+            <button className="lt-grid-page-btn" onClick={handlePrevClick} data-testid="calendar-prev-btn">
+              <i className="pi pi-angle-left"></i>
+            </button>
+            <span style={{padding: '6px 16px', borderRadius: 10, border: '1.5px solid var(--lt-accent)', background: 'var(--lt-accent-light)', fontWeight: 700, fontSize: '0.85rem', color: 'var(--lt-text-primary)', fontFamily: 'var(--lt-font-heading)'}}>
+              {`${moment(currentDate.start).format('MMM D')} – ${moment(currentDate.end).format('D, YYYY')}`}
+            </span>
+            <button className="lt-grid-page-btn" onClick={handleNextClick} data-testid="calendar-next-btn">
+              <i className="pi pi-angle-right"></i>
+            </button>
+          </div>
+          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+            <button className="lt-grid-page-btn" onClick={decrementSlotDuration} data-testid="calendar-slot-minus">
+              <i className="pi pi-minus"></i>
+            </button>
+            <span style={{padding: '4px 12px', borderRadius: 8, background: 'var(--lt-accent)', color: '#FFF', fontWeight: 700, fontSize: '0.78rem', fontFamily: 'var(--lt-font)'}}>
+              <i className="pi pi-clock" style={{fontSize: '0.7rem', marginRight: 4}}></i>
+              {slotDuration.slice(0, 5)}
+            </span>
+            <button className="lt-grid-page-btn" onClick={incrementSlotDuration} data-testid="calendar-slot-plus">
+              <i className="pi pi-plus"></i>
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Calendar Card */}
+      <div className="lt-table-wrap" data-testid="calendar-wrap">
       <FullCalendar
         key={calendarKey}
         ref={calendarRef}
@@ -801,6 +791,7 @@ function CalendarView() {
         locales={[frLocal]}
         locale='fr'
       />
+      </div>
       <EnginMapLocation
         dialogVisible={dialogVisible}
         setDialogVisible={() => setDialogVisible((prev) => !prev)}
@@ -810,7 +801,7 @@ function CalendarView() {
           srcMovement: mouvement,
         }}
       />
-    </>
+    </div>
   )
 }
 
