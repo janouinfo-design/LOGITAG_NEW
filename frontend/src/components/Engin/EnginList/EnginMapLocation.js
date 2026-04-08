@@ -50,28 +50,26 @@ const EnginMapLocation = ({dialogVisible, setDialogVisible}) => {
 
   const dialogTemplate = () => {
     return (
-      <div className='flex flex-row justify-content-between align-items-center mx-3'>
-        <div>
-          <p className='text-2xl'>{selectedEngin?.reference || selectedEngin?.label}</p>
+      <div className='lt-journal-header' data-testid="journal-header">
+        <div className='lt-journal-header-left'>
+          <div className='lt-journal-asset-icon'>
+            <i className='pi pi-box'></i>
+          </div>
+          <div>
+            <h2 className='lt-journal-asset-name'>{selectedEngin?.reference || selectedEngin?.label}</h2>
+            <p className='lt-journal-asset-sub'>Journal d'activité</p>
+          </div>
         </div>
         <div
-          style={{width: '30%'}}
-          className='flex flex-row justify-content-end align-items-center'
+          onClick={handleLastSeen}
+          className='lt-journal-lastseen'
+          data-testid="journal-lastseen"
         >
-          <div
-            onClick={handleLastSeen}
-            style={{width: '100%'}}
-            className='flex flex-row shadow-2 p-ripple justify-content-between cursor-pointer align-items-center bg-white border-round-xl border-2 border-gray-300 h-6rem px-3 rounded-lg'
-          >
-            <div className='flex flex-row align-items-center gap-2'>
-              <i className='fa-solid fa-eye text-2xl text-blue-500'></i>
-              <div>
-                {/* <OlangItem olang='Last.Seen' />: */}
-              </div>
-              <strong>{dateFormatted(selectedEngin)}</strong>
-            </div>
-            <i className='fas fa-solid fa-location-dot text-2xl text-red-500 ml-2'></i>
+          <div className='lt-journal-lastseen-dot'></div>
+          <div className='lt-journal-lastseen-info'>
+            {dateFormatted(selectedEngin)}
           </div>
+          <i className='pi pi-map-marker' style={{color: '#EF4444', fontSize: '1.1rem'}}></i>
         </div>
       </div>
     )
@@ -98,15 +96,16 @@ const EnginMapLocation = ({dialogVisible, setDialogVisible}) => {
     <Dialog
       header={dialogTemplate}
       visible={dialogVisible}
+      className='lt-journal-dialog'
       style={{
-        width: '78vw',
-        height: '85vh',
+        width: '82vw',
+        height: '88vh',
       }}
       onHide={onHide}
       position='bottom-right'
     >
       <div
-        style={{height: '75vh', width: '100%'}}
+        style={{height: '78vh', width: '100%'}}
         className='flex flex-column justify-content-center'
       >
         <MapComponent

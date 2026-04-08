@@ -4,9 +4,9 @@ import {formateDate} from '../../../cors/utils/formateDate'
 import { Badge } from 'primereact/badge'
 
 const iconsMaping = {
-  "mobile": "fa-duotone fa-duotone fa-solid fa-user",
-  "gateway": "fa fa-signal-stream",
-  "gps": "fa-duotone fa-location-crosshairs",
+  "mobile": "pi pi-mobile",
+  "gateway": "pi pi-wifi",
+  "gps": "pi pi-compass",
 }
 function CardHistory({
   seen,
@@ -25,164 +25,116 @@ function CardHistory({
   herderDisplay,
 }) {
   function truncateText(text) {
-    const maxLength = 86
+    const maxLength = 60
     if (text?.length > maxLength) {
       return text?.substring(0, maxLength) + '...'
     }
     return text
   }
 
-  const dateEntree = (
-    <div className='text-lg mt-2'>
-      <OlangItem olang={'date.enter'} />:{' '}
-      <strong>
-        {enginState === 'exit' ? formateDate(item?.PeriodEnd) : formateDate(item?.PeriodStart)}
-      </strong>
-      <i
-        className={`fas fa-duotone fa-solid fa-arrow-down-to-bracket font-bold text-xl text-green-500 ml-2`}
-      ></i>
-    </div>
-  )
-
-  const lastSeen = (
-    <div className='text-lg mt-2'>
-      <OlangItem olang='last.seen' />: <strong>{item?.lastSeenAt}</strong>
-      <i className={`pi pi-eye text-xl text-blue-500 ml-2`}></i>
-    </div>
-  )
-
   const deviceNameTemplate = () => {
-    
     if(item?.deviceName){
       return (
-        <div className='text-lg mt-2 flex align-items-center gap-2'>
-          <i className={`${iconsMaping[item.satMode] || 'pi-mobile'} text-xl text-gray-500`}></i>
-          <div  className='text-sm text-gray-600 flex gap-1 align-items-center'>
-            <span>{item.deviceName}</span>
-            {item.rssi && <Badge  title="force du signal" value={item.rssi} severity="warning"></Badge>}
-          </div>
+        <div className='lt-timeline-device'>
+          <i className={`${iconsMaping[item.satMode] || 'pi pi-mobile'}`} style={{fontSize: '0.7rem'}}></i>
+          <span>{item.deviceName}</span>
+          {item.rssi && <Badge title="force du signal" value={item.rssi} severity="warning" style={{fontSize: '0.6rem', minWidth: '1.2rem', height: '1.2rem', lineHeight: '1.2rem'}}></Badge>}
         </div>
       )
     }
     return null
   }
 
-  const dateExit = (
-    <div className='text-lg mt-2'>
-      <OlangItem olang='date.exit' />:{' '}
-      <strong>
-        {enginState === 'exit' ? formateDate(herderDisplay !== 'Positions' ? item?.PeriodStart : item?.PeriodStartIso) : formateDate(herderDisplay !== 'Positions' ? item?.PeriodEnd : item?.PeriodEndIso)}
-      </strong>
-      <i
-        className={`fas fa-duotone fa-solid fa-arrow-up-from-bracket text-xl text-red-500 ml-2`}
-      ></i>
-    </div>
-  )
-
-  const datePos = (
-    <div className='text-lg mt-2'>
-      <OlangItem olang='date' />: <strong>{formateDate(herderDisplay !== 'Positions' ? item?.PeriodStart : item?.PeriodStartIso)}</strong>
-      {/* <i className={`pi pi-eye text-xl text-blue-500 ml-2`}></i> */}
-    </div>
-  )
+  const isExit = enginState === 'exit'
+  const isPosition = herderDisplay === 'Positions'
+  const nodeColor = isExit ? '#EF4444' : '#10B981'
+  const nodeIcon = isExit ? 'pi pi-arrow-up-right' : 'pi pi-arrow-down-left'
 
   return (
     <div
-      style={{
-        minHeight: '150px',
-        width: '100%',
-        backgroundColor: selected ? 'rgba(15, 163, 177, 0.5)' : 'white',
-      }}
-      className='cursor-pointer my-1 hover:bg-blue-200 hover:shadow-4 border-round-lg relative shadow-1 p-2 flex flex-row justify-content-between'
+      className={`lt-timeline-card ${selected ? 'lt-timeline-card--active' : ''} ${dateFin == 0 ? 'lt-timeline-card--live' : ''}`}
+      data-testid="timeline-card"
     >
-      <div className='flex flex-1 w-11'>
-        <div className='flex flex-1 flex-column justify-content-center'>
-          <div
-            style={{
-              display: 'flex',
-              flexDirection: enginState === 'exit' ? 'column-reverse' : 'column',
-            }}
-          >
-            {herderDisplay !== 'Positions' ? (
-              <>
-                {enginState === 'exit' && dateFin == 0 ? dateExit : dateFin == 1 ? dateExit : null}
-                {enginState === 'reception' && dateFin == 0
-                  ? dateEntree
-                  : dateFin == 1
-                  ? dateEntree
-                  : null}
-              </>
-            ) : (
-              datePos
-            )}
-          </div>
-          <div className='text-lg mt-2'>
-            <OlangItem olang='Duration' />: <strong>{item?.DurationFormatted || duration}</strong>
-          </div>
-          {enginState !== 'exit' && (
-            <div className='text-lg flex flex-row align-items-center mt-2 z-5 hover:pl-5'>
-              <OlangItem olang='Site' />:
-              <strong className='ml-2'>{item?.locationName || item?.worksiteLabel}</strong>
-              <i class='fas fa-duotone fa-map-location-dot text-xl text-blue-500 ml-2'></i>
-            </div>
+      {/* Timeline Node */}
+      <div className='lt-timeline-node'>
+        <div className='lt-timeline-dot' style={{borderColor: nodeColor, background: selected ? nodeColor : '#FFF'}}>
+          <i className={nodeIcon} style={{color: selected ? '#FFF' : nodeColor, fontSize: '0.65rem'}}></i>
+        </div>
+        <div className='lt-timeline-line'></div>
+      </div>
+
+      {/* Card Content */}
+      <div className='lt-timeline-card-body'>
+        {/* Status Badge */}
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8}}>
+          <span className='lt-timeline-badge' style={{background: `${nodeColor}14`, color: nodeColor, borderColor: `${nodeColor}30`}}>
+            <i className={nodeIcon} style={{fontSize: '0.6rem'}}></i>
+            {isExit ? 'Sortie' : isPosition ? 'Position' : 'Entrée'}
+          </span>
+          {dateFin == 0 && (
+            <span className='lt-timeline-live-dot'>
+              <span></span> En cours
+            </span>
           )}
-          {item?.address ||
-            (item?.enginAddress && (
-              <div className='mt-2 flex items-center'>
-                <i className='fas fa-location-dot text-green-500 text-2xl mr-2'></i>
-                <span
-                  className='flex-grow text-lg font-semibold text-gray-700 truncate'
-                  style={{
-                    maxWidth: '250px',
-                  }}
-                >
-                  <strong>
-                    {truncateText(item?.address || item?.enginAddress) || 'No address found'}
-                  </strong>
-                </span>
-              </div>
-            ))}
+        </div>
 
-            <div>
-              {deviceNameTemplate()}
+        {/* Dates */}
+        <div className='lt-timeline-dates'>
+          {isPosition ? (
+            <div className='lt-timeline-date-row'>
+              <i className='pi pi-calendar' style={{color: '#6366F1', fontSize: '0.75rem'}}></i>
+              <span><OlangItem olang='date' /></span>
+              <strong>{formateDate(herderDisplay !== 'Positions' ? item?.PeriodStart : item?.PeriodStartIso)}</strong>
             </div>
+          ) : (
+            <>
+              {((isExit && dateFin == 0) || dateFin == 1) && (
+                <div className='lt-timeline-date-row'>
+                  <i className='pi pi-sign-out' style={{color: '#EF4444', fontSize: '0.75rem'}}></i>
+                  <span><OlangItem olang='date.exit' /></span>
+                  <strong>
+                    {formateDate(isExit ? (herderDisplay !== 'Positions' ? item?.PeriodStart : item?.PeriodStartIso) : (herderDisplay !== 'Positions' ? item?.PeriodEnd : item?.PeriodEndIso))}
+                  </strong>
+                </div>
+              )}
+              {((isExit ? false : (dateFin == 0)) || dateFin == 1) && (
+                <div className='lt-timeline-date-row'>
+                  <i className='pi pi-sign-in' style={{color: '#10B981', fontSize: '0.75rem'}}></i>
+                  <span><OlangItem olang={'date.enter'} /></span>
+                  <strong>
+                    {formateDate(isExit ? item?.PeriodEnd : item?.PeriodStart)}
+                  </strong>
+                </div>
+              )}
+            </>
+          )}
         </div>
-      </div>
-      <div
-        style={{
-          width: '50px',
-          height: '50px',
-          right: '10px',
-          top: '10px',
-          backgroundColor: '#edf6f9',
-        }}
-        className='border-circle border-1 border-green-500 absolute flex justify-content-center align-items-center'
-      >
-        <i
-          style={{color: dateFin == 0 ? 'gray' : bgEtat}}
-          className={`fas fa-duotone fa-solid ${etatIcon} ${
-            dateFin == 0 ? 'fa-beat' : ''
-          } text-3xl`}
-        ></i>
-      </div>
-      {enginState !== 'exit' && (
-        <div
-          style={{
-            width: '50px',
-            height: '50px',
-            right: '10px',
-            top: '40%',
-            zIndex: 10,
-            backgroundColor: '#edf6f9',
-          }}
-          onClick={onDisplayGeo}
-          className='border-circle hover:shadow-4 hover-scale border-1 border-green-500 absolute flex justify-content-center align-items-center'
-        >
-          <i className='fas fa-duotone fa-map-location-dot text-3xl text-blue-500'></i>
-        </div>
-      )}
 
-      
+        {/* Duration Pill */}
+        <div className='lt-timeline-duration'>
+          <i className='pi pi-clock' style={{fontSize: '0.7rem'}}></i>
+          <strong>{item?.DurationFormatted || duration}</strong>
+        </div>
+
+        {/* Site */}
+        {!isExit && (item?.locationName || item?.worksiteLabel) && (
+          <div className='lt-timeline-site' onClick={(e) => { e.stopPropagation(); onDisplayGeo(); }}>
+            <i className='pi pi-map-marker' style={{color: '#3B82F6', fontSize: '0.75rem'}}></i>
+            <span>{item?.locationName || item?.worksiteLabel}</span>
+          </div>
+        )}
+
+        {/* Device Info */}
+        {deviceNameTemplate()}
+
+        {/* Address */}
+        {(item?.address || item?.enginAddress) && (
+          <div className='lt-timeline-address'>
+            <i className='pi pi-compass' style={{fontSize: '0.7rem'}}></i>
+            <span>{truncateText(item?.address || item?.enginAddress)}</span>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

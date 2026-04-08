@@ -2,10 +2,7 @@ import {Chip, Checkbox, Button} from 'primereact'
 
 import {useEffect, useState, memo, useRef} from 'react'
 
-import {InputText} from 'primereact/inputtext'
-
 import {ProgressSpinner} from 'primereact/progressspinner'
-import {Ripple} from 'primereact/ripple'
 import {ConfirmDialog} from 'primereact/confirmdialog'
 import {Toast} from 'primereact/toast'
 import {OlangItem} from '../Olang/user-interface/OlangItem/OlangItem'
@@ -21,7 +18,6 @@ import {
   setGeoByIdSite,
   setParamCadHis,
 } from '../../Engin/slice/engin.slice'
-import {Divider} from 'primereact/divider'
 
 const HistoryListComponent = (props) => {
   const toast = useRef(null)
@@ -64,51 +60,65 @@ const HistoryListComponent = (props) => {
     <>
       {paramList?.showList ? (
         <div
-          style={{height: '65vh'}}
-          className='bg-gray-50 p-2 border-round-md border-1 border-gray-300  w-full scalein animation-duration-1000'
+          className='lt-timeline-panel scalein animation-duration-1000'
+          data-testid="timeline-panel"
         >
-          <div className='w-full flex p-2 flex-row justify-content-between align-items-center'>
-            <div className='text-xl font-semibold text-gray-500'>{paramList.title}</div>
-            <i
+          <div className='lt-timeline-panel-header'>
+            <div className='lt-timeline-panel-title'>
+              <i className='pi pi-history' style={{fontSize: '1rem'}}></i>
+              <span>{paramList.title || 'Journal d\'activité'}</span>
+            </div>
+            <button
               onClick={hidList}
-              className='fas bg-white border-circle p-2 border-1 border-red-400 cursor-pointer hover:bg-red-100 fa-regular fa-arrow-down-left-and-arrow-up-right-to-center text-red-400 text-lg'
-            ></i>
+              className='lt-timeline-close-btn'
+              data-testid="timeline-close-btn"
+            >
+              <i className='pi pi-times'></i>
+            </button>
           </div>
 
-          <Divider style={{width: '100%', marginBottom: '10px', marginTop: '10px'}} />
           {isLoading ? (
-            <ProgressSpinner
-              style={{width: '50px', height: '50px', margin: 'auto', display: 'block'}}
-            />
+            <div style={{display: 'flex', justifyContent: 'center', padding: '40px 0'}}>
+              <ProgressSpinner
+                style={{width: '40px', height: '40px'}}
+              />
+            </div>
           ) : props.allGeo?.length === 0 ? (
-            <strong className='text-muted'>
-              <OlangItem olang='No.Data' />
-            </strong>
+            <div className='lt-timeline-empty'>
+              <i className='pi pi-inbox' style={{fontSize: '2rem', color: 'var(--lt-text-muted)'}}></i>
+              <p><OlangItem olang='No.Data' /></p>
+            </div>
           ) : (
             <div>
               <Toast ref={toast} />
               <ConfirmDialog />
               {!props.history && props?.allGeo?.length > 1 && (
-                <div className='p-input-icon-left p-input-icon-right w-full'>
-                  <i className='pi pi-search' />
-                  <InputText
-                    className=' w-full'
-                    placeholder='Locations...'
-                    value={filterText}
-                    onChange={(e) => filter(e.target.value)}
-                  />
-                  <i className='pi pi-times-circle' onClick={() => setFilterText('')} />
+                <div style={{padding: '0 16px 12px'}}>
+                  <div className='lt-timeline-search'>
+                    <i className='pi pi-search' style={{fontSize: '0.8rem', color: 'var(--lt-text-muted)'}}></i>
+                    <input
+                      type='text'
+                      placeholder='Rechercher...'
+                      value={filterText}
+                      onChange={(e) => filter(e.target.value)}
+                      className='lt-timeline-search-input'
+                      data-testid="timeline-search"
+                    />
+                    {filterText && (
+                      <i className='pi pi-times-circle' style={{cursor: 'pointer', color: 'var(--lt-text-muted)', fontSize: '0.8rem'}} onClick={() => setFilterText('')} />
+                    )}
+                  </div>
                 </div>
               )}
 
               <div
-                className='flex flex-column align-items-center'
-                style={{maxHeight: '55vh', overflow: 'auto'}}
+                className='lt-timeline-list'
+                data-testid="timeline-list"
               >
                 {props.allGeo?.length > 0 &&
                   props.allGeo?.map((o, index) => (
                     <div
-                      className='w-full px-2'
+                      className='lt-timeline-item-wrap'
                       onClick={() => {
                         props.handleOnClickLayer(o, index)
                       }}
@@ -138,15 +148,13 @@ const HistoryListComponent = (props) => {
         </div>
       ) : (
         <div className='w-full flex flex-row justify-content-end align-items-center'>
-          <i
-            style={{
-              width: '40px',
-              height: '40px',
-              backgroundColor: '#D64B70',
-            }}
+          <button
             onClick={showList}
-            className='pi pi-align-right flex align-items-center justify-content-center border-2 text-center border-white border-circle cursor-pointer text-white text-xl'
-          />
+            className='lt-timeline-toggle-btn'
+            data-testid="timeline-toggle-btn"
+          >
+            <i className='pi pi-history' style={{fontSize: '1rem'}}></i>
+          </button>
         </div>
       )}
     </>
