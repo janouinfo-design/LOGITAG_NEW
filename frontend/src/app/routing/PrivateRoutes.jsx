@@ -1,5 +1,5 @@
 import {Route, Routes, Navigate, useLocation} from 'react-router-dom'
-import PremiumLayout from '../../components/premium/PremiumLayout'
+import {MasterLayout} from '../../_metronic/layout/MasterLayout'
 import {useAppSelector} from '../../hooks'
 import {getMenus} from '../../components/Layout/slice/layout.slice'
 import {useEffect, useState} from 'react'
@@ -36,7 +36,7 @@ const PrivateRoutes = () => {
 
   return (
     <Routes>
-      <Route element={<PremiumLayout />}>
+      <Route element={<MasterLayout />}>
         {links.map((o) => (
           <Route path={o.link} element={o.component ? <o.component /> : null} />
         ))}

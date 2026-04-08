@@ -25,7 +25,7 @@ import {
 import {useAppDispatch, useAppSelector} from '../../../hooks'
 import {Chip} from 'primereact/chip'
 import {Image} from 'primereact/image'
-import {memo, useCallback, useEffect, useRef, useState} from 'react'
+import {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react'
 import {OlangItem} from '../../shared/Olang/user-interface/OlangItem/OlangItem'
 import ButtonComponent from '../../shared/ButtonComponent/ButtonComponent'
 import {setAlertParams} from '../../../store/slices/alert.slice'
@@ -51,10 +51,160 @@ import {fetchFamilles} from '../../Famillies/slice/famille.slice'
 import {fetchSites, getSites} from '../../Site/slice/site.slice'
 import {useLocation} from 'react-router-dom'
 import {ProgressSpinner} from 'primereact/progressspinner'
-import { fetchConversationList, setDetailChat } from '../../../_metronic/partials/layout/drawer-messenger/slice/Chat.slice'
-import { DrawerComponent } from '../../../_metronic/assets/ts/components'
-import { Badge } from 'primereact/badge'
+import {
+  fetchConversationList,
+  setDetailChat,
+} from '../../../_metronic/partials/layout/drawer-messenger/slice/Chat.slice'
+import {DrawerComponent} from '../../../_metronic/assets/ts/components'
+import {Badge} from 'primereact/badge'
 import LastSeenComponent from '../EnginDetail/LastSeenComponent'
+
+const ETAT_DATA = [
+  {
+    label: 'Entrée',
+    code: 'reception',
+    icon: 'fa-solid fa-down-to-bracket',
+    backgroundColor: '#29bf12',
+  },
+  {
+    label: 'Sortie',
+    code: 'exit',
+    icon: 'fa-solid fa-up-from-bracket',
+    backgroundColor: '#D64B70',
+  },
+]
+
+const etatItemTemplateStatic = (option) => (
+  <Tag
+    className='cursor-pointer gap-2'
+    value={option?.label || option?.name}
+    style={{background: option?.backgroundColor}}
+    icon={option?.icon}
+  />
+)
+
+const selectedTemplateStatic = (option, props) => {
+  if (option) {
+    return (
+      <Tag
+        className='cursor-pointer gap-2'
+        value={option?.label || option?.name}
+        style={{background: option?.backgroundColor}}
+        icon={option?.icon}
+      />
+    )
+  }
+  return <span>{props.placeholder}</span>
+}
+
+const tagFamItemTemplateStatic = (option, props) => {
+  if (option) {
+    return (
+      <Chip
+        className='cursor-pointer text-white'
+        label={option?.label || option?.name}
+        style={{background: option?.backgroundColor}}
+        icon={option?.icon}
+      />
+    )
+  }
+  return <span>{props.placeholder}</span>
+}
+
+const FilterEtat = memo(({value, onChange}) => (
+  <Dropdown
+    showClear
+    value={value}
+    options={ETAT_DATA}
+    optionLabel='name'
+    placeholder={'Etat'}
+    optionValue='code'
+    className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+    onChange={(e) => onChange('etat', e.value)}
+    maxSelectedLabels={1}
+    itemTemplate={etatItemTemplateStatic}
+    valueTemplate={selectedTemplateStatic}
+    style={{minWidth: '8rem', maxWidth: '10rem'}}
+  />
+))
+
+const FilterFamTag = memo(({value, onChange, options}) => (
+  <Dropdown
+    showClear
+    value={value}
+    options={options}
+    optionLabel='label'
+    placeholder='Filter'
+    optionValue='value'
+    className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+    onChange={(e) => onChange('tagFam', e.value)}
+    maxSelectedLabels={1}
+    itemTemplate={tagFamItemTemplateStatic}
+    valueTemplate={tagFamItemTemplateStatic}
+    style={{minWidth: '8rem', maxWidth: '10rem'}}
+  />
+))
+
+const FilterFamEng = memo(({value, onChange, options}) => (
+  <Dropdown
+    showClear
+    value={value}
+    options={options}
+    optionLabel='label'
+    placeholder='Filter'
+    optionValue='label'
+    className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+    onChange={(e) => onChange('engFam', e.value)}
+    maxSelectedLabels={1}
+    itemTemplate={tagFamItemTemplateStatic}
+    valueTemplate={tagFamItemTemplateStatic}
+    style={{minWidth: '8rem', maxWidth: '10rem'}}
+  />
+))
+
+const FilterSite = memo(({value, onChange, options}) => (
+  <MultiSelect
+    value={value}
+    options={options}
+    placeholder='Site'
+    optionLabel='label'
+    optionValue='id'
+    filter
+    className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+    onChange={(e) => onChange('sites', e.value)}
+    style={{minWidth: '8rem', maxWidth: '10rem'}}
+  />
+))
+
+const FilterStatus = memo(({value, onChange, options}) => (
+  <Dropdown
+    showClear
+    value={value}
+    options={options}
+    optionLabel='label'
+    placeholder='Any'
+    optionValue='name'
+    className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
+    onChange={(e) => onChange('status', e.value)}
+    maxSelectedLabels={1}
+    valueTemplate={selectedTemplateStatic}
+    itemTemplate={etatItemTemplateStatic}
+    style={{minWidth: '8rem', maxWidth: '10rem'}}
+  />
+))
+
+const FilterLastSeen = memo(({value, onChange, calRef}) => (
+  <Calendar
+    ref={calRef}
+    value={value}
+    onChange={(e) => onChange('lastSeen', e.value)}
+    hourFormat='24'
+    placeholder='DD/MM/YYYY'
+    className='p-column-filter border-1 border-blue-300 border-round-lg'
+    style={{minWidth: '8rem', maxWidth: '12rem'}}
+    showButtonBar={true}
+  />
+))
 
 const EnginList = () => {
   const [visible, setVisible] = useState(false)
@@ -63,6 +213,7 @@ const EnginList = () => {
   const [isLoadingButton, setIsLoadingButton] = useState(false)
   const [showTag, setShowTag] = useState([])
   const [loading, setLoading] = useState(false)
+  const [filterLoadingPopup, setFilterLoadingPopup] = useState(false)
   const [mouvement, setMouvement] = useState('')
   const [totalRecords, setTotalRecords] = useState(0)
   const [pdfLoading, setPdfLoading] = useState(false)
@@ -78,7 +229,7 @@ const EnginList = () => {
   const [loadingOrder, setLoadingOrder] = useState(false)
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
-    etat: 'all',
+    etat: null,
     status: null,
     lastSeen: null,
     sites: [],
@@ -87,27 +238,8 @@ const EnginList = () => {
     engFam: null,
   })
   const refFilter = useRef(null)
-
-  const etatData = [
-    {
-      label: 'Tous',
-      code: 'all',
-      icon: 'pi pi-list',
-      backgroundColor: '#2563EB',
-    },
-    {
-      label: 'Entrée',
-      code: 'reception',
-      icon: 'fa-solid fa-down-to-bracket',
-      backgroundColor: '#29bf12',
-    },
-    {
-      label: 'Sortie',
-      code: 'exit',
-      icon: 'fa-solid fa-up-from-bracket',
-      backgroundColor: '#D64B70',
-    },
-  ]
+  const filtersRef = useRef(filters)
+  const orderByRef = useRef(orderBy)
 
   const intervalPdf = useRef(null)
 
@@ -125,27 +257,27 @@ const EnginList = () => {
   const dispatch = useAppDispatch()
 
   const displayChatDetail = (selectedEngin) => {
-      let obj = {
-        srcId: selectedEngin.id,
-        srcObject: 'Engin',
-      }
-      dispatch(fetchConversationList(obj)).then((res) => {
-        dispatch(setSelectedEngine(selectedEngin))
-        console.log('res fetchConversationList', res)
-        dispatch(setDetailChat(true))
-      })
-      const drawer = DrawerComponent.getInstance('kt_drawer_chat')
-      if (drawer) {
-        drawer.show()
-        return
-      }
-  
-      // Fallback: trigger the DOM toggle (the one used in Navbar)
-      const toggle = document.getElementById('kt_drawer_chat_toggle')
-      if (toggle) {
-        toggle.click()
-      }
+    let obj = {
+      srcId: selectedEngin.id,
+      srcObject: 'Engin',
     }
+    dispatch(fetchConversationList(obj)).then((res) => {
+      dispatch(setSelectedEngine(selectedEngin))
+      console.log('res fetchConversationList', res)
+      dispatch(setDetailChat(true))
+    })
+    const drawer = DrawerComponent.getInstance('kt_drawer_chat')
+    if (drawer) {
+      drawer.show()
+      return
+    }
+
+    // Fallback: trigger the DOM toggle (the one used in Navbar)
+    const toggle = document.getElementById('kt_drawer_chat_toggle')
+    if (toggle) {
+      toggle.click()
+    }
+  }
 
   let actions = [
     {
@@ -199,7 +331,7 @@ const EnginList = () => {
           ? moment(filters.lastSeen).format('YYYY-MM-DD')
           : ''
         : '',
-      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
+      searchSituation: filters?.etat || '',
       searchTag: filters?.tagFam || '',
       searchStatus: filters?.status || '',
       searchFamille: filters?.engFam || '',
@@ -222,77 +354,88 @@ const EnginList = () => {
       dispatch(setShow(false))
     } catch (error) {}
   }
-  const getPosOfAddress = (data) => {
-    try {
-      let obj = {
-        srcId: data?.id,
-        srcObject: 'Engin',
-        srcMouvement: 'pos',
-      }
-      dispatch(setParamCadHis({title: 'Positions', showList: true}))
-      dispatch(fetchEnginListHistory(obj)).then(() => {
-        dispatch(setShowHistory(true))
-        dispatch(setSelectedEngine(data))
-        setDialogVisible(true)
-      })
-      // dispatch(setSelectedEngine(data))
-      // dispatch(setShowHistory(true))
-      // setMouvement('pos')
-      // setDialogVisible(true)
-    } catch (error) {}
-  }
-
-  const imageTemplate = (rowData) => (
-    <>
-      <Image
-        src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
-        alt='EngineImage'
-        width='60'
-        height='60'
-        preview
-        imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
-      />
-    </>
+  const getPosOfAddress = useCallback(
+    (data) => {
+      try {
+        const obj = {
+          srcId: data?.id,
+          srcObject: 'Engin',
+          srcMouvement: 'pos',
+        }
+        dispatch(setParamCadHis({title: 'Positions', showList: true}))
+        dispatch(fetchEnginListHistory(obj)).then(() => {
+          dispatch(setShowHistory(true))
+          dispatch(setSelectedEngine(data))
+          setDialogVisible(true)
+        })
+      } catch (error) {}
+    },
+    [dispatch]
   )
 
-  const addresseeTemplate = (rowData) => {
-    return (
+  const imageTemplate = useCallback(
+    (rowData) => (
+      <>
+        <Image
+          src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
+          alt='EngineImage'
+          width='60'
+          height='60'
+          preview
+          imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
+        />
+      </>
+    ),
+    []
+  )
+
+  const addresseeTemplate = useCallback(
+    (rowData) => (
       <div>
         <Chip
-          label={'Géolocalisation'}
+          label={'Géolocalisation'}
           className='w-11rem m-1 flex justify-content-center align-items-center cursor-pointer'
           onClick={() => getPosOfAddress(rowData)}
           icon='pi pi-map-marker text-blue-500'
         />
       </div>
-    )
-  }
+    ),
+    [getPosOfAddress]
+  )
 
-  const handleClickType = (rowData) => {
-    try {
+  const handleClickType = useCallback(
+    (rowData) => {
+      try {
+        dispatch(setSelectedEngine(rowData))
+        setVisible(true)
+      } catch (error) {}
+    },
+    [dispatch]
+  )
+
+  const handleType = useCallback(
+    (e) => {
+      try {
+        setVisible(true)
+        dispatch(setSelectedEngine(e))
+      } catch (error) {}
+    },
+    [dispatch]
+  )
+
+  const onClickStatus = useCallback(
+    (rowData) => {
+      const objInfo = {
+        srcId: rowData?.uid,
+        srcObject: 'engin',
+      }
       dispatch(setSelectedEngine(rowData))
-      setVisible(true)
-      //dispatch(setTypeEdit(true))
-    } catch (error) {}
-  }
-
-  const handleType = (e) => {
-    try {
-      setVisible(true)
-      dispatch(setSelectedEngine(e))
-    } catch (error) {}
-  }
-
-  const onClickStatus = (rowData) => {
-    let objInfo = {
-      srcId: rowData?.uid,
-      srcObject: 'engin',
-    }
-    dispatch(setSelectedEngine(rowData))
-    dispatch(fetchStatusHistoric(objInfo)).then(() => {
-      dispatch(setStatusVisible(true))
-    })
-  }
+      dispatch(fetchStatusHistoric(objInfo)).then(() => {
+        dispatch(setStatusVisible(true))
+      })
+    },
+    [dispatch]
+  )
 
   const typeTemplate = (rowData) => {
     let typesArray
@@ -331,57 +474,70 @@ const EnginList = () => {
     )
   }
 
-  const statusTemplate = (rowData) => {
-    if (rowData?.iconName) {
-      return (
-        <i
-          title={rowData?.statuslabel}
-          className={`${rowData?.iconName} text-2xl rounded p-2 cursor-pointer`}
-          style={{color: `${rowData.statusbgColor}`}}
-          onClick={() => onClickStatus(rowData)}
-        ></i>
-      )
-    }
-    return (
-      <Chip
-        label={rowData?.statuslabel}
-        style={
-          {
-            // background: `${rowData.statusbgColor}`,
-            // color: rowData.color ?? '',
-          }
+  const handleShowMap = useCallback(
+    (rowData) => {
+      try {
+        const obj = {
+          srcId: rowData?.uid,
+          srcObject: 'Engin',
         }
-        title={`${rowData?.statusDate}`}
-      />
-    )
-  }
+        dispatch(setParamCadHis({title: 'Enter_Exit', showList: true}))
+        dispatch(fetchEnginListHistory(obj)).then(() => {
+          dispatch(setShowHistory(true))
+          dispatch(setSelectedEngine(rowData))
+          setDialogVisible(true)
+        })
+      } catch (error) {}
+    },
+    [dispatch]
+  )
+
+  const statusTemplate = useCallback(
+    (rowData) => {
+      if (rowData?.iconName) {
+        return (
+          <i
+            title={rowData?.statuslabel}
+            className={`${rowData?.iconName} text-2xl rounded p-2 cursor-pointer`}
+            style={{color: `${rowData.statusbgColor}`}}
+            onClick={() => onClickStatus(rowData)}
+          ></i>
+        )
+      }
+      return <Chip label={rowData?.statuslabel} title={`${rowData?.statusDate}`} />
+    },
+    [onClickStatus]
+  )
 
   //etatengin
-  const iconTemplate = (rowData) => {
-    let icon = ''
-    let color = ''
-    if (rowData?.etatenginname == 'exit') {
-      icon = 'fa-solid fa-up-from-bracket'
-      color = '#D64B70'
-    } else if (rowData?.etatenginname == 'reception') {
-      icon = 'fa-solid fa-down-to-bracket'
-      color = 'green'
-    } else if (rowData?.etatenginname == 'nonactive') {
-      icon = 'fa-solid fa-octagon-exclamation'
-      color = 'red'
-    }
-    return (
-      <div>
-        <i
-          style={{color}}
-          className={`${icon} text-2xl rounded p-2 cursor-pointer`}
-          // title={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
-          // alt={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
-          onClick={() => handleShowMap(rowData, null)}
-        ></i>
-      </div>
-    )
-  }
+  const iconTemplate = useCallback(
+    (rowData) => {
+      let icon = ''
+      let color = ''
+      if (rowData?.etatenginname == 'exit') {
+        icon = 'fa-solid fa-up-from-bracket'
+        color = '#D64B70'
+      } else if (rowData?.etatenginname == 'reception') {
+        icon = 'fa-solid fa-down-to-bracket'
+        color = 'green'
+      } else if (rowData?.etatenginname == 'nonactive') {
+        icon = 'fa-solid fa-octagon-exclamation'
+        color = 'red'
+      }
+      return (
+        <div>
+          <i
+            style={{color}}
+            className={`${icon} text-2xl rounded p-2 cursor-pointer`}
+            // title={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
+            // alt={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
+            onClick={() => handleShowMap(rowData, null)}
+          ></i>
+        </div>
+      )
+    },
+    [handleShowMap]
+  )
 
   const onClear = () => {
     setSearchInput('')
@@ -423,21 +579,6 @@ const EnginList = () => {
     )
   }
 
-  const handleShowMap = (rowData, srcMouv = '') => {
-    try {
-      let obj = {
-        srcId: rowData?.uid,
-        srcObject: 'Engin',
-      }
-      dispatch(setParamCadHis({title: 'Enter_Exit', showList: true}))
-      dispatch(fetchEnginListHistory(obj)).then(() => {
-        dispatch(setShowHistory(true))
-        dispatch(setSelectedEngine(rowData))
-        setDialogVisible(true)
-      })
-    } catch (error) {}
-  }
-
   const handleOrderClick = (field) => {
     try {
       setLoadingOrder(true)
@@ -454,7 +595,7 @@ const EnginList = () => {
             ? moment(filters.lastSeen).format('YYYY-MM-DD')
             : ''
           : '',
-        searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
+        searchSituation: filters?.etat || '',
         searchTag: filters?.tagFam || '',
         searchStatus: filters?.status || '',
         searchFamille: filters?.engFam || '',
@@ -492,45 +633,46 @@ const EnginList = () => {
     )
   }
 
-  const showTagById = (rowData) => {
-    if (showTag?.includes(rowData?.uid)) {
-      let update = showTag?.filter((x) => x !== rowData?.uid)
-      setShowTag(update)
-      return
-    }
-    setShowTag([...showTag, rowData?.uid])
-  }
+  const showTagById = useCallback((rowData) => {
+    setShowTag((prev) => {
+      if (prev?.includes(rowData?.uid)) return prev.filter((x) => x !== rowData?.uid)
+      return [...prev, rowData?.uid]
+    })
+  }, [])
 
-  const tagTemplate = (rowData) => {
-    return (
-      <div className='flex flex-column'>
-        <div className='flex justify-content-center'>
-          {rowData.tagId ? (
-            familleTagTemplate(rowData)
-          ) : (
-            <Chip label='Untagged' className='cursor-pointer' />
-          )}
-        </div>
-        {showTag.includes(rowData?.uid) ? (
-          <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-            <Chip
-              label={
-                rowData?.labeltag === null ||
-                rowData?.labeltag === '' ||
-                rowData?.labeltag == undefined
-                  ? rowData?.tagname
-                  : rowData?.labeltag
-              }
-              className='m-2'
-              style={{background: rowData?.familleTagIconBgcolor || '#D64B70', color: 'white'}}
-            />
+  const tagTemplate = useCallback(
+    (rowData) => {
+      return (
+        <div className='flex flex-column'>
+          <div className='flex justify-content-center'>
+            {rowData.tagId ? (
+              familleTagTemplate(rowData)
+            ) : (
+              <Chip label='Untagged' className='cursor-pointer' />
+            )}
           </div>
-        ) : null}
-      </div>
-    )
-  }
+          {showTag.includes(rowData?.uid) ? (
+            <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+              <Chip
+                label={
+                  rowData?.labeltag === null ||
+                  rowData?.labeltag === '' ||
+                  rowData?.labeltag == undefined
+                    ? rowData?.tagname
+                    : rowData?.labeltag
+                }
+                className='m-2'
+                style={{background: rowData?.familleTagIconBgcolor || '#D64B70', color: 'white'}}
+              />
+            </div>
+          ) : null}
+        </div>
+      )
+    },
+    [showTag]
+  )
 
-  const BatteryStatus = ({batteries, locationDate}) => {
+  const BatteryStatus = useCallback(({batteries, locationDate}) => {
     let batteryIcon
     let textColor
     let alt
@@ -569,21 +711,22 @@ const EnginList = () => {
         </div>
       </div>
     )
-  }
+  }, [])
 
   const tagIdTemplate = ({tagId}) => {
     return tagId == null || tagId === '' || tagId === undefined || tagId === 0 ? 'No Tag' : tagId
   }
 
-  const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
-    return (
+  const familleTemplate = useCallback(
+    ({famille, familleIcon, familleBgcolor}) => (
       <Chip
         label={famille}
         icon={familleIcon}
         style={{background: familleBgcolor, color: 'white'}}
       />
-    )
-  }
+    ),
+    []
+  )
 
   const representativesItemTemplate = (option) => {
     return (
@@ -598,170 +741,24 @@ const EnginList = () => {
     )
   }
 
-  const selectedTemplate = (option, props) => {
-    if (option) {
-      return (
-        <Tag
-          className='cursor-pointer gap-2'
-          value={option?.label || option?.name}
-          style={{background: option?.backgroundColor}}
-          icon={option?.icon}
-        />
-      )
-    }
+  const setFilterField = useCallback((key, value) => {
+    setFilters((prev) => ({...prev, [key]: value}))
+  }, [])
 
-    return <span>{props.placeholder}</span>
-  }
-
-  const etatItemTemplate = (option) => {
-    return (
-      <Tag
-        className='cursor-pointer gap-2'
-        value={option?.label || option?.name}
-        style={{background: option?.backgroundColor}}
-        icon={option?.icon}
-      />
-    )
-  }
-
-  const tagFamItemTemplate = (option, props) => {
-    if (option) {
-      return (
-        <Chip
-          className='cursor-pointer text-white'
-          label={option?.label || option?.name}
-          style={{background: option?.backgroundColor}}
-          icon={option?.icon}
-        />
-      )
-    }
-
-    return <span>{props.placeholder}</span>
-  }
-
-  const filterTemplateEtat = () => {
-    return (
-      <Dropdown
-        value={filters.etat}
-        options={etatData}
-        optionLabel='label'
-        placeholder={'Etat'}
-        optionValue='code'
-        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
-        onChange={(e) => setFilters({...filters, etat: e.value})}
-        maxSelectedLabels={1}
-        itemTemplate={etatItemTemplate}
-        valueTemplate={selectedTemplate}
-        style={{minWidth: '8rem', maxWidth: '10rem'}}
-      />
-    )
-  }
-
-  const filterTemplateFamTag = () => {
-    return (
-      <Dropdown
-        showClear
-        value={filters.tagFam}
-        options={familleTag}
-        optionLabel='label'
-        placeholder='Filter'
-        optionValue='value'
-        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
-        onChange={(e) => setFilters({...filters, tagFam: e.value})}
-        maxSelectedLabels={1}
-        itemTemplate={tagFamItemTemplate}
-        valueTemplate={tagFamItemTemplate}
-        style={{minWidth: '8rem', maxWidth: '10rem'}}
-      />
-    )
-  }
-
-  const filterTemplateFamEng = () => {
-    return (
-      <Dropdown
-        showClear
-        value={filters.engFam}
-        options={familleEngin}
-        optionLabel='label'
-        placeholder='Filter'
-        optionValue='label'
-        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
-        onChange={(e) => setFilters({...filters, engFam: e.value})}
-        maxSelectedLabels={1}
-        itemTemplate={tagFamItemTemplate}
-        valueTemplate={tagFamItemTemplate}
-        style={{minWidth: '8rem', maxWidth: '10rem'}}
-      />
-    )
-  }
-
-  const filterSiteTemplate = () => {
-    return (
-      <MultiSelect
-        value={refFilter?.current?.sites}
-        options={sites}
-        placeholder='Site'
-        optionLabel='label'
-        optionValue='id'
-        filter
-        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
-        onChange={(e) => {
-          refFilter.current.sites = e.value
-          setFilters({...filters, sites: e.value})
-        }}
-        style={{minWidth: '8rem', maxWidth: '10rem'}}
-      />
-    )
-  }
-
-  const filterTemplateStatus = () => {
-    return (
-      <Dropdown
-        showClear
-        value={filters.status}
-        options={enginStatus}
-        optionLabel='label'
-        placeholder='Any'
-        optionValue='name'
-        className='p-column-filter border-1 border-blue-300 border-round-lg h-4rem flex align-items-center'
-        onChange={(e) => setFilters({...filters, status: e.value})}
-        maxSelectedLabels={1}
-        valueTemplate={selectedTemplate}
-        itemTemplate={etatItemTemplate}
-        style={{minWidth: '8rem', maxWidth: '10rem'}}
-      />
-    )
-  }
-
-  const customBottomBar = () => {
-    return (
+  const customBottomBar = useCallback(
+    () => (
       <div className='flex flex-row align-items-center justify-content-between px-2'>
         <Button
           label='Clear'
           severity='danger'
           onClick={() => {
             calenderRef.current.hide()
-            setFilters({...filters, lastSeen: ''})
           }}
         />
-        <Button label='Ok' severity='success' onClick={() => calenderRef.current.hide()} />
       </div>
-    )
-  }
-  const lastSeenFilter = () => {
-    return (
-      <Calendar
-        ref={calenderRef}
-        value={filters.lastSeen}
-        onChange={(e) => setFilters({...filters, lastSeen: e.value})}
-        hourFormat='24'
-        placeholder='DD/MM/YYYY'
-        footerTemplate={customBottomBar}
-        className='p-column-filter border-1 border-blue-300 border-round-lg'
-        style={{minWidth: '8rem', maxWidth: '12rem'}}
-      />
-    )
-  }
+    ),
+    []
+  )
 
   const filterTemplateSearch = (field) => {
     return (
@@ -780,144 +777,170 @@ const EnginList = () => {
   const lastSeenTemplate = (data) => {
     return <LastSeenComponent data={data} />
     if (!data.lastSeenAt || typeof data.lastSeenAt != 'string') return '_'
-    let formated = data.lastSeenAt.includes('+') ? moment(data.lastSeenAt).format('DD/MM/YYYY HH:mm') :
-    moment.utc(data.lastSeenAt).format('DD/MM/YYYY HH:mm')
+    let formated = data.lastSeenAt.includes('+')
+      ? moment(data.lastSeenAt).format('DD/MM/YYYY HH:mm')
+      : moment.utc(data.lastSeenAt).format('DD/MM/YYYY HH:mm')
     return (
       <div className='flex flex-column'>
         <strong>{formated}</strong>
         <span className='text-sm text-gray-600'>{data.lastSeenLocationName}</span>
-        <div  className='text-sm text-gray-600 flex gap-1 align-items-center'>
+        <div className='text-sm text-gray-600 flex gap-1 align-items-center'>
           <span>{data.lastSeenDevice}</span>
-          {data.lastSeenRssi && <Badge  title="force du signal" value={data.lastSeenRssi} severity="warning"></Badge>}
+          {data.lastSeenRssi && (
+            <Badge title='force du signal' value={data.lastSeenRssi} severity='warning'></Badge>
+          )}
         </div>
       </div>
     )
   }
 
-  const columns = [
-    {
-      header: 'Photo',
-      field: 'image',
-      olang: 'Photo',
-      body: imageTemplate,
-    },
-    {
-      header: 'Référence',
-      field: 'reference',
-      olang: 'Reference',
-      // filter: true,
-      // filterElement: filterBySearchTemplate('reference'),
-      // showFilterMenu: false,
-    },
-    // {
-    //   header: 'TagId',
-    //   field: 'tagId',
-    //   olang: 'tagId',
-    //   body: tagIdTemplate,
-    // },
-    {
-      header: 'Label',
-      field: 'label',
-      olang: 'label',
-      filter: true,
-      filterElement: filterTemplateSearch('label'),
-      showFilterMenu: false,
-      width: '15rem',
-    },
-    {
-      header: 'Vin',
-      field: 'vin',
-      olang: 'vin',
-      // filter: true,
-      // filterElement: filterBySearchTemplate('vin'),
-      // showFilterMenu: false,
-    },
-    {
-      header: 'Etat',
-      field: 'etatenginname',
-      olang: 'Etat',
-      body: iconTemplate,
-      filterElement: filterTemplateEtat,
-      showFilterMenu: false,
-      filter: true,
-    },
-    {
-      header: 'Tag',
-      field: 'tagname',
-      olang: 'Tag',
-      body: tagTemplate,
-      filterElement: filterTemplateFamTag,
-      showFilterMenu: false,
-      filter: true,
-    },
-    {
-      header: 'Status',
-      olang: 'status',
-      field: 'statuslabel',
-      body: statusTemplate,
-      filterElement: filterTemplateStatus,
-      showFilterMenu: false,
-      filter: true,
-    },
-    {
-      header: 'Dernière vue',
-      olang: 'lastSeen',
-      field: 'lastSeenAt',
-      body: lastSeenTemplate,
-
-      filterElement: lastSeenFilter,
-      showFilterMenu: false,
-      filter: true,
-    },
-    {
-      header: 'Battery status',
-      olang: 'BatteryStatus',
-      field: 'batteries',
-      body: BatteryStatus,
-    },
-    {
-      header: 'Famille',
-      field: 'famille',
-      olang: 'Famille',
-      visible: true,
-      body: familleTemplate,
-      filterElement: filterTemplateFamEng,
-      showFilterMenu: false,
-      filter: true,
-    },
-
-    {
-      header: 'Marque',
-      field: 'brand',
-      olang: 'marque',
-      // filter: true,
-      // filterElement: filterBySearchTemplate('brand'),
-      // showFilterMenu: false,
-    },
-    {
-      header: 'Matricule',
-      field: 'model',
-      olang: 'Matricule',
-      // filter: true,
-      // filterElement: filterBySearchTemplate('model'),
-      // showFilterMenu: false,
-    },
-    {
-      header: 'Worksite',
-      field: 'LocationObjectname',
-      olang: 'Worksite',
-      filterElement: filterSiteTemplate,
-      showFilterMenu: false,
-      filter: true,
-    },
-
-    {
-      header: 'Addressee',
-      olang: 'Addressee',
-      field: 'latlng',
-      body: addresseeTemplate,
-    },
-  ]
+  const columns = useMemo(
+    () => [
+      {
+        header: 'Photo',
+        field: 'image',
+        olang: 'Photo',
+        body: imageTemplate,
+      },
+      {
+        header: 'Référence',
+        field: 'reference',
+        olang: 'Reference',
+      },
+      {
+        header: 'Vin',
+        field: 'vin',
+        olang: 'vin',
+        filter: true,
+        filterElement: filterTemplateSearch('vin'),
+        showFilterMenu: false,
+        width: '15rem',
+      },
+      {
+        header: 'Label',
+        field: 'label',
+        olang: 'label',
+        filter: true,
+        filterElement: filterTemplateSearch('label'),
+        showFilterMenu: false,
+        width: '15rem',
+      },
+      {
+        header: 'Etat',
+        field: 'etatenginname',
+        olang: 'Etat',
+        body: iconTemplate,
+        filterElement: <FilterEtat value={filters.etat} onChange={setFilterField} />,
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Tag',
+        field: 'tagname',
+        olang: 'Tag',
+        body: tagTemplate,
+        filterElement: (
+          <FilterFamTag value={filters.tagFam} onChange={setFilterField} options={familleTag} />
+        ),
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Status',
+        olang: 'status',
+        field: 'statuslabel',
+        body: statusTemplate,
+        filterElement: (
+          <FilterStatus value={filters.status} onChange={setFilterField} options={enginStatus} />
+        ),
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Dernière vue',
+        olang: 'lastSeen',
+        field: 'lastSeenAt',
+        body: lastSeenTemplate,
+        filterElement: (
+          <FilterLastSeen value={filters.lastSeen} onChange={setFilterField} calRef={calenderRef} />
+        ),
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Battery status',
+        olang: 'BatteryStatus',
+        field: 'batteries',
+        body: BatteryStatus,
+      },
+      {
+        header: 'Famille',
+        field: 'famille',
+        olang: 'Famille',
+        visible: true,
+        body: familleTemplate,
+        filterElement: (
+          <FilterFamEng value={filters.engFam} onChange={setFilterField} options={familleEngin} />
+        ),
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Marque',
+        field: 'brand',
+        olang: 'marque',
+        filter: true,
+        filterElement: filterTemplateSearch('brand'),
+        showFilterMenu: false,
+        width: '15rem',
+      },
+      {
+        header: 'Matricule',
+        field: 'model',
+        olang: 'Matricule',
+        filter: true,
+        filterElement: filterTemplateSearch('model'),
+        showFilterMenu: false,
+        width: '15rem',
+      },
+      {
+        header: 'Worksite',
+        field: 'LocationObjectname',
+        olang: 'Worksite',
+        filterElement: (
+          <FilterSite value={filters.sites} onChange={setFilterField} options={sites} />
+        ),
+        showFilterMenu: false,
+        filter: true,
+      },
+      {
+        header: 'Addressee',
+        olang: 'Addressee',
+        field: 'latlng',
+        body: addresseeTemplate,
+      },
+    ],
+    [
+      imageTemplate,
+      BatteryStatus,
+      addresseeTemplate,
+      iconTemplate,
+      tagTemplate,
+      statusTemplate,
+      familleTemplate,
+      filters.etat,
+      filters.tagFam,
+      filters.status,
+      filters.lastSeen,
+      filters.engFam,
+      filters.sites,
+      setFilterField,
+      familleTag,
+      familleEngin,
+      enginStatus,
+      sites,
+    ]
+  )
 
   const exportFields = [
     {
@@ -1038,49 +1061,54 @@ const EnginList = () => {
     'batteries',
   ]
 
-  const fetchAndSetEngines = (searchTerm, rows) => {
-    let params = {
-      search: searchTerm || undefined,
-      searchLastSeen: filters?.lastSeen
-        ? moment(filters.lastSeen).isValid()
-          ? moment(filters.lastSeen).format('YYYY-MM-DD')
-          : ''
-        : '',
-      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
-      searchTag: filters?.tagFam || '',
-      searchStatus: filters?.status || '',
-      searchFamille: filters?.engFam || '',
-      searchSite: filters?.sites?.map((item) => item).join(', ') || '',
-      SortDirection: orderBy?.order || 'DESC',
-      SortColumn: orderBy?.field || '',
-      searchLabel: filters?.label || '',
-      page: page,
-      PageSize: rows,
-    }
-    dispatch(fetchEngines(params))
-      .then(({payload}) => {
-        if (payload) {
-          setTotalRecords(payload[0]?.TotalEngins || 0)
-          setPage(page)
-          setRows(rows)
-        }
-      })
-      .catch((error) => {
-        console.error('Error fetching engines:', error)
-      })
-  }
-
-  const debouncedSearch = useCallback(
-    _.debounce((searchTerm, rows) => {
-      fetchAndSetEngines(searchTerm.trim(), rows)
-    }, 300),
-    []
+  const fetchAndSetEngines = useCallback(
+    (searchTerm, pageSize, targetPage = 1) => {
+      const f = filtersRef.current
+      const ob = orderByRef.current
+      let params = {
+        search: searchTerm || undefined,
+        searchLastSeen: f?.lastSeen
+          ? moment(f.lastSeen).isValid()
+            ? moment(f.lastSeen).format('YYYY-MM-DD')
+            : ''
+          : '',
+        searchSituation: f?.etat || '',
+        searchTag: f?.tagFam || '',
+        searchStatus: f?.status || '',
+        searchFamille: f?.engFam || '',
+        searchSite: f?.sites?.map((item) => item).join(', ') || '',
+        SortDirection: ob?.order || 'DESC',
+        SortColumn: ob?.field || '',
+        searchLabel: f?.label || '',
+        page: targetPage,
+        PageSize: pageSize,
+      }
+      dispatch(fetchEngines(params))
+        .then(({payload}) => {
+          if (payload) {
+            setTotalRecords(payload[0]?.TotalEngins || 0)
+            setPage(targetPage)
+            setRows(pageSize)
+          }
+        })
+        .catch((error) => {
+          console.error('Error fetching engines:', error)
+        })
+    },
+    [dispatch]
   )
+
+  const debouncedSearch = useRef(
+    _.debounce((searchTerm, pageSize, fetchFn) => {
+      fetchFn(searchTerm.trim(), pageSize, 1)
+    }, 300)
+  ).current
 
   const handleSearch = (event) => {
     searchEng.current = event.target.value
     setSearchInput(event.target.value)
-    debouncedSearch(event.target.value, rows)
+    setPage(1)
+    debouncedSearch(event.target.value, rows, fetchAndSetEngines)
   }
 
   const formik = useFormik({
@@ -1321,28 +1349,47 @@ const EnginList = () => {
   }, [page])
 
   useEffect(() => {
-    let obj = {
-      search: searchEng.current,
-      searchLastSeen:
-        moment(filters?.lastSeen).format('YYYY-MM-DD') === 'Invalid date'
-          ? ''
-          : moment(filters?.lastSeen).format('YYYY-MM-DD'),
-      searchSituation: filters?.etat && filters.etat !== 'all' ? filters.etat : '',
-      searchTag: filters?.tagFam || '',
-      searchStatus: filters?.status || '',
-      searchFamille: filters?.engFam || '',
-      searchSite: filters?.sites?.map((item) => item).join(', ') || '',
-      SortDirection: orderBy?.order || 'DESC',
-      SortColumn: orderBy?.field || '',
+    filtersRef.current = filters
+  }, [filters])
+
+  useEffect(() => {
+    orderByRef.current = orderBy
+  }, [orderBy])
+
+  useEffect(() => {
+    if (firstLoading.current) return
+    setFilterLoadingPopup(true)
+    setIsLoadingButton(true)
+    const f = filtersRef.current
+    const ob = orderByRef.current
+    const params = {
+      search: searchEng.current || undefined,
+      searchLastSeen: f?.lastSeen
+        ? moment(f.lastSeen).isValid()
+          ? moment(f.lastSeen).format('YYYY-MM-DD')
+          : ''
+        : '',
+      searchSituation: f?.etat || '',
+      searchTag: f?.tagFam || '',
+      searchStatus: f?.status || '',
+      searchFamille: f?.engFam || '',
+      searchSite: f?.sites?.map((item) => item).join(', ') || '',
+      SortDirection: ob?.order || 'DESC',
+      SortColumn: ob?.field || '',
+      searchLabel: f?.label || '',
       page: 1,
       PageSize: rows,
     }
-    dispatch(fetchEngines(obj)).then(({payload}) => {
-      setPage(1)
-      setTotalRecords(payload?.[0]?.TotalEngins)
-      setRows(rows)
-      setLoadingOrder(false)
-    })
+    dispatch(fetchEngines(params))
+      .then(({payload}) => {
+        setPage(1)
+        setTotalRecords(payload?.[0]?.TotalEngins || 0)
+        setLoadingOrder(false)
+      })
+      .finally(() => {
+        setIsLoadingButton(false)
+        setFilterLoadingPopup(false)
+      })
   }, [filters])
 
   // useEffect(() => {
@@ -1355,8 +1402,6 @@ const EnginList = () => {
     setVisible(false)
     setSelectedEngine(null)
   }
-
-  console.log('engines', engines)
 
   return (
     <div>
@@ -1404,6 +1449,22 @@ const EnginList = () => {
           }}
         />
       </DialogComponent>
+      <DialogComponent
+        visible={filterLoadingPopup}
+        onHide={() => {}}
+        closable={false}
+        className='w-11 md:w-3'
+      >
+        <div className='flex flex-column align-items-center justify-content-center py-4 gap-3'>
+          <ProgressSpinner
+            style={{width: '40px', height: '40px'}}
+            strokeWidth='6'
+            fill='var(--surface-ground)'
+            animationDuration='.8s'
+          />
+          <span className='font-medium text-700'>Chargement des filtres...</span>
+        </div>
+      </DialogComponent>
       <DialogComponent visible={pdfVisible} onHide={() => setPdfVisible(false)}>
         <div className='w-full flex flex-row align-items-center justify-content-between mt-2'>
           <h1>
@@ -1438,16 +1499,6 @@ const EnginList = () => {
         <div className='text-3xl text-700 font-bold'>
           <OlangItem olang={'engin.list'} />
         </div>
-        <div>
-          {!loading && loadingOrder ? (
-            <ProgressSpinner
-              style={{width: '30px', height: '30px'}}
-              strokeWidth='6'
-              fill='var(--surface-ground)'
-              animationDuration='.5s'
-            />
-          ) : null}
-        </div>
       </div>
       <EnginMapLocation
         dialogVisible={dialogVisible}
@@ -1458,41 +1509,38 @@ const EnginList = () => {
         //   srcMovement: mouvement,
         // }}
       />
-      {loading ? (
-        <Loader />
-      ) : (
-        <DatatableComponent
-          tableId='engin-table'
-          data={engines}
-          splitAction={splitAction}
-          columns={columns}
-          onNew={create}
-          serverSearched={true}
-          onSearchServer={handleSearch}
-          searchServ={searchInput}
-          exportFields={exportFields}
-          rowGroupTemplates={rowGroupTemplates}
-          allowedGroupFields={allowedGroupFields}
-          rowActions={actions}
-          sortField={'id'}
-          sortOrder={-1}
-          isLoading={isLoadingButton}
-          totalRecords={totalRecords}
-          rows={rows}
-          page={page}
-          onPageChange={handlePageChange}
-          onPdfClick={checkPdf}
-          loadingPdf={pdfLoading}
-          onExcelClick={onClickExcel}
-          loadingExcel={loadingExcel}
-          lazy={true}
-          onOrderClick={handleOrderClick}
-          orderBy={orderBy}
-          extraActionTemplate={extraActionTemplate}
-          notSortedColumns={['image', 'latlng']}
-          isDataSelectable={false}
-        />
-      )}
+
+      <DatatableComponent
+        tableId='engin-table'
+        data={engines}
+        splitAction={splitAction}
+        columns={columns}
+        onNew={create}
+        serverSearched={true}
+        onSearchServer={handleSearch}
+        searchServ={searchInput}
+        exportFields={exportFields}
+        rowGroupTemplates={rowGroupTemplates}
+        allowedGroupFields={allowedGroupFields}
+        rowActions={actions}
+        sortField={'id'}
+        sortOrder={-1}
+        isLoading={isLoadingButton}
+        totalRecords={totalRecords}
+        rows={rows}
+        page={page}
+        onPageChange={handlePageChange}
+        onPdfClick={checkPdf}
+        loadingPdf={pdfLoading}
+        onExcelClick={onClickExcel}
+        loadingExcel={loadingExcel}
+        lazy={true}
+        onOrderClick={handleOrderClick}
+        orderBy={orderBy}
+        extraActionTemplate={extraActionTemplate}
+        notSortedColumns={['image', 'latlng']}
+        isDataSelectable={false}
+      />
     </div>
   )
 }

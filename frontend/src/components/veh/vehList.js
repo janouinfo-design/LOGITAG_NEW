@@ -51,7 +51,6 @@ const VehList = () => {
     },
   ]
 
-
   const columns = [
     {
       header: 'label',
@@ -131,7 +130,8 @@ const VehList = () => {
 
   useEffect(() => {
     dispatch(fetchTrackerVeh())
-  }, [dispatch])
+  }, [])
+
   return (
     <div>
       <div className='py-3 flex flex-row align-items-center'>

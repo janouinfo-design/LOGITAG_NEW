@@ -1,4 +1,4 @@
-
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import {FC, useState} from 'react'
 import clsx from 'clsx'
 import {toAbsoluteUrl, defaultMessages, defaultUserInfos, messageFromClient} from '../../helpers'

@@ -337,7 +337,13 @@ const TagMapViewComponent = ({type}) => {
 
   useEffect(() => {
     dispatch(
-      fetchEngines({page: 1, filterPosition: 1, SortDirection: 'DESC', SortColumn: 'lastSeenAt', PageSize: 10})
+      fetchEngines({
+        page: 1,
+        filterPosition: 1,
+        SortDirection: 'DESC',
+        SortColumn: 'lastSeenAt',
+        PageSize: 10,
+      })
     ).then(({payload}) => {
       setTotalRecords(payload[0]?.TotalEngins || 0)
       setPage(0)
@@ -348,7 +354,7 @@ const TagMapViewComponent = ({type}) => {
 
   useEffect(() => {
     if (Array.isArray(list)) {
-      let lst = _.cloneDeep(list)
+      let lst = _.uniqBy(_.cloneDeep(list), 'id')
       let cp = 0
       lst?.forEach((o) => {
         if (!o) return

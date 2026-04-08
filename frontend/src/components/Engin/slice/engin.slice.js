@@ -60,6 +60,41 @@ export const fetchEngines = createAsyncThunk(
   }
 )
 
+export const fetchVehiculePositionsHistory = createAsyncThunk(
+  `${name}/fetchVehiculePositionsHistory`,
+  async (_args, {dispatch}) => {
+    let response = null
+    try {
+      if (!_args?.label) {
+        dispatch(setEnginListHistory([]))
+        dispatch(setVehiculeHistoryRoute([]))
+        return null
+      }
+
+      let params = {
+        reverse: 1,
+        grouBy: 'dateFormated',
+        from: _args?.from,
+        to: _args?.to,
+        fields:
+          'locationName,LocationID,timestamp,address,dateFormated,lat,lng,userID,enginId,gateway,enginState,locationGeometry,nearestLocationName,macAddr,gateway,enginStateName,engin,user,userID,deviceName',
+      }
+
+      params.deviceName = _args?.label
+
+      response = await _fetchEnginListHistoryFromFlespi(params)
+
+      dispatch(setEnginListHistory(response?.list || response || []))
+      dispatch(setVehiculeHistoryRoute(response?.route?.route || response?.list || response || []))
+    } catch (error) {
+      dispatch(setEnginListHistory([]))
+      dispatch(setVehiculeHistoryRoute([]))
+    }
+
+    return response
+  }
+)
+
 export const fetchEngById = createAsyncThunk(
   `${name}/fetchEngById`,
   async (_args, {getState, dispatch}) => {
@@ -75,7 +110,9 @@ export const fetchEngById = createAsyncThunk(
         return data
       }
       return []
-    } catch (error) {return false}
+    } catch (error) {
+      return false
+    }
   }
 )
 
@@ -460,16 +497,17 @@ export const deleteEngin = createAsyncThunk(`${name}/deleteEngin`, async (_arg, 
   } catch (error) {}
 })
 
-export const fetchEnginsModels = createAsyncThunk(`${name}/fetchEnginsModels`, async (_arg, {dispatch}) => {
-  try {
-    let res = await _fetchEnginsModels(_arg)
-    if (Array.isArray(res?.result)) {
-      dispatch(setEnginsModels(res?.result))
-    }
-  } catch (error) {
-
+export const fetchEnginsModels = createAsyncThunk(
+  `${name}/fetchEnginsModels`,
+  async (_arg, {dispatch}) => {
+    try {
+      let res = await _fetchEnginsModels(_arg)
+      if (Array.isArray(res?.result)) {
+        dispatch(setEnginsModels(res?.result))
+      }
+    } catch (error) {}
   }
-})
+)
 
 function groupePositionHistories(list) {
   try {
@@ -547,6 +585,7 @@ const engineSlice = createSlice({
     lastUpdates: [],
     statusVisible: false,
     history_route: null,
+    vehicule_history_route: null,
     models: [],
   },
   reducers: {
@@ -569,6 +608,9 @@ const engineSlice = createSlice({
     },
     setEnginHistoryRoute(state, {payload}) {
       state.history_route = payload
+    },
+    setVehiculeHistoryRoute(state, {payload}) {
+      state.vehicule_history_route = payload
     },
     setStatusVisible(state, {payload}) {
       state.statusVisible = payload
@@ -691,10 +733,9 @@ const engineSlice = createSlice({
       state.lastUpdates = newState
       state.engines = oldEngins
     },
-    setEnginsModels(state , { payload }){
-        state.models = payload
+    setEnginsModels(state, {payload}) {
+      state.models = payload
     },
-
   },
   extraReducers: {
     [setEngines]: (state, {payload}) => {
@@ -766,6 +807,7 @@ export const getObjectsNoActive = (state) => state[name].objectsNoActive
 export const getStatusVisible = (state) => state[name].statusVisible
 export const getStatusListHistory = (state) => state[name].statusListHistory
 export const getHistoryRoute = (state) => state[name].history_route
+export const getVehiculeHistoryRoute = (state) => state[name].vehicule_history_route
 export const getEnginsModels = (state) => state[name].models
 
 //actions
@@ -787,7 +829,8 @@ export const {
   setStatusVisible,
   setObjectsNoActive,
   setEnginHistoryRoute,
-  setEnginsModels
+  setVehiculeHistoryRoute,
+  setEnginsModels,
 } = engineSlice.actions
 
 export default engineSlice.reducer

@@ -22,6 +22,13 @@ export async function _fetchMessagesList() {
   return await request('communication/mainList')
 }
 
+/**
+ * Check if all messages are read
+ * @returns {Promise} A promise resolved with data containing isReadAll
+ * @example
+ * const data = await _getUserRead()
+ * console.log(data)
+ */
 export async function _getUserRead() {
   return await request('communication/isReadAll')
 }

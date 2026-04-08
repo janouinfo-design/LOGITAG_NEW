@@ -79,6 +79,12 @@ export const DatatableComponent = ({
   const [first, setFirst] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
 
+  useEffect(() => {
+    if (page !== undefined) {
+      setFirst((page - 1) * rowsPerPage)
+    }
+  }, [page])
+
   const currentLang = useAppSelector(getCurrentLang)
   const langs = useAppSelector(getLangs)
 
@@ -364,309 +370,86 @@ export const DatatableComponent = ({
             className='p-button-text  p-button-sm '
             style={{height: 'auto'}}
           />
-          <OverlayPanel ref={settingsRef} className='lt-settings-panel'>
-            <div className='lt-settings-inner'>
-              <style>{`
-                .lt-settings-panel .p-overlaypanel-content { padding: 0 !important; }
-                .lt-settings-inner { width: 420px; padding: 0; }
-                .lt-settings-section {
-                  padding: 20px 22px;
-                  border-bottom: 1px solid #F1F5F9;
-                }
-                .lt-settings-section:last-child { border-bottom: none; }
-                .lt-settings-title {
-                  font-family: 'Manrope', sans-serif;
-                  font-size: 0.8rem;
-                  font-weight: 700;
-                  color: #94A3B8;
-                  text-transform: uppercase;
-                  letter-spacing: 0.08em;
-                  margin: 0 0 14px 0;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                }
-                .lt-settings-title i {
-                  font-size: 0.85rem;
-                  color: #CBD5E1;
-                }
-                .lt-chip-grid {
-                  display: flex;
-                  flex-wrap: wrap;
-                  gap: 8px;
-                }
-                .lt-chip-item {
-                  display: inline-flex;
-                  align-items: center;
-                  gap: 6px;
-                  padding: 7px 14px;
-                  border-radius: 8px;
-                  border: 1.5px solid #E2E8F0;
-                  background: #FFFFFF;
-                  color: #64748B;
-                  font-family: 'Inter', sans-serif;
-                  font-size: 0.8rem;
-                  font-weight: 500;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                  user-select: none;
-                }
-                .lt-chip-item:hover {
-                  border-color: #CBD5E1;
-                  background: #F8FAFC;
-                }
-                .lt-chip-item.active {
-                  background: #EFF6FF;
-                  border-color: #2563EB;
-                  color: #2563EB;
-                  font-weight: 600;
-                }
-                .lt-chip-item.active .lt-chip-check {
-                  background: #2563EB;
-                  border-color: #2563EB;
-                }
-                .lt-chip-item.active .lt-chip-check svg { opacity: 1; }
-                .lt-chip-check {
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 4px;
-                  border: 1.5px solid #CBD5E1;
-                  display: flex;
-                  align-items: center;
-                  justify-content: center;
-                  transition: all 0.2s ease;
-                  flex-shrink: 0;
-                }
-                .lt-chip-check svg {
-                  width: 10px;
-                  height: 10px;
-                  opacity: 0;
-                  transition: opacity 0.15s ease;
-                }
-                .lt-chip-item.export-active {
-                  background: #ECFDF5;
-                  border-color: #10B981;
-                  color: #059669;
-                  font-weight: 600;
-                }
-                .lt-chip-item.export-active .lt-chip-check {
-                  background: #10B981;
-                  border-color: #10B981;
-                }
-                .lt-chip-item.export-active .lt-chip-check svg { opacity: 1; }
-                .lt-chip-item.group-active {
-                  background: #F5F3FF;
-                  border-color: #8B5CF6;
-                  color: #7C3AED;
-                  font-weight: 600;
-                }
-                .lt-chip-item.group-active .lt-chip-check {
-                  background: #8B5CF6;
-                  border-color: #8B5CF6;
-                  border-radius: 50%;
-                }
-                .lt-chip-item.group-active .lt-chip-check svg { opacity: 1; }
-                .lt-chip-check.radio { border-radius: 50%; }
-                .lt-settings-toggle {
-                  display: flex;
-                  align-items: center;
-                  gap: 12px;
-                  padding: 10px 14px;
-                  border-radius: 10px;
-                  border: 1.5px solid #E2E8F0;
-                  background: #FFFFFF;
-                  cursor: pointer;
-                  transition: all 0.2s ease;
-                }
-                .lt-settings-toggle:hover { background: #F8FAFC; }
-                .lt-settings-toggle.active {
-                  background: #EFF6FF;
-                  border-color: #2563EB;
-                }
-                .lt-settings-toggle-dot {
-                  width: 36px;
-                  height: 20px;
-                  border-radius: 10px;
-                  background: #CBD5E1;
-                  position: relative;
-                  transition: background 0.25s ease;
-                  flex-shrink: 0;
-                }
-                .lt-settings-toggle.active .lt-settings-toggle-dot {
-                  background: #2563EB;
-                }
-                .lt-settings-toggle-dot::after {
-                  content: '';
-                  position: absolute;
-                  width: 16px;
-                  height: 16px;
-                  border-radius: 50%;
-                  background: #FFFFFF;
-                  top: 2px;
-                  left: 2px;
-                  transition: transform 0.25s ease;
-                  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-                }
-                .lt-settings-toggle.active .lt-settings-toggle-dot::after {
-                  transform: translateX(16px);
-                }
-                .lt-settings-toggle-label {
-                  font-family: 'Inter', sans-serif;
-                  font-size: 0.85rem;
-                  font-weight: 500;
-                  color: #475569;
-                }
-                .lt-settings-toggle.active .lt-settings-toggle-label {
-                  color: #2563EB;
-                  font-weight: 600;
-                }
-                .lt-settings-header {
-                  display: flex;
-                  align-items: center;
-                  justify-content: space-between;
-                  padding: 16px 22px;
-                  border-bottom: 1px solid #F1F5F9;
-                  background: #F8FAFC;
-                  border-radius: 16px 16px 0 0;
-                }
-                .lt-settings-header-title {
-                  font-family: 'Manrope', sans-serif;
-                  font-size: 1rem;
-                  font-weight: 700;
-                  color: #0F172A;
-                  margin: 0;
-                  display: flex;
-                  align-items: center;
-                  gap: 8px;
-                }
-                .lt-settings-header-title i { color: #2563EB; font-size: 1rem; }
-                .lt-no-id {
-                  font-family: 'Inter', sans-serif;
-                  font-size: 0.8rem;
-                  color: #EF4444;
-                  background: #FEF2F2;
-                  padding: 8px 14px;
-                  border-radius: 8px;
-                  display: inline-block;
-                }
-              `}</style>
-
-              {/* Header */}
-              <div className='lt-settings-header'>
-                <h3 className='lt-settings-header-title'>
-                  <i className='pi pi-sliders-h' />
-                  Configuration
-                </h3>
-              </div>
-
-              {/* Visibility */}
-              <div className='lt-settings-section'>
-                <p className='lt-settings-title'>
-                  <i className='pi pi-eye' />
-                  Visibilité colonnes
-                </p>
+          <OverlayPanel ref={settingsRef} className='p-0'>
+            <div style={{width: '350px'}} className='p-3'>
+              <div>
+                <h4>Visibilité colones</h4>
                 {!tableId && typeof tableId != 'string' ? (
-                  <span className='lt-no-id'>Pas d'identifiant de table</span>
+                  <strong className='text-red-400 mt-2 text-sm'>Pas d'identifiant de table</strong>
                 ) : (
-                  <div className='lt-chip-grid'>
+                  <div className='flex flex-wrap mt-4'>
                     {tblColumns.map((c) => (
-                      <div
-                        key={'vis-'+c.field}
-                        className={`lt-chip-item ${!visibility || visibility?.[c.field] ? 'active' : ''}`}
-                        onClick={() => toggleColumnVisibility(c?.field, visibility ? !visibility?.[c.field] : false)}
-                      >
-                        <span className='lt-chip-check'>
-                          <svg viewBox='0 0 12 12' fill='none' stroke='white' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                            <path d='M2 6l3 3 5-5' />
-                          </svg>
-                        </span>
-                        {c.header}
+                      <div className='px-1 py-2 flex align-items-center '>
+                        <InputSwitch
+                          checked={!visibility || visibility?.[c.field]}
+                          onChange={(e) => toggleColumnVisibility(c?.field, e.value)}
+                        />
+                        <strong className='ml-2'>{c.header}</strong>
                       </div>
                     ))}
                   </div>
                 )}
               </div>
-
-              {/* Export columns */}
-              <div className='lt-settings-section'>
-                <p className='lt-settings-title'>
-                  <i className='pi pi-download' />
-                  Colonnes à exporter
-                </p>
+              <Divider />
+              <div>
+                <h4>Colonnes à exporter</h4>
                 {!tableId && typeof tableId != 'string' ? (
-                  <span className='lt-no-id'>Pas d'identifiant de table</span>
+                  <strong className='text-red-400 mt-2 text-sm'>Pas d'identifiant de table</strong>
                 ) : (
-                  <div className='lt-chip-grid'>
+                  <div className='flex flex-wrap mt-4'>
                     {tblColumns.map(
                       (c) =>
                         c.exportable !== false && (
-                          <div
-                            key={'exp-'+c.field}
-                            className={`lt-chip-item ${exportableColumns?.[c.field] === true ? 'export-active' : ''}`}
-                            onClick={() => toggleExportColumn(c?.field, exportableColumns?.[c.field] !== true)}
-                          >
-                            <span className='lt-chip-check'>
-                              <svg viewBox='0 0 12 12' fill='none' stroke='white' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                                <path d='M2 6l3 3 5-5' />
-                              </svg>
-                            </span>
-                            {c.header}
+                          <div className='px-1 py-2 flex align-items-center '>
+                            <InputSwitch
+                              checked={exportableColumns?.[c.field] === true}
+                              onChange={(e) => toggleExportColumn(c?.field, e.value)}
+                            />
+                            <strong className='ml-2'>{c.header}</strong>
                           </div>
                         )
                     )}
                   </div>
                 )}
               </div>
-
-              {/* Grouping */}
-              <div className='lt-settings-section'>
-                <p className='lt-settings-title'>
-                  <i className='pi pi-th-large' />
-                  Groupage
-                </p>
-                <div className='lt-chip-grid'>
+              <Divider />
+              <div>
+                <h4>Groupage ( Grouper par )</h4>
+                <div className='flex flex-wrap mt-4'>
                   {tblColumns.map((c) => {
                     if (!Array.isArray(allowedGroupFields) || !allowedGroupFields.includes(c.field))
                       return null
                     return c.isGroupable === false ? null : (
-                      <div
-                        key={'grp-'+c.field}
-                        className={`lt-chip-item ${rowGroupOptions?.groupBy == c.field ? 'group-active' : ''}`}
-                        onClick={() => toggleRowGroup(c.field, rowGroupOptions?.groupBy != c.field)}
-                      >
-                        <span className='lt-chip-check radio'>
-                          <svg viewBox='0 0 12 12' fill='none' stroke='white' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
-                            <path d='M2 6l3 3 5-5' />
-                          </svg>
-                        </span>
-                        {c.header}
+                      <div className='px-1 py-2 flex align-items-center '>
+                        <InputSwitch
+                          checked={rowGroupOptions?.groupBy == c.field}
+                          onChange={(e) => toggleRowGroup(c.field, e.value)}
+                        />
+                        <strong className='ml-2'>{c.header}</strong>
                       </div>
                     )
                   })}
                 </div>
               </div>
 
-              {/* Other config */}
-              <div className='lt-settings-section'>
-                <p className='lt-settings-title'>
-                  <i className='pi pi-cog' />
-                  Autre configuration
-                </p>
-                <div style={{display: 'flex', flexDirection: 'column', gap: '8px'}}>
-                  <div
-                    className={`lt-settings-toggle ${enableRowSelection ? 'active' : ''}`}
-                    onClick={() => toggleRowSelection(!enableRowSelection)}
-                  >
-                    <div className='lt-settings-toggle-dot' />
-                    <span className='lt-settings-toggle-label'>Sélection de ligne</span>
+              <Divider />
+              <div>
+                <h4>Autre configuration</h4>
+                <div className='flex flex-wrap mt-4'>
+                  <div className='px-1 py-2 flex align-items-center '>
+                    <InputSwitch
+                      checked={enableRowSelection}
+                      onChange={(e) => toggleRowSelection(e.value)}
+                    />
+                    <strong className='ml-2'>Sélection de ligne</strong>
                   </div>
                   {hasContext ? (
-                    <div
-                      className={`lt-settings-toggle ${enableContextMenu ? 'active' : ''}`}
-                      onClick={() => setEnableContextMenu(!enableContextMenu)}
-                    >
-                      <div className='lt-settings-toggle-dot' />
-                      <span className='lt-settings-toggle-label'>Menu contextuel</span>
+                    <div className='px-1 py-2 flex align-items-center '>
+                      <InputSwitch
+                        checked={enableContextMenu}
+                        onChange={(e) => setEnableContextMenu(e.value)}
+                      />
+                      <strong className='ml-2'>Menu contextuel</strong>
                     </div>
                   ) : null}
                 </div>

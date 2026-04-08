@@ -2,23 +2,23 @@
 [data-bs-theme=light] {
   --bs-prismjs-bg: #1e1e3f;
   --bs-prismjs-border: rgba(255, 255, 255, 0.1);
-  --bs-prismjs-btn-bg: #2d2d5e;
-  --bs-prismjs-btn-bg-hover: #2d2d5e;
+  --bs-prismjs-btn-bg: rgb(44.8064516129, 44.8064516129, 94.0935483871);
+  --bs-prismjs-btn-bg-hover: rgb(44.8064516129, 44.8064516129, 94.0935483871);
   --bs-prismjs-btn-color: rgba(255, 255, 255, 0.75);
   --bs-prismjs-btn-color-hover: #009ef7;
-  --bs-prismjs-scrollbar-color: #323268;
-  --bs-prismjs-scrollbar-color-hover: #373773;
+  --bs-prismjs-scrollbar-color: rgb(49.7419354839, 49.7419354839, 104.4580645161);
+  --bs-prismjs-scrollbar-color-hover: rgb(54.6774193548, 54.6774193548, 114.8225806452);
 }
 
 [data-bs-theme=dark] {
   --bs-prismjs-bg: #151521;
   --bs-prismjs-border: rgba(255, 255, 255, 0.1);
-  --bs-prismjs-btn-bg: #27273d;
-  --bs-prismjs-btn-bg-hover: #27273d;
+  --bs-prismjs-btn-bg: rgb(38.85, 38.85, 61.05);
+  --bs-prismjs-btn-bg-hover: rgb(38.85, 38.85, 61.05);
   --bs-prismjs-btn-color: rgba(255, 255, 255, 0.75);
   --bs-prismjs-btn-color-hover: #009ef7;
-  --bs-prismjs-scrollbar-color: #2d2d46;
-  --bs-prismjs-scrollbar-color-hover: #333350;
+  --bs-prismjs-scrollbar-color: rgb(44.8, 44.8, 70.4);
+  --bs-prismjs-scrollbar-color-hover: rgb(50.75, 50.75, 79.75);
 }
 
 .highlight {
@@ -131,15 +131,6 @@
 }
 .select2-container--bootstrap5 .select2-search.select2-search--inline .select2-search__field {
   color: var(--bs-gray-700);
-  font-weight: 500;
-  font-family: inherit !important;
-  background-color: transparent;
-  border: 0;
-  box-shadow: none;
-  outline: none;
-  line-height: 1;
-  margin: 0;
-  padding: 0;
 }
 .select2-container--bootstrap5 .select2-search.select2-search--inline .select2-search__field::-moz-placeholder {
   color: var(--bs-gray-500);
@@ -150,6 +141,17 @@
 .select2-container--bootstrap5 .select2-search.select2-search--inline .select2-search__field::-moz-placeholder {
   color: var(--bs-gray-500);
   opacity: 1;
+}
+.select2-container--bootstrap5 .select2-search.select2-search--inline .select2-search__field {
+  font-weight: 500;
+  font-family: inherit !important;
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
+  outline: none;
+  line-height: 1;
+  margin: 0;
+  padding: 0;
 }
 .select2-container--bootstrap5 .form-select-solid .select2-search.select2-search--inline .select2-search__field {
   color: var(--bs-gray-700);
@@ -521,8 +523,6 @@
 }
 .daterangepicker .drp-buttons .cancelBtn {
   color: var(--bs-light-inverse);
-  border-color: var(--bs-light);
-  background-color: var(--bs-light);
 }
 .daterangepicker .drp-buttons .cancelBtn i,
 .daterangepicker .drp-buttons .cancelBtn .svg-icon {
@@ -531,10 +531,12 @@
 .daterangepicker .drp-buttons .cancelBtn.dropdown-toggle:after {
   color: var(--bs-light-inverse);
 }
+.daterangepicker .drp-buttons .cancelBtn {
+  border-color: var(--bs-light);
+  background-color: var(--bs-light);
+}
 .btn-check:checked + .daterangepicker .drp-buttons .cancelBtn, .btn-check:active + .daterangepicker .drp-buttons .cancelBtn, .daterangepicker .drp-buttons .cancelBtn:focus:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn:hover:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn:active:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn.active, .daterangepicker .drp-buttons .cancelBtn.show, .show > .daterangepicker .drp-buttons .cancelBtn {
   color: var(--bs-light-inverse);
-  border-color: var(--bs-light-active);
-  background-color: var(--bs-light-active) !important;
 }
 .btn-check:checked + .daterangepicker .drp-buttons .cancelBtn i,
 .btn-check:checked + .daterangepicker .drp-buttons .cancelBtn .svg-icon, .btn-check:active + .daterangepicker .drp-buttons .cancelBtn i,
@@ -549,6 +551,10 @@
 }
 .btn-check:checked + .daterangepicker .drp-buttons .cancelBtn.dropdown-toggle:after, .btn-check:active + .daterangepicker .drp-buttons .cancelBtn.dropdown-toggle:after, .daterangepicker .drp-buttons .cancelBtn:focus:not(.btn-active).dropdown-toggle:after, .daterangepicker .drp-buttons .cancelBtn:hover:not(.btn-active).dropdown-toggle:after, .daterangepicker .drp-buttons .cancelBtn:active:not(.btn-active).dropdown-toggle:after, .daterangepicker .drp-buttons .cancelBtn.active.dropdown-toggle:after, .daterangepicker .drp-buttons .cancelBtn.show.dropdown-toggle:after, .show > .daterangepicker .drp-buttons .cancelBtn.dropdown-toggle:after {
   color: var(--bs-light-inverse);
+}
+.btn-check:checked + .daterangepicker .drp-buttons .cancelBtn, .btn-check:active + .daterangepicker .drp-buttons .cancelBtn, .daterangepicker .drp-buttons .cancelBtn:focus:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn:hover:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn:active:not(.btn-active), .daterangepicker .drp-buttons .cancelBtn.active, .daterangepicker .drp-buttons .cancelBtn.show, .show > .daterangepicker .drp-buttons .cancelBtn {
+  border-color: var(--bs-light-active);
+  background-color: var(--bs-light-active) !important;
 }
 .daterangepicker .drp-selected {
   font-size: 0.9rem;

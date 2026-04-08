@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import '@geoman-io/leaflet-geoman-free'
 import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.css'
+import '@geoman-io/leaflet-geoman-free/dist/leaflet-geoman.min.js'
 import { useLeafletContext } from '@react-leaflet/core'
 const buttonActions = ['circleMarker', 'marker' , 'polygon' , 'polyline' , 'rectangle' , 'text' ]
 const GeomanComponent = ({show , actions , disabledActions}) => {
