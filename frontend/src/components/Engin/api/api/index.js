@@ -171,4 +171,3 @@ export async function _fetchPotentialDeliveredHistory(filter) {
 export async function _fetchEnginsModels(filter) {
   return await request('engin/getModel', {data: filter})
 }
-

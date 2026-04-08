@@ -1,4 +1,4 @@
-
+/* eslint-disable jsx-a11y/anchor-is-valid */
 import {FC, Fragment, useEffect, useRef, useState} from 'react'
 import {Link} from 'react-router-dom'
 import {Languages} from './Languages'

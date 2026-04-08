@@ -10,6 +10,7 @@ import {
   Popup,
   FeatureGroup,
   Polygon,
+  Polyline,
   Marker,
 } from 'react-leaflet'
 import GeomanComponent from './GeomanComponent/GeomanComponent'
@@ -45,9 +46,11 @@ import {
   fetchEngById,
   fetchEngines,
   fetchEnginesMap,
+  fetchVehiculePositionsHistory,
   getGeoByIdSite,
   getLastEnginsUpdates,
   getSelectedEnginMap,
+  getVehiculeHistoryRoute,
   setSelectedEnginMap,
 } from '../../../Engin/slice/engin.slice'
 import {fetchPointsGeo} from '../slice/navixy.slice'
@@ -65,7 +68,9 @@ import {
   getSelectedCompany,
 } from '../../../Company/slice/company.slice'
 import {Button} from 'primereact/button'
+import {Dialog} from 'primereact/dialog'
 import {Paginator} from 'primereact/paginator'
+import {ProgressSpinner} from 'primereact/progressspinner'
 import {setToastParams} from '../../../../store/slices/ui.slice'
 import NavixyVehiclesListComponent from './List/NavixyVehiclesListComponent'
 import {classNames} from 'primereact/utils'
@@ -73,7 +78,7 @@ import {calculateDistance} from '../../../../cors/utils/geometry'
 import {Divider} from 'primereact/divider'
 import {Calendar} from 'primereact/calendar'
 import LastSeenComponent from '../../../Engin/EnginDetail/LastSeenComponent'
-import { Badge } from 'primereact/badge'
+import {Badge} from 'primereact/badge'
 
 const layers = [
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -242,6 +247,8 @@ const MapComponent = ({
   const assetMarkerRefs = useRef({})
 
   const selectedGeofence = useAppSelector(getSelectedGeoClient)
+  const vehiculeHistoryRoute = useAppSelector(getVehiculeHistoryRoute)
+  const [isFetchingRoute, setIsFetchingRoute] = useState(false)
   const [selectedGeofencePropreties, setSelectedGeofencePropreties] = useState(null)
 
   const [realList, setRealList] = useState([])
@@ -269,6 +276,7 @@ const MapComponent = ({
   const lastEnginsUpdates = useAppSelector(getLastEnginsUpdates)
   const addressCompany = useAppSelector(getCompanyAddresses)
   const selectedIdsGeo = useAppSelector(getSelectedGeofenceIds)
+  console.log('selectedIdsGeo', selectedIdsGeo)
   const selectedEngMap = useAppSelector(getSelectedEngMap)
 
   const [centerMap, setCenterMap] = useState([addressCompany?.lat || 0, addressCompany?.lng || 0])
@@ -432,7 +440,7 @@ const MapComponent = ({
     let lastSeenColor = 'gray'
     let diff = null
     if (lastSeenAt) {
-      diff = moment().utc().diff(moment(lastSeenAt).utc(), 'days')
+      diff = moment().utc().startOf('day').diff(moment(lastSeenAt).utc().startOf('day'), 'days')
       if (diff == 0) {
         lastSeenLabel = "Vu aujourd'hui"
         lastSeenColor = '#47ad53'
@@ -485,9 +493,11 @@ const MapComponent = ({
         <div className='text-right' style={{width: '10rem'}}>
           <strong className='text-s' style={{fontSize: '11px', color: lastSeenColor}}>
             {lastSeenLabel}
-            <div  className='text-sm text-gray-600 flex gap-1 align-items-center'>
+            <div className='text-sm text-gray-600 flex gap-1 align-items-center'>
               <span>{item.lastSeenDevice}</span>
-              {item.lastSeenRssi && <Badge  title="force du signal" value={item.lastSeenRssi} severity="warning"></Badge>}
+              {item.lastSeenRssi && (
+                <Badge title='force du signal' value={item.lastSeenRssi} severity='warning'></Badge>
+              )}
             </div>
             {/* <LastSeenComponent data={item} /> */}
           </strong>
@@ -585,37 +595,37 @@ const MapComponent = ({
   }
 
   function handleClusterClick(clusterEvent) {
-      // setHideClusters(true)
-      const cluster = clusterEvent.layer
-      const markers = cluster.getAllChildMarkers()
-  
-      // Extract positions
-      const positions = markers.map((m) => JSON.stringify(m.getLatLng()))
-  
-      let distances = markers
-        .map((m) => calculateDistance(cluster.getLatLng(), m.getLatLng()))
-        .filter((d) => d > 0.01)
-      console.log('Cluster positions:', positions, markers, distances)
-  
-      // Check if all positions equal
-      const allSame = positions.every((p) => p === positions[0])
-  
-      if (distances.length === 0) {
-        console.log('markers:', markers)
-        let ids = markers.map((m) => m.options?.id)
-        console.log('markers ids:', ids)
-        let marker_pios = engMap.filter((o) => ids.includes(o.id))
-        console.log('markers pios:', marker_pios)
-        console.log('markers filtredTrackers:', pios, engMap)
-        let items = markers.map((m) => m.options?.data)
-        setClusterPopup({
-          position: {...cluster.getLatLng()},
-          items: marker_pios,
-        })
-      } else {
-        cluster.spiderfy()
-      }
+    // setHideClusters(true)
+    const cluster = clusterEvent.layer
+    const markers = cluster.getAllChildMarkers()
+
+    // Extract positions
+    const positions = markers.map((m) => JSON.stringify(m.getLatLng()))
+
+    let distances = markers
+      .map((m) => calculateDistance(cluster.getLatLng(), m.getLatLng()))
+      .filter((d) => d > 0.01)
+    console.log('Cluster positions:', positions, markers, distances)
+
+    // Check if all positions equal
+    const allSame = positions.every((p) => p === positions[0])
+
+    if (distances.length === 0) {
+      console.log('markers:', markers)
+      let ids = markers.map((m) => m.options?.id)
+      console.log('markers ids:', ids)
+      let marker_pios = engMap.filter((o) => ids.includes(o.id))
+      console.log('markers pios:', marker_pios)
+      console.log('markers filtredTrackers:', pios, engMap)
+      let items = markers.map((m) => m.options?.data)
+      setClusterPopup({
+        position: {...cluster.getLatLng()},
+        items: marker_pios,
+      })
+    } else {
+      cluster.spiderfy()
     }
+  }
 
   const filterList = (list, options) => {
     if (!Array.isArray(list || realList)) return
@@ -1048,6 +1058,42 @@ const MapComponent = ({
     setEngMap(filteredData)
   }
 
+  const fetchRoute = (date, id) => {
+    const dateBefore2Hour = moment(date).subtract(2, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    const dateAfter2Hour = moment(date).add(2, 'hours').format('YYYY-MM-DD HH:mm:ss')
+    const cleanId = typeof id === 'string' ? id.replace(/^gps:/i, '') : id
+    setIsFetchingRoute(true)
+    dispatch(
+      fetchVehiculePositionsHistory({label: cleanId, from: dateBefore2Hour, to: dateAfter2Hour})
+    ).finally(() => setIsFetchingRoute(false))
+  }
+
+  useEffect(() => {
+    if (!Array.isArray(vehiculeHistoryRoute)) return
+    const coords = vehiculeHistoryRoute.map((p) => {
+      const lat = p?.satlat || p?.lat
+      const lng = p?.satlng || p?.lng
+      return lat && lng ? [lat, lng] : null
+    })
+    console.log('coords', coords)
+    if (coords?.[0]?.length >= 2) {
+      const map = mapRef.current
+      console.log('mappppp', map)
+      if (map) {
+        map.setView(coords[0], 11)
+      }
+    } else if (vehiculeHistoryRoute.length === 0) {
+      dispatch(
+        setToastParams({
+          severity: 'warn',
+          summary: 'No Route Data',
+          detail: 'No route found for this asset in the selected time range.',
+          life: 4000,
+        })
+      )
+    }
+  }, [vehiculeHistoryRoute])
+
   useEffect(() => {
     if (inputFilter.trim() !== '') return
     setDataForFilter()
@@ -1274,6 +1320,7 @@ const MapComponent = ({
           },
         ]
         return {
+          id: +k,
           position,
           stats,
           count: items.length,
@@ -1581,7 +1628,11 @@ const MapComponent = ({
                     </div>
                   </div>
 
-                  <div ref={assetListScrollRef} className='asset-panel-body ' style={{ paddingBottom: '100px' }}>
+                  <div
+                    ref={assetListScrollRef}
+                    className='asset-panel-body '
+                    style={{paddingBottom: '100px'}}
+                  >
                     {flatAssets.map((pio) => {
                       const key = pio?.uid || pio?.id
                       const isSelected =
@@ -1671,6 +1722,7 @@ const MapComponent = ({
                                   )}
                                 </div>
                               </div>
+
                               <i
                                 className={classNames(
                                   'pi',
@@ -1696,23 +1748,51 @@ const MapComponent = ({
                                 ) : null}
                                 <Divider style={{margin: '6px'}} layout='vertical' />
                                 <div className='flex flex-column' style={{minWidth: 0}}>
-                                  <div className='flex align-items-start gap-2 flex-column'>
-                                    <div className='flex align-items-center gap-2'>
-                                      <i
-                                        title={`${pio?.etatengin} ${selectedEngMap?.[0]?.locationDate}`}
-                                        className={pio.etatIconName + ' text-lg'}
-                                        style={{color: pio.etatbgColor}}
-                                      />
-                                      <span className='text-600 font-semibold'>
-                                        {pio?.LocationObjectname}
-                                      </span>
+                                  <div className='flex align-items-start gap-2 flex-column '>
+                                    <div className='flex flex-row gap-2 justify-between w-full'>
+                                      <div className='flex align-items-center gap-2'>
+                                        <i
+                                          title={`${pio?.etatengin} ${selectedEngMap?.[0]?.locationDate}`}
+                                          className={pio.etatIconName + ' text-lg'}
+                                          style={{color: pio.etatbgColor}}
+                                        />
+                                        <span className='text-600 font-semibold'>
+                                          {pio?.LocationObjectname}
+                                        </span>
+                                      </div>
+                                      <Button
+                                        onClick={(e) => {
+                                          e.stopPropagation()
+                                          fetchRoute(pio?.lastSeenAt, pio?.lastSeenDevice)
+                                        }}
+                                        title='Show Route'
+                                        style={{
+                                          display: 'flex',
+                                          alignItems: 'center',
+                                          justifyContent: 'center',
+                                          width: '26px',
+                                          height: '26px',
+                                          background: 'linear-gradient(135deg, #D64B70, #a83458)',
+                                          color: '#fff',
+                                          border: 'none',
+                                          cursor: 'pointer',
+                                          boxShadow: '0 2px 5px rgba(214,75,112,0.4)',
+                                          flexShrink: 0,
+                                        }}
+                                        rounded
+                                      >
+                                        <i
+                                          className='fas fa-solid fa-route text-white'
+                                          style={{fontSize: '11px'}}
+                                        />
+                                      </Button>
                                     </div>
                                     <div className='flex align-items-center gap-2'>
                                       <i
                                         className='pi pi-eye text-primary'
                                         style={{fontSize: '12px'}}
                                       />
-                                      <LastSeenComponent data={pio}/>
+                                      <LastSeenComponent data={pio} />
                                       {/* <span className='text-600 font-semibold'>
                                         {formatDate(pio)}
                                       </span> */}
@@ -1723,10 +1803,10 @@ const MapComponent = ({
                                     className='flex align-items-start gap-2 mt-1'
                                     title={pio?.enginAddress || pio?.LocationObjectname || ''}
                                   >
-                                    <i className='pi pi-map-marker text-primary pt-1' />
+                                    {/* <i className='pi pi-map-marker text-primary pt-1' />
                                     <span className='text-700'>
                                       {pio?.enginAddress || pio?.LocationObjectname || ''}
-                                    </span>
+                                    </span> */}
                                   </div>
                                 </div>
                               </div>
@@ -1765,6 +1845,26 @@ const MapComponent = ({
               </div>
             )}
           </div>
+          <Dialog
+            visible={isFetchingRoute}
+            modal
+            closable={false}
+            showHeader={false}
+            style={{width: '160px', background: 'transparent', boxShadow: 'none'}}
+            contentStyle={{
+              background: 'rgba(255,255,255,0.95)',
+              borderRadius: '12px',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1.5rem 1rem',
+              gap: '10px',
+            }}
+          >
+            <ProgressSpinner style={{width: '40px', height: '40px'}} strokeWidth='4' />
+            <span style={{fontSize: '13px', fontWeight: 600, color: '#555'}}>Loading route...</span>
+          </Dialog>
           <MapContainer
             ref={mapRef}
             minZoom={1}
@@ -1780,54 +1880,54 @@ const MapComponent = ({
             <FeatureGroup ref={editorRef}></FeatureGroup>
 
             <MarkerClusterGroup
-          ref={piosRef}
-          maxClusterRadius={150}
-          iconCreateFunction={createClusterCustomIcon}
-          // spiderfyOnMaxZoom={true}
-          // showCoverageOnHover={false}
-          eventHandlers={{
-            clusterclick: handleClusterClick,
-            popupopen: () => setHideClusters(true),
-            popupclose: () => setHideClusters(false),
-          }}
-          zoomToBoundsOnClick={false}
-          spiderfyOnMaxZoom={false}
-          showCoverageOnHover={false}
-        >
-          {useMemo(
-            () =>
-              engMap?.map((pio) => {
-                if (
-                  pio &&
-                  pio?.last_lat !== 0 &&
-                  pio?.last_lat !== -1 &&
-                  !isNaN(pio?.last_lat) &&
-                  !isNaN(pio?.last_lng)
-                )
-                  return (
-                    <Marker
-                      key={pio?.id}
-                      id={pio?.id}
-                      position={{lat: pio?.last_lat, lng: pio?.last_lng}}
-                      icon={redIcon}
-                      eventHandlers={{
-                        click: (e) => {
-                          e.target.openPopup() // Open popup without collapsing the cluster
-                          onClickMarker(pio) // If necessary
-                        },
-                      }}
-                    >
-                      <Popup>
-                        {typeof pioPopupTemplate === 'function'
-                          ? pioPopupTemplate(pio)
-                          : pio[markerNameKey] || pio?.label}
-                      </Popup>
-                    </Marker>
-                  )
-              }),
-            [engMap]
-          )}
-        </MarkerClusterGroup>
+              ref={piosRef}
+              maxClusterRadius={150}
+              iconCreateFunction={createClusterCustomIcon}
+              // spiderfyOnMaxZoom={true}
+              // showCoverageOnHover={false}
+              eventHandlers={{
+                clusterclick: handleClusterClick,
+                popupopen: () => setHideClusters(true),
+                popupclose: () => setHideClusters(false),
+              }}
+              zoomToBoundsOnClick={false}
+              spiderfyOnMaxZoom={false}
+              showCoverageOnHover={false}
+            >
+              {useMemo(
+                () =>
+                  engMap?.map((pio) => {
+                    if (
+                      pio &&
+                      pio?.last_lat !== 0 &&
+                      pio?.last_lat !== -1 &&
+                      !isNaN(pio?.last_lat) &&
+                      !isNaN(pio?.last_lng)
+                    )
+                      return (
+                        <Marker
+                          key={pio?.id}
+                          id={pio?.id}
+                          position={{lat: pio?.last_lat, lng: pio?.last_lng}}
+                          icon={redIcon}
+                          eventHandlers={{
+                            click: (e) => {
+                              e.target.openPopup() // Open popup without collapsing the cluster
+                              onClickMarker(pio) // If necessary
+                            },
+                          }}
+                        >
+                          <Popup>
+                            {typeof pioPopupTemplate === 'function'
+                              ? pioPopupTemplate(pio)
+                              : pio[markerNameKey] || pio?.label}
+                          </Popup>
+                        </Marker>
+                      )
+                  }),
+                [engMap]
+              )}
+            </MarkerClusterGroup>
 
             {clusterPopup && (
               <Popup position={clusterPopup.position} onClose={() => setClusterPopup(null)}>
@@ -1876,49 +1976,95 @@ const MapComponent = ({
             </FeatureGroup>
             <FeatureGroup>
               {/* <Polygon positions={[polygonFilterLatLngs]} /> */}
-              {locationGroupData.map((item, idx) => (
-                <Marker
-                  key={item.id + '-' + idx}
-                  position={item.position}
-                  icon={locationGroupIcon()}
-                >
-                  <Popup>
-                    <div class='flex justify-content-start flex-column'>
-                      <div>
-                        <h1 className='text-left'>{item.label}</h1>
-                        <h3
-                          style={{margin: '0', color: '#007bff'}}
-                          className='flex align-items-center gap-2 mb-2'
-                        >
-                          <div
-                            className='bg-blue-500 text-white flex justify-content-center align-items-center'
-                            style={{width: '40px', height: '40px', borderRadius: '50%'}}
+              {locationGroupData.map((item, idx) => {
+                const selectedIds = Array.isArray(selectedIdsGeo)
+                  ? selectedIdsGeo.map((id) => String(id))
+                  : []
+                const markerId = String(item.id ?? '')
+                if (!selectedIds.includes(markerId)) return null
+
+                return (
+                  <Marker
+                    key={item.id + '-' + idx}
+                    position={item.position}
+                    icon={locationGroupIcon()}
+                  >
+                    <Popup>
+                      <div class='flex justify-content-start flex-column'>
+                        <div>
+                          <h1 className='text-left'>{item.label}</h1>
+                          <h3
+                            style={{margin: '0', color: '#007bff'}}
+                            className='flex align-items-center gap-2 mb-2'
                           >
-                            {item.count}
-                          </div>
-                          <div className='text-left'>
-                            Bouteilles
-                            {item.recentCount > 0 ? (
-                              <span style={{fontSize: '12px'}} className='block text-gray-500'>
-                                {item.recentCount} vu il y a moin de 3 jours
-                              </span>
-                            ) : null}
-                          </div>
-                        </h3>
+                            <div
+                              className='bg-blue-500 text-white flex justify-content-center align-items-center'
+                              style={{width: '40px', height: '40px', borderRadius: '50%'}}
+                            >
+                              {item.count}
+                            </div>
+                            <div className='text-left'>
+                              Bouteilles
+                              {item.recentCount > 0 ? (
+                                <span style={{fontSize: '12px'}} className='block text-gray-500'>
+                                  {item.recentCount} vu il y a moin de 3 jours
+                                </span>
+                              ) : null}
+                            </div>
+                          </h3>
+                        </div>
+                        <Divider className='mt-0' />
+                        <div style={{maxHeight: '300px', overflowY: 'auto'}}>
+                          {item.items.map(clusterPopupItemTemplate)}
+                        </div>
                       </div>
-                      <Divider className='mt-0' />
-                      <div style={{maxHeight: '300px', overflowY: 'auto'}}>
-                        {item.items.map(clusterPopupItemTemplate)}
-                      </div>
-                    </div>
-                  </Popup>
-                </Marker>
-              ))}
+                    </Popup>
+                  </Marker>
+                )
+              })}
             </FeatureGroup>
             <GeomanComponent
               actions={Array.isArray(actions) ? actions : ['polygon']}
               show={showGeoman}
             />
+            {Array.isArray(vehiculeHistoryRoute) &&
+              vehiculeHistoryRoute.length > 1 &&
+              (() => {
+                const coords = vehiculeHistoryRoute
+                  .map((p) => {
+                    const lat = p?.satlat || p?.lat
+                    const lng = p?.satlng || p?.lng
+                    return lat && lng ? [lat, lng] : null
+                  })
+                  .filter(Boolean)
+                if (coords.length < 2) return null
+                return (
+                  <>
+                    <Polyline
+                      positions={coords}
+                      pathOptions={{color: '#D64B70', weight: 4, opacity: 0.85}}
+                    />
+                    <Marker
+                      position={coords[0]}
+                      icon={L.divIcon({
+                        html: `<div style="background:#22c55e;width:12px;height:12px;border-radius:50%;border:2px solid #fff"></div>`,
+                        className: '',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6],
+                      })}
+                    />
+                    <Marker
+                      position={coords[coords.length - 1]}
+                      icon={L.divIcon({
+                        html: `<div style="background:#D64B70;width:12px;height:12px;border-radius:50%;border:2px solid #fff"></div>`,
+                        className: '',
+                        iconSize: [12, 12],
+                        iconAnchor: [6, 6],
+                      })}
+                    />
+                  </>
+                )
+              })()}
             <ZoomControl position='bottomright' />
             {children}
           </MapContainer>

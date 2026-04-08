@@ -4,24 +4,7 @@ import CompanyComponent from './Company/user-interface/Company.component'
 import CompanyDepositForm from './CompanyDeposit/CompanyDepositForm'
 import CustomerComponent from './Customer/CustomerComponent'
 import ClientDetail from './Customer/CustomerList/ClientDetail'
-import PremiumDashboard from './premium/PremiumDashboard'
-import PremiumAssets from './premium/PremiumAssets'
-import PremiumMap from './premium/PremiumMap'
-import PremiumActivity from './premium/PremiumActivity'
-import PremiumAlerts from './premium/PremiumAlerts'
-import PremiumZones from './premium/PremiumZones'
-import PremiumUsers from './premium/PremiumUsers'
-import PremiumSettings from './premium/PremiumSettings'
-import PremiumReports from './premium/PremiumReports'
-import PremiumGateway from './premium/PremiumGateway'
-import PremiumAssetDetail from './premium/PremiumAssetDetail'
-import PremiumPlanning from './premium/PremiumPlanning'
-import PremiumReservationPlanning from './premium/PremiumReservationPlanning'
-import PremiumMyReservations from './premium/PremiumMyReservations'
-import PremiumReservationDashboard from './premium/PremiumReservationDashboard'
-import PremiumRoles from './premium/PremiumRoles'
-import EnterpriseCommand from './premium/EnterpriseCommand'
-import PremiumGantt from './premium/PremiumGantt'
+import DashboardComponent from './Dashboard/user-interface/DashboardComponent'
 import DashboardNewComponent from './DashboardNew/user-interface/DashboardNewComponent'
 import CustomerDashboard from './DashboardNew/user-interface/dashboard/CustomerDashboard'
 import DashboardTest from './DashboardNew/user-interface/dashboard/DadhboardTest'
@@ -88,17 +71,17 @@ const components = {
   geofencing: GeofencingComponent,
 
   /** zakaria */
-  'view/engin/index': PremiumAssets,
+  'view/engin/index': EngineComponent,
   'tag/index': TagComponent,
   'customer/index': CustomerComponent,
-  'view/staff/index': PremiumUsers,
+  'view/staff/index': TeamComponent,
   'worksite/index': SiteComponent,
   'Invoice/index': InvoiceComponent,
-  'tour/index': PremiumMap,
+  'tour/index': TagMapViewComponent,
   'tag/detail': TagDetail,
   'Company/index': CompanyComponent,
-  'menu/setup': PremiumSettings,
-  'Geofence/index': PremiumZones,
+  'menu/setup': SetupInfo,
+  'Geofence/index': GeofencingComponent,
   // 'facture/index': QrCodeApk,
   'facture/fournisseur': Facturation,
   'facture/client': FacturationList,
@@ -106,9 +89,9 @@ const components = {
   'sommairerftags/index': RFEngineComponent,
   'equipmentInventory/index': RFLocationTag,
   // "equipmentInventory/index": DashboardTest,
-  'timeline/index': PremiumPlanning,
+  'timeline/index': CalendarView,
   'Status/index': StatusComponent,
-  'tagdashboard/index': PremiumDashboard,
+  'tagdashboard/index': DashboardComponent,
   'famille/index': FamillesComponent,
   // 'situationtags/index': RfTag,
   'vehicule/index': VehList,
@@ -117,12 +100,11 @@ const components = {
   'deposit/index': DepotComponent,
   'rapports/index': RapportComponent,
   'EnginNoActive/index': EnginInactive,
-  'asset/detail': PremiumAssetDetail,
-  'LOGS/index': PremiumActivity,
-  'gateway/index': PremiumGateway,
+  'LOGS/index': LogsTrackingList,
+  'gateway/index': GatewayComponent,
   // 'rapport/index': NewRapportUser,
   // 'rapport/index': NewRepportComponent,
-  'rapport/index': PremiumReports,
+  'rapport/index': RapportDisplayed,
   'qrcodeapk/index': QrCodeApk,
   'datainsertion/index': DataInsertion,
   'places/reservationvehicule': ReservationVehComponent,
@@ -141,13 +123,7 @@ const components = {
   'engins/potentialdelivered': PotentialDeliveredEngins,
   'situationtags/index': DashboardNewComponent,
   'dashboard/customer': CustomerDashboard,
-  'alert/index': PremiumAlerts,
-  'reservation/planning': PremiumReservationPlanning,
-  'reservation/myreservations': PremiumMyReservations,
-  'reservation/dashboard': PremiumReservationDashboard,
-  'admin/roles': PremiumRoles,
-  'command/center': EnterpriseCommand,
-  'reservation/gantt': PremiumGantt,
+  'alert/index': AlertComponent,
 
   // 'rapport/index': MapTest,
 

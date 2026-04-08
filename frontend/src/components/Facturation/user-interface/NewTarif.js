@@ -552,7 +552,7 @@ import { useSelector } from 'react-redux';
 import { OlangItem } from '../../shared/Olang/user-interface/OlangItem/OlangItem';
 import { getCustomers } from '../../../store/slices/customer.slice';
 import { useFormik } from 'formik';
-// import { check } from 'prettier';
+import { check } from 'prettier';
 
 
 const NewTarif = () => {

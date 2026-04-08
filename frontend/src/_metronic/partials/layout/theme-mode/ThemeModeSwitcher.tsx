@@ -3,7 +3,7 @@ import {KTIcon} from '../../../helpers'
 import {ThemeModeComponent} from '../../../assets/ts/layout'
 import {ThemeModeType, useThemeMode} from './ThemeModeProvider'
 
-
+/* eslint-disable jsx-a11y/anchor-is-valid */
 type Props = {
   toggleBtnClass?: string
   toggleBtnIconClass?: string
