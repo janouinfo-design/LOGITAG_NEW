@@ -31,6 +31,8 @@ const DashboardListCards = () => {
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
   const [now, setNow] = useState(new Date())
   const fetchedRef = useRef(false)
+  const [periodFilter, setPeriodFilter] = useState('all')
+  const [customRange, setCustomRange] = useState({from: '', to: ''})
 
   /* Clock */
   useEffect(() => {
@@ -85,13 +87,40 @@ const DashboardListCards = () => {
   const handleRefresh = useCallback(() => {
     setLoaded(false)
     setAnalyticsLoading(true)
+    fetchedRef.current = false
     dispatch(setCardSelected(null))
     dispatch(fetchDashboard()).then(() => setLoaded(true))
   }, [dispatch])
 
-  /* ── Analytics computed from ALL detail data ── */
+  /* ── Period filter logic ── */
+  const filteredDetailData = useMemo(() => {
+    if (periodFilter === 'all' || !allDetailData.length) return allDetailData
+    const now = new Date()
+    let cutoff = new Date()
+    if (periodFilter === 'today') {
+      cutoff.setHours(0, 0, 0, 0)
+    } else if (periodFilter === '7d') {
+      cutoff.setDate(now.getDate() - 7)
+    } else if (periodFilter === '30d') {
+      cutoff.setDate(now.getDate() - 30)
+    } else if (periodFilter === 'custom') {
+      const from = customRange.from ? new Date(customRange.from) : new Date(0)
+      const to = customRange.to ? new Date(customRange.to + 'T23:59:59') : new Date()
+      return allDetailData.filter(item => {
+        const d = new Date(item.locationDate || item.statusDate || item.tagDate || 0)
+        return d >= from && d <= to
+      })
+    }
+    return allDetailData.filter(item => {
+      const dateStr = item.locationDate || item.statusDate || item.tagDate
+      if (!dateStr) return periodFilter === 'all'
+      return new Date(dateStr) >= cutoff
+    })
+  }, [allDetailData, periodFilter, customRange])
+
+  /* ── Analytics computed from filtered detail data ── */
   const analytics = useMemo(() => {
-    if (!Array.isArray(allDetailData) || allDetailData.length === 0) {
+    if (!Array.isArray(filteredDetailData) || filteredDetailData.length === 0) {
       return {etatData: [], statusData: [], familleData: [], batteryAlerts: [], activityFeed: []}
     }
 
@@ -101,7 +130,7 @@ const DashboardListCards = () => {
     const batteryAlerts = []
     const withDates = []
 
-    allDetailData.forEach((item) => {
+    filteredDetailData.forEach((item) => {
       /* Etat (engin-type) or Active status (tag-type) */
       if (item.etatenginname) {
         const etat = item.etatenginname
@@ -165,7 +194,7 @@ const DashboardListCards = () => {
       .slice(0, 12)
 
     return {etatData, statusData, familleData, batteryAlerts: batteryAlerts.slice(0, 8), activityFeed}
-  }, [allDetailData])
+  }, [filteredDetailData])
 
   /* ── Chart Configs ── */
   const etatChartOptions = useMemo(() => ({
@@ -231,6 +260,58 @@ const DashboardListCards = () => {
           </button>
         </div>
       </header>
+
+      {/* ── Period Filter Bar ── */}
+      <div className="om-filter-bar" data-testid="om-period-filter">
+        <div className="om-filter-pills">
+          {[
+            {key: 'all', label: 'Tout'},
+            {key: 'today', label: "Aujourd'hui"},
+            {key: '7d', label: '7 jours'},
+            {key: '30d', label: '30 jours'},
+            {key: 'custom', label: 'Personnalisé'},
+          ].map(p => (
+            <button
+              key={p.key}
+              className={`om-filter-pill ${periodFilter === p.key ? 'om-filter-pill--active' : ''}`}
+              onClick={() => setPeriodFilter(p.key)}
+              data-testid={`filter-${p.key}`}
+            >
+              {p.key === 'custom' && <i className="pi pi-calendar" style={{fontSize: '0.75rem'}}></i>}
+              {p.label}
+            </button>
+          ))}
+        </div>
+        {periodFilter === 'custom' && (
+          <div className="om-filter-custom" data-testid="custom-range">
+            <div className="om-filter-date-group">
+              <label className="om-filter-date-label">De</label>
+              <input
+                type="date"
+                className="om-filter-date-input"
+                value={customRange.from}
+                onChange={e => setCustomRange(r => ({...r, from: e.target.value}))}
+                data-testid="filter-date-from"
+              />
+            </div>
+            <div className="om-filter-date-group">
+              <label className="om-filter-date-label">À</label>
+              <input
+                type="date"
+                className="om-filter-date-input"
+                value={customRange.to}
+                onChange={e => setCustomRange(r => ({...r, to: e.target.value}))}
+                data-testid="filter-date-to"
+              />
+            </div>
+          </div>
+        )}
+        {periodFilter !== 'all' && filteredDetailData.length > 0 && (
+          <span className="om-filter-result">
+            <strong>{filteredDetailData.length}</strong> / {allDetailData.length} résultats
+          </span>
+        )}
+      </div>
 
       {/* ── KPI Cards ── */}
       <div className="om-kpi-grid" data-testid="om-kpi-grid">
@@ -780,7 +861,53 @@ const STYLES = `
   .om-container { padding: 16px; }
   .om-title { font-size: 1.3rem; }
   .om-kpi-grid { grid-template-columns: 1fr 1fr; }
+  .om-filter-bar { flex-direction: column; align-items: stretch; }
 }
+
+/* ── Period Filter Bar ── */
+.om-filter-bar {
+  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+  padding: 14px 18px; margin-bottom: 20px;
+  background: #FFF; border-radius: 14px; border: 1.5px solid #E2E8F0;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.om-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+.om-filter-pill {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 7px 16px; border-radius: 8px;
+  border: 1.5px solid #E2E8F0; background: #FAFBFC;
+  font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600;
+  color: #64748B; cursor: pointer; transition: all 0.15s;
+  white-space: nowrap;
+}
+.om-filter-pill:hover { border-color: #CBD5E1; background: #F1F5F9; color: #475569; }
+.om-filter-pill--active {
+  background: #0F172A; color: #FFF; border-color: #0F172A;
+  box-shadow: 0 2px 8px rgba(15,23,42,0.2);
+}
+.om-filter-pill--active:hover { background: #1E293B; border-color: #1E293B; }
+.om-filter-custom {
+  display: flex; gap: 10px; align-items: center;
+  animation: omSlide 0.2s ease;
+}
+.om-filter-date-group { display: flex; align-items: center; gap: 6px; }
+.om-filter-date-label {
+  font-size: 0.72rem; font-weight: 700; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.03em;
+}
+.om-filter-date-input {
+  padding: 6px 12px; border-radius: 8px;
+  border: 1.5px solid #E2E8F0; background: #FFF;
+  font-family: 'Inter', sans-serif; font-size: 0.78rem;
+  color: #0F172A; outline: none; transition: border-color 0.15s;
+}
+.om-filter-date-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
+.om-filter-result {
+  margin-left: auto; font-size: 0.72rem; font-weight: 600;
+  color: #64748B; padding: 4px 12px; border-radius: 6px;
+  background: #F1F5F9; white-space: nowrap;
+}
+.om-filter-result strong { color: #0F172A; }
 `
 
 export default DashboardListCards

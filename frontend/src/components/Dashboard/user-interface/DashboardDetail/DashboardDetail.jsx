@@ -1,547 +1,368 @@
 import {useEffect, useState} from 'react'
 import {useAppDispatch, useAppSelector} from '../../../../hooks'
-import ButtonComponent from '../../../shared/ButtonComponent/ButtonComponent'
-import {DatatableComponent} from '../../../shared/DatatableComponent/DataTableComponent'
-import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
 import {
-  fetchDashboardDetail,
   getCardSelected,
   getDashboardDetail,
   getSelectedDashboard,
-  setEditDashboard,
   setSelectedDashboardDetail,
 } from '../../slice/dashboard.slice'
 import {Image} from 'primereact/image'
-import {Chip} from 'primereact/chip'
 import {getSelectedEngine, setSelectedEngine} from '../../../Engin/slice/engin.slice'
 import EnginMapLocation from '../../../Engin/EnginList/EnginMapLocation'
-import GeocodingComponent from '../../../shared/GeocodingComponent/GeocodingComponent'
 import {API_BASE_URL_IMAGE} from '../../../../api/config'
-import {Avatar} from 'primereact/avatar'
-import {FamilleTagTemplate} from '../../../Tag/user-interface/TagList/FamilleTagTemplate'
 
 const DashboardDetail = () => {
-  const [visible, setVisible] = useState(false)
   const [dialogVisible, setDialogVisible] = useState(false)
   const [mouvement, setMouvement] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
-  const {title, code, src, titledetail} = useAppSelector(getSelectedDashboard) || {}
+  const {src} = useAppSelector(getSelectedDashboard) || {}
   let selectedEngin = useAppSelector(getSelectedEngine)
   const selectedCard = useAppSelector(getCardSelected)
-
   const dispatch = useAppDispatch()
   const dashboardDataDetail = useAppSelector(getDashboardDetail)
 
-  // useEffect(() => {
-  //   dispatch(fetchDashboardDetail(code))
-  // }, [])
-  const statusEnginTemplate = (rowData) => {
-    const bgColor = rowData?.statusbgColor || '#94A3B8'
-    const label = rowData?.statuslabel || '-'
-    return (
-      <span className="lt-badge" style={{background: `${bgColor}18`, color: bgColor}} title={rowData?.statusDate || ''}>
-        <span className="lt-badge-dot" style={{background: bgColor}}></span>
-        {label}
-      </span>
-    )
-  }
+  const isEngin = selectedCard?.src === 'engin' || src === 'engin'
+  const data = Array.isArray(dashboardDataDetail) ? dashboardDataDetail : []
 
-  const statusTagTemplate = (rowData) => {
-    const bgColor = rowData?.statusbgColor || '#94A3B8'
-    const label = rowData?.status || '-'
-    return (
-      <span className="lt-badge" style={{background: `${bgColor}18`, color: bgColor}} title={rowData?.statusDate || ''}>
-        <span className="lt-badge-dot" style={{background: bgColor}}></span>
-        {label}
-      </span>
-    )
-  }
-  const fakeData = [
-    {
-      dernierFoisVuAdresse: 'Rue du Rhône 14',
-      dateEtHeure: '2023-06-22 10:30:00',
-    },
-  ]
-  const imageTemplate = (rowData) => (
-    <Image
-      src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
-      alt='EngineImage'
-      width='60'
-      height='60'
-      preview
-      imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
-    />
-  )
-
-  const handleShowMap = (rowData, srcMouv = '') => {
-    setMouvement(srcMouv)
+  const handleShowMap = (rowData) => {
+    setMouvement('')
     dispatch(setSelectedEngine(rowData))
     setDialogVisible(true)
   }
 
-  const familleTagTemplate = (rowData) => {
-    return (
-      <Chip
-        label={rowData.familleTag}
-        title={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
-        alt={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
-        icon={rowData.familleIconTag}
-        style={{background: rowData.familleTagIconBgcolor, color: rowData.familleTagIconColor}}
-      />
-    )
-  }
-
-  const tagTemplate = (rowData) => {
-    return (
-      <div className='flex flex-column'>
-        <div className='flex justify-content-center'>
-          {rowData.tagId ? (
-            familleTagTemplate(rowData)
-          ) : (
-            <Chip
-              label='Untagged'
-              title={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
-              alt={rowData.tagId != 0 ? `Tagged  ${rowData?.tagDate}` : 'No Tag'}
-              className='cursor-pointer'
-              onClick={() => handleShowMap(rowData, '')}
-            />
-          )}
-        </div>
-        <div style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-          <Chip
-            label={
-              rowData?.labeltag === null ||
-              rowData?.labeltag === '' ||
-              rowData?.labeltag == undefined
-                ? rowData?.tagname
-                : rowData?.labeltag
-            }
-            className='m-2'
-            style={{background: '#D64B70', color: 'white'}}
-          />
-        </div>
-      </div>
-    )
-  }
-
-  const iconTemplate = (rowData) => {
-    let icon = ''
-    let color = ''
-    if (rowData?.etatenginname === 'exit') {
-      icon = 'pi pi-arrow-up'
-      color = '#D64B70'
-    } else if (rowData?.etatenginname === 'reception') {
-      icon = 'pi pi-arrow-down'
-      color = 'green'
-    } else if (rowData?.etatenginname === 'nonactive') {
-      icon = 'pi pi-exclamation-triangle'
-      color = 'red'
-    }
-    return (
-      <div>
-        <i
-          style={{color}}
-          className={`${icon} text-2xl rounded p-2 cursor-pointer`}
-          title={`${rowData?.etatengin} ${rowData?.locationDate ?? '2023-06-22 10:30:00 Test '}`}
-          alt={`${rowData?.etatengin} ${rowData?.locationDate ?? '2023-06-22 10:30:00  Test'}`}
-          onClick={() => handleShowMap(rowData)}
-        ></i>
-      </div>
-    )
-  }
-
-  const BatteryStatus = ({batteries, locationDate}) => {
-    if (batteries === '' || batteries === null || batteries === undefined) {
-      return (
-        <div className="lt-battery">
-          <div className="lt-battery-bar-wrap">
-            <div className="lt-battery-bar-fill" style={{width: '0%', background: '#CBD5E1'}} />
-          </div>
-          <span className="lt-battery-text lt-battery-text-muted">N/A</span>
-        </div>
-      )
-    }
-    const val = Math.min(parseInt(batteries, 10) || 0, 100)
-    let color, textClass
-    if (val >= 50) { color = '#22C55E'; textClass = 'lt-battery-text-success' }
-    else if (val >= 20) { color = '#F59E0B'; textClass = 'lt-battery-text-warning' }
-    else { color = '#EF4444'; textClass = 'lt-battery-text-danger' }
-    return (
-      <div className="lt-battery" title={locationDate ?? ''}>
-        <div className="lt-battery-bar-wrap">
-          <div className="lt-battery-bar-fill" style={{width: `${val}%`, background: color}} />
-        </div>
-        <span className={`lt-battery-text ${textClass}`}>{val}%</span>
-      </div>
-    )
-  }
-
-  const tagIdTemplate = ({tagId}) => {
-    return tagId == null || tagId === '' || tagId === undefined || tagId === 0 ? 'No Tag' : tagId
-  }
-
-  const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
-    return (
-      <span className="lt-famille-chip" style={{background: familleBgcolor || '#64748B'}}>
-        {familleIcon && <i className={familleIcon} style={{fontSize: '0.75rem'}}></i>}
-        {famille || '-'}
-      </span>
-    )
-  }
-
-  const activeTemplate = (rowData) => {
-    const isActive = rowData?.active == 1
-    return (
-      <span className={`lt-badge ${isActive ? 'lt-badge-success' : 'lt-badge-danger'}`}>
-        <span className={`lt-badge-dot ${isActive ? 'lt-badge-dot-success' : 'lt-badge-dot-danger'}`}></span>
-        {isActive ? 'Actif' : 'Inactif'}
-      </span>
-    )
-  }
-
-  const addresseeTemplate = (type, {enginAddress, tagAddress}) => {
-    return (
-      <>
-        {
-          <div>
-            {enginAddress ? (
-              <Chip
-                label={type == 'engin' ? enginAddress : tagAddress}
-                className='w-11rem m-1 flex justify-content-center align-items-center'
-              />
-            ) : (
-              'No address found.'
-            )}
-          </div>
-        }
-      </>
-    )
-  }
-
-  const buildColumns = () => {
-    if (selectedCard?.src === 'engin' || src === 'engin') {
-      return [
-        {
-          header: 'Photo',
-          field: 'image',
-          olang: 'Photo',
-          body: imageTemplate,
-        },
-        {
-          header: 'Référence',
-          field: 'reference',
-          olang: 'Reference',
-        },
-        {
-          header: 'TagId',
-          field: 'tagId',
-          olang: 'tagId',
-          body: tagIdTemplate,
-        },
-        {
-          header: 'Label',
-          field: 'label',
-          olang: 'label',
-        },
-        {
-          header: 'Vin',
-          field: 'vin',
-          olang: 'vin',
-        },
-        {
-          header: 'Etat',
-          field: 'etatenginname',
-          olang: 'Etat',
-          body: iconTemplate,
-        },
-        {
-          header: 'Tag',
-          field: 'tagname',
-          olang: 'Tag',
-          body: tagTemplate,
-        },
-        {
-          header: 'Status',
-          olang: 'status',
-          field: 'statuslabel',
-          body: statusEnginTemplate,
-        },
-        {
-          header: 'Battery status',
-          olang: 'BatteryStatus',
-          field: 'batteries',
-          body: BatteryStatus,
-        },
-        {
-          header: 'Famille',
-          field: 'famille',
-          olang: 'Famille',
-          visible: true,
-          body: familleTemplate,
-        },
-        {
-          header: 'Marque',
-          field: 'brand',
-          olang: 'marque',
-        },
-        {
-          header: 'IMMATRICULATION',
-          field: 'immatriculation',
-          olang: 'IMMATRICULATION',
-        },
-        {
-          header: 'Modèle',
-          field: 'model',
-          olang: 'Modele',
-        },
-
-        // {
-        //   header: 'Type',
-        //   field: null,
-        //   olang: 'Type',
-        //   body: typeTemplate,
-        // },
-        {
-          header: 'Worksite',
-          field: 'LocationObjectname',
-          olang: 'Worksite',
-        },
-
-        {
-          header: 'Addressee',
-          olang: 'Addressee',
-          field: 'addressee',
-          body: (r) => addresseeTemplate('engin', r),
-        },
-      ]
-    } else if (selectedCard?.src === 'tag' || src === 'tag') {
-      return [
-        {
-          header: 'ID Tag',
-          field: 'name',
-          olang: 'ID Tag',
-          filter: true,
-        },
-        {
-          header: 'Label',
-          field: 'label',
-          olang: 'label',
-        },
-        {
-          header: 'Famille',
-          field: 'famille',
-          olang: 'Famille',
-          visible: true,
-          body: familleTemplate,
-        },
-        {
-          header: 'ADRESSE',
-          olang: 'ADRESSE',
-          field: 'adresse',
-          body: (r) => addresseeTemplate('tag', r),
-        },
-        {
-          header: 'Satus',
-          olang: 'Status',
-          field: 'status',
-          body: statusTagTemplate,
-        },
-
-        {header: 'ACTIF', olang: 'ACTIF', body: activeTemplate},
-      ]
-    }
-  }
-
-  const buildExportColumns = () => {
-    if (src === 'engin') {
-      return [
-        {
-          label: 'Référence',
-          column: 'reference',
-        },
-        {
-          label: 'TagId',
-          column: 'tagId',
-        },
-        {
-          label: 'Label',
-          column: 'label',
-        },
-        {
-          label: 'Vin',
-          column: 'vin',
-        },
-        {
-          label: 'Etat',
-          column: 'etatengin',
-        },
-
-        {
-          label: 'Status',
-          column: 'status',
-        },
-        {
-          label: 'Battery status',
-          column: 'batteries',
-        },
-        {
-          label: 'Famille',
-          column: 'famille',
-        },
-        {
-          label: 'Marque',
-          column: 'brand',
-        },
-        {
-          label: 'IMMATRICULATION',
-          column: 'immatriculation',
-        },
-        {
-          label: 'Modèle',
-          column: 'model',
-        },
-
-        {
-          label: 'Worksite',
-          column: 'LocationObjectname',
-        },
-      ]
-    } else if (src === 'tag') {
-      return [
-        {
-          label: 'ID Tag',
-          column: 'name',
-        },
-        {
-          label: 'Label',
-          column: 'label',
-        },
-        {
-          label: 'Famille',
-          column: 'famille',
-        },
-        {
-          label: 'Status',
-          column: 'status',
-        },
-      ]
-    }
-  }
-
-  const columns = buildColumns()
-
-  const exportFields = buildExportColumns()
-
-  const rowGroupTemplates = {
-    reference: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.reference} />
-    ),
-    tagId: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.tagId} />
-    ),
-    field: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.field} />
-    ),
-    label: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.label} />
-    ),
-    vin: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.vin} />
-    ),
-    etatenginname: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.etatenginname} />
-    ),
-    tagname: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.tagname} />
-    ),
-    status: (rowData) => (
-      <Chip
-        style={{backgroundColor: rowData.statusbgColor, color: 'white'}}
-        label={rowData?.status}
-      />
-    ),
-    batteries: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.batteries} />
-    ),
-    famille: (rowData) => familleTemplate(rowData),
-    brand: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.brand} />
-    ),
-    immatriculation: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.immatriculation} />
-    ),
-    model: (rowData) => (
-      <Chip style={{backgroundColor: '#D64B70', color: 'white'}} label={rowData?.model} />
-    ),
-    LocationObjectname: (rowData) => (
-      <Chip
-        style={{backgroundColor: '#D64B70', color: 'white'}}
-        label={rowData?.LocationObjectname}
-      />
-    ),
-    // Addresse: (rowData) => (
-    //   <Chip
-    //     style={{backgroundColor: '#D64B70', color: 'white'}}
-    //     label={addresseeTemplate(rowData)}
-    //   />
-    // ),
-  }
-
-  const allowedGroupFields = [
-    'famille',
-    'status',
-    'LocationObjectname',
-    'etatenginname',
-    'tagname',
-    'batteries',
-  ]
-
-  const handleClickType = (rowData) => {
-    dispatch(setSelectedDashboardDetail(rowData))
-    //dispatch(setTypeEdit(true))
-  }
-
-  const handleType = (e) => {
-    setVisible(true)
-    dispatch(setSelectedDashboardDetail(e))
-  }
+  /* Filter data by search */
+  const filtered = data.filter(item => {
+    if (!searchTerm) return true
+    const s = searchTerm.toLowerCase()
+    const fields = [
+      item.reference, item.label, item.vin, item.tagname, item.name,
+      item.statuslabel, item.status, item.famille, item.LocationObjectname,
+      item.enginAddress, item.tagAddress, item.brand, item.model,
+    ]
+    return fields.some(f => f && String(f).toLowerCase().includes(s))
+  })
 
   return (
     <>
-      {selectedCard == null ? (
-        <div className='flex justify-content-between p-2'>
-          <div className=''>
-            <ButtonComponent
-              label={<OlangItem olang={'btn.back'} />}
-              onClick={() => {
-                dispatch(setEditDashboard(false))
-              }}
-            />
-          </div>
-          <div className=''>
-            <p className='text-2xl font-bold text-gray-800'>{titledetail}</p>
-          </div>
-        </div>
-      ) : null}
+      <style>{DETAIL_STYLES}</style>
       <EnginMapLocation
         dialogVisible={dialogVisible}
-        setDialogVisible={() => setDialogVisible((prev) => !prev)}
-        historySrc={{
-          srcId: selectedEngin?.id,
-          srcObject: 'engin',
-          srcMovement: mouvement,
-        }}
+        setDialogVisible={() => setDialogVisible(prev => !prev)}
+        historySrc={{srcId: selectedEngin?.id, srcObject: 'engin', srcMovement: mouvement}}
       />
-      <DatatableComponent
-        tableId='dashboard-detail-table'
-        data={dashboardDataDetail}
-        columns={columns}
-        exportFields={exportFields}
-        rowGroupTemplates={rowGroupTemplates}
-        allowedGroupFields={allowedGroupFields}
-      />
+
+      {/* Search Bar */}
+      <div className="dd-search-bar" data-testid="dd-search-bar">
+        <i className="pi pi-search dd-search-icon"></i>
+        <input
+          className="dd-search-input"
+          placeholder="Rechercher un asset..."
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          data-testid="dd-search-input"
+        />
+        <span className="dd-search-count">{filtered.length} résultats</span>
+      </div>
+
+      {/* Card List */}
+      <div className="dd-card-list" data-testid="dd-card-list">
+        {filtered.length === 0 ? (
+          <div className="dd-empty" data-testid="dd-empty">
+            <i className="pi pi-inbox" style={{fontSize: '2rem', color: '#CBD5E1'}}></i>
+            <p className="dd-empty-title">Aucun résultat</p>
+            <p className="dd-empty-desc">Essayez de modifier votre recherche</p>
+          </div>
+        ) : isEngin ? (
+          filtered.map((item, i) => <EnginCard key={item.id || i} item={item} onShowMap={handleShowMap} />)
+        ) : (
+          filtered.map((item, i) => <TagCard key={item.id || i} item={item} />)
+        )}
+      </div>
     </>
   )
 }
+
+/* ── Engin Card ── */
+const EnginCard = ({item, onShowMap}) => {
+  const isExit = item.etatenginname === 'exit'
+  const isEntry = item.etatenginname === 'reception'
+  const etatLabel = isExit ? 'Sortie' : isEntry ? 'Entrée' : (item.etatenginname || 'Inactif')
+  const etatColor = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
+  const bat = parseInt(item.batteries, 10) || 0
+  const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
+  const statusColor = item.statusbgColor || '#94A3B8'
+
+  return (
+    <div className="dd-card" data-testid={`dd-card-${item.id || item.reference}`}>
+      {/* Left: Image */}
+      <div className="dd-card-img">
+        {item.image ? (
+          <Image
+            src={`${API_BASE_URL_IMAGE}${item.image}`}
+            alt={item.reference || ''}
+            width="56"
+            height="56"
+            preview
+            imageStyle={{objectFit: 'cover', width: 56, height: 56, borderRadius: 10}}
+          />
+        ) : (
+          <div className="dd-card-img-placeholder">
+            <i className="pi pi-box"></i>
+          </div>
+        )}
+      </div>
+
+      {/* Center: Info */}
+      <div className="dd-card-body">
+        <div className="dd-card-row1">
+          <span className="dd-card-name">{item.reference || item.label || '-'}</span>
+          {item.vin && <span className="dd-card-vin">{item.vin}</span>}
+        </div>
+        <div className="dd-card-row2">
+          {/* Etat Badge */}
+          <span className="dd-badge" style={{background: `${etatColor}12`, color: etatColor}} data-testid="dd-etat-badge">
+            <span className="dd-badge-dot" style={{background: etatColor}}></span>
+            <i className={`pi ${isExit ? 'pi-arrow-up' : isEntry ? 'pi-arrow-down' : 'pi-exclamation-triangle'}`} style={{fontSize: '0.65rem'}}></i>
+            {etatLabel}
+          </span>
+          {/* Status Badge */}
+          <span className="dd-badge" style={{background: `${statusColor}12`, color: statusColor}} data-testid="dd-status-badge">
+            <span className="dd-badge-dot" style={{background: statusColor}}></span>
+            {item.statuslabel || '-'}
+          </span>
+          {/* Famille Badge */}
+          {item.famille && (
+            <span className="dd-famille-badge" style={{background: item.familleBgcolor || '#64748B'}} data-testid="dd-famille-badge">
+              {item.familleIcon && <i className={item.familleIcon} style={{fontSize: '0.65rem'}}></i>}
+              {item.famille}
+            </span>
+          )}
+          {/* Tag */}
+          {item.tagname && (
+            <span className="dd-badge dd-badge-tag" data-testid="dd-tag-badge">
+              <i className="pi pi-tag" style={{fontSize: '0.6rem'}}></i>
+              {item.tagname}
+            </span>
+          )}
+        </div>
+        {/* Location */}
+        {(item.LocationObjectname || item.enginAddress) && (
+          <div className="dd-card-location">
+            <i className="pi pi-map-marker" style={{fontSize: '0.7rem', color: '#94A3B8'}}></i>
+            <span>{item.LocationObjectname || item.enginAddress}</span>
+          </div>
+        )}
+      </div>
+
+      {/* Right: Battery + Actions */}
+      <div className="dd-card-right">
+        <div className="dd-card-battery" data-testid="dd-battery">
+          <div className="dd-bat-bar-outer">
+            <div className="dd-bat-bar-fill" style={{width: `${Math.min(bat, 100)}%`, background: batColor}} />
+          </div>
+          <span className="dd-bat-pct" style={{color: batColor}}>
+            {item.batteries != null && item.batteries !== '' ? `${bat}%` : 'N/A'}
+          </span>
+        </div>
+        <button className="dd-map-btn" onClick={() => onShowMap(item)} data-testid="dd-map-btn">
+          <i className="pi pi-map-marker"></i>
+        </button>
+        {item.locationDate && (
+          <span className="dd-card-date">{item.locationDate}</span>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ── Tag Card ── */
+const TagCard = ({item}) => {
+  const isActive = item.active == 1
+  const statusColor = item.statusbgColor || '#94A3B8'
+
+  return (
+    <div className="dd-card" data-testid={`dd-card-${item.id || item.name}`}>
+      {/* Left: Icon */}
+      <div className="dd-card-img">
+        <div className="dd-card-img-placeholder" style={{background: item.familleBgcolor || '#6D28D9', color: '#FFF'}}>
+          <i className={item.familleIcon || 'pi pi-tag'}></i>
+        </div>
+      </div>
+
+      {/* Center: Info */}
+      <div className="dd-card-body">
+        <div className="dd-card-row1">
+          <span className="dd-card-name">{item.name || item.label || '-'}</span>
+          {item.label && item.label !== item.name && <span className="dd-card-vin">{item.label}</span>}
+        </div>
+        <div className="dd-card-row2">
+          {/* Famille Badge */}
+          {item.famille && (
+            <span className="dd-famille-badge" style={{background: item.familleBgcolor || '#64748B'}} data-testid="dd-tag-famille">
+              {item.familleIcon && <i className={item.familleIcon} style={{fontSize: '0.65rem'}}></i>}
+              {item.famille}
+            </span>
+          )}
+          {/* Status Badge */}
+          <span className="dd-badge" style={{background: `${statusColor}12`, color: statusColor}} data-testid="dd-tag-status">
+            <span className="dd-badge-dot" style={{background: statusColor}}></span>
+            {item.status || '-'}
+          </span>
+          {/* Active Badge */}
+          <span className={`dd-badge ${isActive ? 'dd-badge-active' : 'dd-badge-inactive'}`} data-testid="dd-tag-active">
+            <span className={`dd-badge-dot ${isActive ? 'dd-badge-dot-green' : 'dd-badge-dot-red'}`}></span>
+            {isActive ? 'Actif' : 'Inactif'}
+          </span>
+        </div>
+        {item.tagAddress && (
+          <div className="dd-card-location">
+            <i className="pi pi-map-marker" style={{fontSize: '0.7rem', color: '#94A3B8'}}></i>
+            <span>{item.tagAddress}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+/* ══════════════ DETAIL STYLES ══════════════ */
+const DETAIL_STYLES = `
+.dd-search-bar {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 16px; border-bottom: 1px solid #F1F5F9;
+  background: #FAFBFC; position: relative;
+}
+.dd-search-icon { color: #94A3B8; font-size: 0.9rem; }
+.dd-search-input {
+  flex: 1; border: none; background: transparent;
+  font-family: 'Inter', sans-serif; font-size: 0.85rem;
+  color: #0F172A; outline: none;
+}
+.dd-search-input::placeholder { color: #CBD5E1; }
+.dd-search-count {
+  font-size: 0.72rem; color: #94A3B8; font-weight: 600;
+  white-space: nowrap; padding: 3px 10px; border-radius: 6px;
+  background: #F1F5F9;
+}
+
+.dd-card-list {
+  max-height: 500px; overflow-y: auto;
+  padding: 8px 0;
+}
+
+.dd-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 14px 18px;
+  border-bottom: 1px solid #F8FAFC;
+  transition: background 0.12s;
+  cursor: default;
+}
+.dd-card:hover { background: #F8FAFC; }
+.dd-card:last-child { border-bottom: none; }
+
+.dd-card-img { flex-shrink: 0; }
+.dd-card-img-placeholder {
+  width: 56px; height: 56px; border-radius: 12px;
+  background: #F1F5F9; display: flex; align-items: center;
+  justify-content: center; font-size: 1.1rem; color: #94A3B8;
+}
+
+.dd-card-body { flex: 1; min-width: 0; }
+.dd-card-row1 {
+  display: flex; align-items: baseline; gap: 8px;
+  margin-bottom: 6px;
+}
+.dd-card-name {
+  font-weight: 700; font-size: 0.88rem; color: #0F172A;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.dd-card-vin {
+  font-size: 0.72rem; color: #94A3B8; font-weight: 500;
+  flex-shrink: 0;
+}
+
+.dd-card-row2 {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin-bottom: 4px;
+}
+
+.dd-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 700; white-space: nowrap;
+}
+.dd-badge-dot {
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+}
+.dd-badge-tag { background: #EFF6FF; color: #1E40AF; }
+.dd-badge-active { background: #F0FDF4; color: #166534; }
+.dd-badge-inactive { background: #FEF2F2; color: #991B1B; }
+.dd-badge-dot-green { background: #22C55E; }
+.dd-badge-dot-red { background: #EF4444; }
+
+.dd-famille-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 10px; border-radius: 6px;
+  font-size: 0.7rem; font-weight: 700; color: #FFF;
+  white-space: nowrap;
+}
+
+.dd-card-location {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; color: #64748B;
+  margin-top: 2px;
+}
+
+.dd-card-right {
+  display: flex; flex-direction: column; align-items: flex-end;
+  gap: 6px; flex-shrink: 0;
+}
+
+.dd-card-battery {
+  display: flex; align-items: center; gap: 6px;
+}
+.dd-bat-bar-outer {
+  width: 40px; height: 16px; border-radius: 4px;
+  border: 2px solid #CBD5E1; padding: 2px; background: #FFF;
+  position: relative;
+}
+.dd-bat-bar-outer::after {
+  content: ''; position: absolute; right: -4px; top: 50%;
+  transform: translateY(-50%); width: 3px; height: 7px;
+  border-radius: 0 2px 2px 0; background: #CBD5E1;
+}
+.dd-bat-bar-fill {
+  height: 100%; border-radius: 2px;
+  transition: width 0.4s ease;
+}
+.dd-bat-pct {
+  font-size: 0.72rem; font-weight: 800; white-space: nowrap;
+  min-width: 30px; text-align: right;
+}
+
+.dd-map-btn {
+  width: 30px; height: 30px; border-radius: 8px;
+  border: 1.5px solid #E2E8F0; background: #FFF;
+  display: flex; align-items: center; justify-content: center;
+  color: #3B82F6; cursor: pointer; transition: all 0.12s;
+  font-size: 0.8rem;
+}
+.dd-map-btn:hover { background: #EFF6FF; border-color: #3B82F6; }
+
+.dd-card-date {
+  font-size: 0.65rem; color: #94A3B8; white-space: nowrap;
+}
+
+.dd-empty {
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: center; padding: 48px 20px; text-align: center;
+}
+.dd-empty-title {
+  font-weight: 700; font-size: 0.95rem; color: #475569;
+  margin: 8px 0 2px;
+}
+.dd-empty-desc { font-size: 0.8rem; color: #94A3B8; margin: 0; }
+`
 
 export default DashboardDetail
