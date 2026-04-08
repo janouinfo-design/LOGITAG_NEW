@@ -6,12 +6,21 @@ import {
   setSelectedRapport,
   setShowSettingRapport,
 } from '../../slice/rapports.slice'
-import {useDispatch} from 'react-redux'
 import {useAppDispatch} from '../../../../hooks'
-import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
-import {Divider} from 'primereact/divider'
 
-const RapportChose = ({}) => {
+const rapportTypes = [
+  {
+    category: 'Rapport d\'activité',
+    icon: 'pi pi-chart-line',
+    color: '#3B82F6',
+    items: [
+      {title: 'engList', label: 'Par Engin', desc: 'Temps de présence par site/adresse pour chaque engin', icon: 'pi pi-box', decs: 'engin'},
+      {title: 'siteList', label: 'Par Site', desc: 'Temps de présence de chaque engin sur le site', icon: 'pi pi-building', decs: 'worksite'},
+    ]
+  },
+]
+
+const RapportChose = () => {
   const dispatch = useAppDispatch()
 
   const selectReport = (value) => {
@@ -21,65 +30,47 @@ const RapportChose = ({}) => {
   }
 
   return (
-    <div
-      className='bg-gray-100 w-15rem lg:w-20rem xl:w-25rem md:w-20rem xs:w-full flex border-round-md relative flex-column'
-      style={{
-        // width: '20%',
-        height: '80vh',
-        boxShadow: '-8px 18px 21px -9px rgba(0,0,0,0.61)',
-        WebkitBoxShadow: '-8px 18px 21px -9px rgba(0,0,0,0.61)',
-        MozBoxShadow: '-8px 18px 21px -9px rgba(0,0,0,0.61)',
-      }}
-    >
-      <div
-        style={{backgroundColor: 'rgba(82, 63, 141, 0.7)'}}
-        className='flex flex-row  align-items-center	 w-full h-4rem text-3xl'
-      >
-        <div
+    <div className='lt-rpt-types-panel' data-testid="rapport-types-panel">
+      <div className='lt-rpt-types-header'>
+        <button
           onClick={() => {
             dispatch(setChoseRapport(false))
             dispatch(setShowSettingRapport(false))
           }}
-          className='absolute cursor-pointer  px-3 py-2'
-          style={{left: '2%'}}
+          className='lt-rpt-back-btn'
+          data-testid="rapport-back-btn"
         >
-          <i class='fas fa-solid fa-caret-left hover:text-red-400 text-4xl text-white'></i>
-        </div>
-        <div className='w-full text-center'>
-          <div className='pl-3 text-white text-xl font-semibold '>Rapports</div>
-        </div>
+          <i className='pi pi-arrow-left'></i>
+        </button>
+        <span>Rapports disponibles</span>
       </div>
-      <div className='flex flex-column w-full '>
-        <div className='bg-gray-300 p-2 '>
-          <div className='text-xl font-semibold'>
-            <OlangItem olang='sltRapport' />
-          </div>
-        </div>
-        <Divider />
-        <div
-          onClick={() => selectReport({title: 'engList', icon: 'fa-tractor', decs: 'engin'})}
-          className='flex flex-row justify-content-between align-items-center bg-white hover:bg-gray-300 p-2 border-bottom-2 border-gray-300 cursor-pointer'
-        >
-          <div>
-            <div className='text-xl font-semibold'>Engin</div>
-            <div>
-              <OlangItem olang='crtEng' />
+
+      <div className='lt-rpt-types-body'>
+        {rapportTypes.map((cat, ci) => (
+          <div key={ci} className='lt-rpt-category'>
+            <div className='lt-rpt-category-title'>
+              <i className={cat.icon} style={{color: cat.color, fontSize: '0.85rem'}}></i>
+              <span>{cat.category}</span>
             </div>
+            {cat.items.map((item, ii) => (
+              <div
+                key={ii}
+                onClick={() => selectReport(item)}
+                className='lt-rpt-type-item'
+                data-testid={`rapport-type-${item.decs}`}
+              >
+                <div className='lt-rpt-type-icon' style={{background: `${cat.color}12`, color: cat.color}}>
+                  <i className={item.icon}></i>
+                </div>
+                <div className='lt-rpt-type-info'>
+                  <div className='lt-rpt-type-name'>{item.label}</div>
+                  <div className='lt-rpt-type-desc'>{item.desc}</div>
+                </div>
+                <i className='pi pi-chevron-right' style={{color: '#CBD5E1', fontSize: '0.75rem'}}></i>
+              </div>
+            ))}
           </div>
-          <i class='fas fa-light fa-square-plus text-4xl text-white'></i>
-        </div>
-        <div
-          onClick={() => selectReport({title: 'siteList', icon: 'fa-map', decs: 'worksite'})}
-          className='flex flex-row justify-content-between align-items-center bg-white hover:bg-gray-300 p-2 border-bottom-2 border-gray-300 cursor-pointer'
-        >
-          <div>
-            <div className='text-xl font-semibold'>Worksite</div>
-            <div>
-              <OlangItem olang='crtSite' />
-            </div>
-          </div>
-          <i class='fas fa-light fa-square-plus text-4xl text-white'></i>
-        </div>
+        ))}
       </div>
     </div>
   )

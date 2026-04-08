@@ -228,6 +228,7 @@ const EnginList = () => {
   const [familleEngin, setFamilleEngin] = useState([])
   const [loadingOrder, setLoadingOrder] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
+  const [gridSort, setGridSort] = useState('default')
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     etat: null,
@@ -1562,22 +1563,39 @@ const EnginList = () => {
       ) : viewMode === 'grid' ? (
         <div className="lt-table-wrap" data-testid="engin-grid-wrap">
           {/* Search bar for grid mode */}
-          <div style={{padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10}}>
+          <div style={{padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap'}}>
             <i className="pi pi-search" style={{color: '#94A3B8', fontSize: '0.85rem'}}></i>
             <input
-              style={{flex: 1, border: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: '#0F172A', outline: 'none'}}
+              style={{flex: 1, border: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: '#0F172A', outline: 'none', minWidth: 120}}
               placeholder="Rechercher un asset..."
               value={searchInput}
               onChange={handleSearch}
               data-testid="engin-grid-search"
             />
+            <div className="lt-sort-pills" data-testid="engin-sort-pills">
+              <button className={`lt-sort-pill ${gridSort === 'default' ? 'lt-sort-pill--active' : ''}`} onClick={() => setGridSort('default')}>Défaut</button>
+              <button className={`lt-sort-pill ${gridSort === 'name' ? 'lt-sort-pill--active' : ''}`} onClick={() => setGridSort('name')}>
+                <i className="pi pi-sort-alpha-down" style={{fontSize: '0.65rem'}}></i>Nom
+              </button>
+              <button className={`lt-sort-pill ${gridSort === 'battery' ? 'lt-sort-pill--active' : ''}`} onClick={() => setGridSort('battery')}>
+                <i className="pi pi-bolt" style={{fontSize: '0.65rem'}}></i>Batterie
+              </button>
+              <button className={`lt-sort-pill ${gridSort === 'status' ? 'lt-sort-pill--active' : ''}`} onClick={() => setGridSort('status')}>
+                <i className="pi pi-circle-fill" style={{fontSize: '0.5rem'}}></i>Statut
+              </button>
+            </div>
             <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
               Page {page} / {Math.ceil(totalRecords / rows) || 1}
             </span>
           </div>
           {/* Grid of vignettes */}
           <div className="lt-vignette-grid" data-testid="engin-grid-view">
-            {engines.map((item, i) => {
+            {[...engines].sort((a, b) => {
+              if (gridSort === 'name') return (a.reference || '').localeCompare(b.reference || '')
+              if (gridSort === 'battery') return (parseInt(b.batteries) || 0) - (parseInt(a.batteries) || 0)
+              if (gridSort === 'status') return (a.etatenginname || '').localeCompare(b.etatenginname || '')
+              return 0
+            }).map((item, i) => {
               const isExit = item.etatenginname === 'exit'
               const isEntry = item.etatenginname === 'reception'
               const etatLabel = isExit ? 'Sortie' : isEntry ? 'Entrée' : (item.etatenginname || 'Inactif')

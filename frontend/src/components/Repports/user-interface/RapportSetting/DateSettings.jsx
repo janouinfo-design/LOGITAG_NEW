@@ -1,10 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react'
 import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
-import {InputText} from 'primereact/inputtext'
 import {Calendar} from 'primereact/calendar'
-import {Slider} from 'primereact/slider'
 import moment from 'moment'
-import {Button} from 'primereact/button'
 import {
   getLoadingRapport,
   getSelectedRapport,
@@ -16,54 +13,25 @@ import {useFormik} from 'formik'
 import {classNames} from 'primereact/utils'
 
 const DateSettings = ({style}) => {
-  const [dates, setDates] = useState(null)
-  const [value, setValue] = useState([360, 1440])
-  const [selectSlider, setSelectSlider] = useState('')
-  const [title, setTitle] = useState('')
-
-  const onConfirmDate = useRef(false)
   const calendarRef = useRef(null)
-
+  const onConfirmDate = useRef(false)
   const dispatch = useAppDispatch()
-
   const dateNow = Date.now()
   const formateDate = moment(dateNow).format('YYYY-MM-DD')
   const loading = useAppSelector(getLoadingRapport)
   const selectedRapport = useAppSelector(getSelectedRapport)
 
-  const convertTimeToSliderValue = (time) => {
-    const [hours, minutes] = time.split(':')
-    return parseInt(hours, 10) * 60 + parseInt(minutes, 10)
-  }
-
-  const generateRandomNumberString = () => {
-    return Math.floor(Math.random() * 100000)
-      .toString()
-      .padStart(5, '0')
-  }
-
   const generateRandomText = () => {
-    const randomNumberString = generateRandomNumberString()
-    return `${
-      selectedRapport?.decs === 'engin' ? 'Engin_Rapport' : 'Worksite_Rapport'
-    }_${randomNumberString}`
+    const num = Math.floor(Math.random() * 100000).toString().padStart(5, '0')
+    return `${selectedRapport?.decs === 'engin' ? 'Engin_Rapport' : 'Site_Rapport'}_${num}`
   }
 
   const formik = useFormik({
-    initialValues: {
-      title: '',
-      date: '',
-    },
+    initialValues: { title: '', date: '' },
     validate: (data) => {
       let errors = {}
-
-      if (!data.title) {
-        errors.title = 'Title - is required.'
-      }
-      if (!data.date) {
-        errors.date = 'Date - is required.'
-      }
-
+      if (!data.title) errors.title = 'Titre requis'
+      if (!data.date) errors.date = 'Plage de dates requise'
       return errors
     },
     onSubmit: (data) => {
@@ -72,186 +40,94 @@ const DateSettings = ({style}) => {
     },
   })
 
-  const convertSliderValueToTime = (value) => {
-    const hours = Math.floor(value / 60)
-    const minutes = value % 60
-    return hours == 24
-      ? '00:00'
-      : `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`
-  }
+  const isInvalid = (name) => !!(formik.touched[name] && formik.errors[name])
 
-  const handleDayClick = () => {
-    setSelectSlider('day')
-    setValue([360, 1080])
-  }
-
-  const handleNightClick = () => {
-    setSelectSlider('night')
-    setValue([1080, 1440])
-  }
-
-  const handleAllDayClick = () => {
-    setSelectSlider('all')
-    setValue([360, 1440])
-  }
-
-  const footerTemplate = () => (
-    <div style={{display: 'flex', justifyContent: 'space-between', padding: '10px'}}>
-      <Button
-        label='Clear'
-        onClick={() => {
-          onConfirmDate.current = false
-          formik.setFieldValue('date', '')
-        }}
-        className='p-button-secondary'
-      />
-      {/* <Button
-        label='Today'
-        onClick={() => formik.setFieldValue('date', formateDate)}
-        className='p-button-primary'
-      /> */}
-      <Button
-        label='OK'
-        onClick={() => {
-          calendarRef.current.hide()
-          onConfirmDate.current = true
-        }}
-        className='p-button-success'
-      />
-    </div>
-  )
-
-  const isFormFieldInvalid = (name) => !!(formik.touched[name] && formik.errors[name])
-  const getFormErrorMessage = (name) => {
-    return isFormFieldInvalid(name) ? (
-      <small className='p-error'>{formik.errors[name]}</small>
-    ) : (
-      <small className='p-error'>&nbsp;</small>
-    )
-  }
   useEffect(() => {
-    const randomText = generateRandomText()
-    formik.setFieldValue('title', randomText)
+    formik.setFieldValue('title', generateRandomText())
   }, [selectedRapport])
 
   return (
-    <div className='bg-gray-200 w-15rem lg:w-20rem xl:w-25rem md:w-20rem ' style={style}>
-      <div
-        style={{backgroundColor: 'rgba(82, 63, 141, 0.7)'}}
-        className='flex flex-row  align-items-center w-full h-3rem text-lg'
-      >
-        <div className='text-xl font-semibold text-white pl-2'>
-          <OlangItem olang='dateStg' />
-        </div>
-        <i className='fas fa-duotone fa-calendar-days text-3xl text-white pl-3'></i>
+    <div className='lt-rpt-config-panel' data-testid="rapport-config-panel">
+      <div className='lt-rpt-config-header'>
+        <i className='pi pi-cog' style={{fontSize: '0.9rem'}}></i>
+        <span>Configuration</span>
       </div>
-      <div>
-        <div className='bg-white px-2 pt-3'>
-          <div className='text-lg  pb-1'>
-            <OlangItem olang='rptTitle' /> :
-          </div>
-          <InputText
+
+      <div className='lt-rpt-config-body'>
+        {/* Title */}
+        <div className='lt-rpt-config-field'>
+          <label className='lt-rpt-config-label'>Titre du rapport</label>
+          <input
+            type='text'
             id='title'
             name='title'
-            className={classNames({'p-invalid': isFormFieldInvalid('title'), 'w-full': true})}
-            placeholder='Report Title'
+            className={`lt-rpt-config-input ${isInvalid('title') ? 'lt-rpt-config-input--error' : ''}`}
+            placeholder='Titre...'
             value={formik.values.title}
             onChange={formik.handleChange}
+            data-testid="rapport-title-input"
           />
-          {getFormErrorMessage('title')}
+          {isInvalid('title') && <small className='lt-rpt-config-error'>{formik.errors.title}</small>}
         </div>
-        <div className='bg-white px-2 py-3'>
-          <div className='text-lg  pb-1'>
-            <OlangItem olang='rptRange' /> :
-          </div>
+
+        {/* Date Range */}
+        <div className='lt-rpt-config-field'>
+          <label className='lt-rpt-config-label'>Plage de dates</label>
           <Calendar
             ref={calendarRef}
-            className={classNames({'p-invalid': isFormFieldInvalid('date'), 'w-full': true})}
+            className={classNames({'p-invalid': isInvalid('date'), 'w-full': true})}
             inputId='cal_date'
             name='date'
             value={formik.values.date}
-            onChange={(e) => {
-              formik.setFieldValue('date', e.target.value)
-            }}
+            onChange={(e) => formik.setFieldValue('date', e.target.value)}
             selectionMode='range'
-            dateFormat='mm/dd/yy'
+            dateFormat='dd/mm/yy'
             readOnlyInput
             hideOnRangeSelection
-            footerTemplate={footerTemplate}
             placeholder={formateDate}
+            style={{borderRadius: 10}}
           />
-          {getFormErrorMessage('date')}
+          {isInvalid('date') && <small className='lt-rpt-config-error'>{formik.errors.date}</small>}
         </div>
-        {/* <div className='bg-white px-2 py-3'>
-          <div className='text-lg  pb-1'>
-            <OlangItem olang='ctrTime' /> : {convertSliderValueToTime(value[0])} -{' '}
-            {convertSliderValueToTime(value[1])}
-          </div>
-          <div className='p-2'>
-            <Slider
-              value={value}
-              onChange={(e) => setValue(e.value)}
-              range
-              min={360}
-              max={1440}
-              step={15}
-              className='w-full'
-            />
-          </div>
-          <div className='flex flex-row align-items-center justify-content-center bg-white p-1'>
-            <div
-              className='flex flex-row align-items-center justify-content-between'
-              style={{width: '45%'}}
-            >
-              <div
-                style={{color: selectSlider === 'day' && 'blue'}}
-                onClick={handleDayClick}
-                className='cursor-pointer text-lg hover:text-blue-400'
-              >
-                <OlangItem olang='Day' />
-              </div>
-              <div
-                onClick={handleNightClick}
-                style={{color: selectSlider === 'night' && 'blue'}}
-                className='cursor-pointer text-lg hover:text-blue-400'
-              >
-                <OlangItem olang='Night' />
-              </div>
-              <div
-                style={{color: selectSlider === 'all' && 'blue'}}
-                onClick={handleAllDayClick}
-                className='cursor-pointer text-lg hover:text-blue-400'
-              >
-                <OlangItem olang='Always' />
-              </div>
+
+        {/* Info Card */}
+        <div className='lt-rpt-info-card' data-testid="rapport-info-card">
+          <i className='pi pi-info-circle' style={{color: '#3B82F6', fontSize: '1rem'}}></i>
+          <div>
+            <div style={{fontWeight: 700, fontSize: '0.78rem', color: 'var(--lt-text-primary)', marginBottom: 2}}>
+              {selectedRapport?.decs === 'engin' ? 'Rapport par Engin' : 'Rapport par Site'}
+            </div>
+            <div style={{fontSize: '0.72rem', color: 'var(--lt-text-muted)', lineHeight: 1.4}}>
+              {selectedRapport?.decs === 'engin'
+                ? 'Affiche le temps de présence de chaque engin sur les sites/adresses avec un résumé total.'
+                : 'Affiche le temps de présence de chaque engin dans le site sélectionné avec un résumé total.'}
             </div>
           </div>
-        </div> */}
-      </div>
-      <div className='flex flex-row align-items-center justify-content-end bg-white p-2'>
-        <div
-          className='flex flex-row align-items-center justify-content-between'
-          style={{width: '100%'}}
-        >
-          <Button
-            severity='danger'
-            onClick={() => {
-              dispatch(setShowSettingRapport(false))
-            }}
-          >
-            <OlangItem olang='cancel' />
-          </Button>
-          <Button
-            severity='success'
-            loading={loading}
-            disabled={loading}
-            onClick={formik.handleSubmit}
-          >
-            <OlangItem olang='build' />
-          </Button>
         </div>
+      </div>
+
+      {/* Actions */}
+      <div className='lt-rpt-config-actions'>
+        <button
+          className='lt-rpt-config-cancel'
+          onClick={() => dispatch(setShowSettingRapport(false))}
+          data-testid="rapport-cancel-btn"
+        >
+          Annuler
+        </button>
+        <button
+          className='lt-vcard-geo'
+          style={{width: 'auto', padding: '10px 24px', borderRadius: 10, opacity: loading ? 0.6 : 1}}
+          onClick={formik.handleSubmit}
+          disabled={loading}
+          data-testid="rapport-build-btn"
+        >
+          {loading ? <i className='pi pi-spin pi-spinner' style={{marginRight: 6}}></i> : <i className='pi pi-play' style={{fontSize: '0.75rem'}}></i>}
+          Construire le rapport
+        </button>
       </div>
     </div>
   )
 }
+
 export default DateSettings
