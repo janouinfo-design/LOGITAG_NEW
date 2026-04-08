@@ -227,6 +227,7 @@ const EnginList = () => {
   const [familleTag, setFamilleTag] = useState([])
   const [familleEngin, setFamilleEngin] = useState([])
   const [loadingOrder, setLoadingOrder] = useState(false)
+  const [viewMode, setViewMode] = useState('grid')
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     etat: null,
@@ -1515,6 +1516,24 @@ const EnginList = () => {
               <strong>{totalRecords}</strong> assets
             </div>
           )}
+          <div className="lt-view-toggle" data-testid="engin-view-toggle">
+            <button
+              className={`lt-view-btn ${viewMode === 'grid' ? 'lt-view-btn--active' : ''}`}
+              onClick={() => setViewMode('grid')}
+              title="Vue vignettes"
+              data-testid="engin-view-grid"
+            >
+              <i className="pi pi-th-large"></i>
+            </button>
+            <button
+              className={`lt-view-btn ${viewMode === 'table' ? 'lt-view-btn--active' : ''}`}
+              onClick={() => setViewMode('table')}
+              title="Vue tableau"
+              data-testid="engin-view-table"
+            >
+              <i className="pi pi-list"></i>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1538,6 +1557,110 @@ const EnginList = () => {
                 <div className="lt-skeleton-cell" style={{flex: 1, height: 14}} />
               </div>
             ))}
+          </div>
+        </div>
+      ) : viewMode === 'grid' ? (
+        <div className="lt-table-wrap" data-testid="engin-grid-wrap">
+          {/* Search bar for grid mode */}
+          <div style={{padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10}}>
+            <i className="pi pi-search" style={{color: '#94A3B8', fontSize: '0.85rem'}}></i>
+            <input
+              style={{flex: 1, border: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: '#0F172A', outline: 'none'}}
+              placeholder="Rechercher un asset..."
+              value={searchInput}
+              onChange={handleSearch}
+              data-testid="engin-grid-search"
+            />
+            <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
+              Page {page} / {Math.ceil(totalRecords / rows) || 1}
+            </span>
+          </div>
+          {/* Grid of vignettes */}
+          <div className="lt-vignette-grid" data-testid="engin-grid-view">
+            {engines.map((item, i) => {
+              const isExit = item.etatenginname === 'exit'
+              const isEntry = item.etatenginname === 'reception'
+              const etatLabel = isExit ? 'Sortie' : isEntry ? 'Entrée' : (item.etatenginname || 'Inactif')
+              const etatColor = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
+              const bat = parseInt(item.batteries, 10) || 0
+              const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
+              const statusColor = item.statusbgColor || '#94A3B8'
+              return (
+                <div key={item.id || i} className="lt-vcard" data-testid={`engin-vcard-${i}`}>
+                  {item.image ? (
+                    <div className="lt-vcard-img">
+                      <Image
+                        src={`${API_BASE_URL_IMAGE}${item.image}`}
+                        alt={item.reference || ''} width="72" height="72" preview
+                        imageStyle={{objectFit: 'cover', width: 72, height: 72}}
+                      />
+                    </div>
+                  ) : (
+                    <div className="lt-vcard-img-ph" style={{background: '#F1F5F9', color: '#94A3B8'}}>
+                      <i className="pi pi-box"></i>
+                    </div>
+                  )}
+                  <div className="lt-vcard-name">{item.reference || item.label || '-'}</div>
+                  {item.vin && <div className="lt-vcard-sub">{item.vin}</div>}
+                  <div className="lt-vcard-badges">
+                    <span className="lt-badge" style={{background: `${etatColor}15`, color: etatColor}}>
+                      <span className="lt-badge-dot" style={{background: etatColor}}></span>{etatLabel}
+                    </span>
+                    <span className="lt-badge" style={{background: `${statusColor}15`, color: statusColor}}>
+                      <span className="lt-badge-dot" style={{background: statusColor}}></span>{item.statuslabel || '-'}
+                    </span>
+                    {item.famille && (
+                      <span className="lt-famille-chip" style={{background: item.familleBgcolor || '#64748B', fontSize: '0.7rem', padding: '2px 8px'}}>
+                        {item.famille}
+                      </span>
+                    )}
+                    {item.tagname && (
+                      <span className="lt-badge lt-badge-info" style={{fontSize: '0.68rem', padding: '2px 7px'}}>
+                        <i className="pi pi-tag" style={{fontSize: '0.6rem'}}></i>{item.tagname}
+                      </span>
+                    )}
+                  </div>
+                  <button className="lt-vcard-geo" onClick={() => handleShowMap(item, null)} data-testid="engin-vcard-geo">
+                    <i className="pi pi-map-marker"></i>Localiser
+                  </button>
+                  <div className="lt-vcard-footer">
+                    <div className="lt-vcard-loc">
+                      <i className="pi pi-map-marker"></i>
+                      {item.LocationObjectname || item.enginAddress || '-'}
+                    </div>
+                    <div className="lt-battery" style={{gap: 5}}>
+                      <div className="lt-battery-bar-wrap" style={{width: 32, height: 16}}>
+                        <div className="lt-battery-bar-fill" style={{width: `${Math.min(bat, 100)}%`, background: batColor}} />
+                      </div>
+                      <span style={{fontSize: '0.72rem', fontWeight: 800, color: batColor}}>
+                        {item.batteries != null && item.batteries !== '' ? `${bat}%` : 'N/A'}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+          {/* Grid Pagination */}
+          <div className="lt-grid-pagination" data-testid="engin-grid-pagination">
+            <button
+              className="lt-grid-page-btn"
+              disabled={page <= 1 || isLoadingButton}
+              onClick={() => handlePageChange({page: page - 1, rows})}
+            >
+              <i className="pi pi-chevron-left"></i>
+            </button>
+            <span className="lt-grid-page-info">
+              Page <strong>{page}</strong> / <strong>{Math.ceil(totalRecords / rows) || 1}</strong>
+              &nbsp;&mdash;&nbsp;{totalRecords} assets
+            </span>
+            <button
+              className="lt-grid-page-btn"
+              disabled={page >= Math.ceil(totalRecords / rows) || isLoadingButton}
+              onClick={() => handlePageChange({page: page + 1, rows})}
+            >
+              <i className="pi pi-chevron-right"></i>
+            </button>
           </div>
         </div>
       ) : (

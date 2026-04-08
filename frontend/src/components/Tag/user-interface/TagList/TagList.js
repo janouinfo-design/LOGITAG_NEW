@@ -46,6 +46,7 @@ const TagList = ({titleShow, detailView, tags}) => {
   const [loadingExcel, setLoadingExcel] = useState(false)
   const [generatedCheck, setGeneratedCheck] = useState([])
   const [searchInput, setSearchInput] = useState('')
+  const [viewMode, setViewMode] = useState('grid')
 
   const status = useAppSelector(getStatus)
 
@@ -402,6 +403,24 @@ const TagList = ({titleShow, detailView, tags}) => {
                 <strong>{totalRecords}</strong> tags
               </div>
             )}
+            <div className="lt-view-toggle" data-testid="tag-view-toggle">
+              <button
+                className={`lt-view-btn ${viewMode === 'grid' ? 'lt-view-btn--active' : ''}`}
+                onClick={() => setViewMode('grid')}
+                title="Vue vignettes"
+                data-testid="tag-view-grid"
+              >
+                <i className="pi pi-th-large"></i>
+              </button>
+              <button
+                className={`lt-view-btn ${viewMode === 'table' ? 'lt-view-btn--active' : ''}`}
+                onClick={() => setViewMode('table')}
+                title="Vue tableau"
+                data-testid="tag-view-table"
+              >
+                <i className="pi pi-list"></i>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -418,6 +437,81 @@ const TagList = ({titleShow, detailView, tags}) => {
                   <div className="lt-skeleton-cell" style={{flex: 1, height: 28, borderRadius: 8}} />
                 </div>
               ))}
+            </div>
+          </div>
+        ) : viewMode === 'grid' ? (
+          <div className="lt-table-wrap" data-testid="tag-grid-wrap">
+            {/* Search bar */}
+            <div style={{padding: '14px 18px', borderBottom: '1px solid #F1F5F9', display: 'flex', alignItems: 'center', gap: 10}}>
+              <i className="pi pi-search" style={{color: '#94A3B8', fontSize: '0.85rem'}}></i>
+              <input
+                style={{flex: 1, border: 'none', background: 'transparent', fontFamily: 'Inter, sans-serif', fontSize: '0.85rem', color: '#0F172A', outline: 'none'}}
+                placeholder="Rechercher un tag..."
+                value={searchInput}
+                onChange={handleSearch}
+                data-testid="tag-grid-search"
+              />
+              <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
+                Page {page + 1} / {Math.ceil(totalRecords / rows) || 1}
+              </span>
+            </div>
+            {/* Grid */}
+            <div className="lt-vignette-grid" data-testid="tag-grid-view">
+              {tags.map((item, i) => {
+                const isActive = item.active == 1
+                const statusColor = item.statusbgColor || '#94A3B8'
+                return (
+                  <div key={item.id || i} className="lt-vcard" data-testid={`tag-vcard-${i}`}>
+                    <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#6D28D9', color: '#FFF'}}>
+                      <i className={item.familleIcon || 'pi pi-tag'}></i>
+                    </div>
+                    <div className="lt-vcard-name">{item.name || item.label || '-'}</div>
+                    {item.label && item.label !== item.name && <div className="lt-vcard-sub">{item.label}</div>}
+                    <div className="lt-vcard-badges">
+                      {item.famille && (
+                        <span className="lt-famille-chip" style={{background: item.familleBgcolor || '#64748B', fontSize: '0.7rem', padding: '2px 8px'}}>
+                          {item.familleIcon && <i className={item.familleIcon} style={{fontSize: '0.65rem'}}></i>}
+                          {item.famille}
+                        </span>
+                      )}
+                      <span className="lt-badge" style={{background: `${statusColor}15`, color: statusColor}}>
+                        <span className="lt-badge-dot" style={{background: statusColor}}></span>
+                        {item.status || '-'}
+                      </span>
+                      <span className={`lt-badge ${isActive ? 'lt-badge-success' : 'lt-badge-danger'}`}>
+                        <span className={`lt-badge-dot ${isActive ? 'lt-badge-dot-success' : 'lt-badge-dot-danger'}`}></span>
+                        {isActive ? 'Actif' : 'Inactif'}
+                      </span>
+                    </div>
+                    {item.tagAddress && (
+                      <button className="lt-vcard-geo" onClick={() => showLocationAddress(item)} data-testid="tag-vcard-geo">
+                        <i className="pi pi-map-marker"></i>Localiser
+                      </button>
+                    )}
+                    {item.tagAddress && (
+                      <div className="lt-vcard-footer" style={{justifyContent: 'center'}}>
+                        <div className="lt-vcard-loc" style={{maxWidth: '100%'}}>
+                          <i className="pi pi-map-marker"></i>
+                          {item.tagAddress.length > 30 ? item.tagAddress.substring(0, 30) + '...' : item.tagAddress}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+            {/* Grid Pagination */}
+            <div className="lt-grid-pagination" data-testid="tag-grid-pagination">
+              <button className="lt-grid-page-btn" disabled={page <= 0} onClick={() => handlePageChange({page: page - 1, rows})}>
+                <i className="pi pi-chevron-left"></i>
+              </button>
+              <span className="lt-grid-page-info">
+                Page <strong>{page + 1}</strong> / <strong>{Math.ceil(totalRecords / rows) || 1}</strong>
+                &nbsp;&mdash;&nbsp;{totalRecords} tags
+              </span>
+              <button className="lt-grid-page-btn" disabled={page + 1 >= Math.ceil(totalRecords / rows)} onClick={() => handlePageChange({page: page + 1, rows})}>
+                <i className="pi pi-chevron-right"></i>
+              </button>
             </div>
           </div>
         ) : (

@@ -640,3 +640,229 @@
 .lt-address-chip:hover {
   background: #E2E8F0;
 }
+
+/* ══════ VIEW TOGGLE ══════ */
+.lt-view-toggle {
+  display: inline-flex;
+  border-radius: 10px;
+  border: 1.5px solid var(--lt-border);
+  overflow: hidden;
+  background: var(--lt-surface);
+}
+
+.lt-view-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--lt-text-muted);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.9rem;
+}
+
+.lt-view-btn:hover {
+  color: var(--lt-text-secondary);
+  background: #F1F5F9;
+}
+
+.lt-view-btn--active {
+  background: #0F172A;
+  color: #FFF;
+}
+
+.lt-view-btn--active:hover {
+  background: #1E293B;
+  color: #FFF;
+}
+
+/* ══════ VIGNETTE GRID ══════ */
+.lt-vignette-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+  padding: 20px;
+}
+
+@media (max-width: 600px) {
+  .lt-vignette-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+    padding: 12px;
+  }
+}
+
+.lt-vcard {
+  background: var(--lt-surface);
+  border-radius: 16px;
+  border: 1.5px solid var(--lt-border);
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 10px;
+  transition: all 0.2s;
+  cursor: default;
+  position: relative;
+}
+
+.lt-vcard:hover {
+  border-color: #CBD5E1;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.06);
+  transform: translateY(-2px);
+}
+
+.lt-vcard-img {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid var(--lt-border);
+  flex-shrink: 0;
+}
+
+.lt-vcard-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lt-vcard-img-ph {
+  width: 72px;
+  height: 72px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.lt-vcard-name {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--lt-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+  font-family: 'Manrope', var(--lt-font);
+}
+
+.lt-vcard-sub {
+  font-size: 0.72rem;
+  color: var(--lt-text-muted);
+  margin-top: -6px;
+}
+
+.lt-vcard-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  justify-content: center;
+}
+
+.lt-vcard-geo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
+  color: #FFF;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  margin-top: 2px;
+  font-family: var(--lt-font);
+}
+
+.lt-vcard-geo:hover {
+  background: linear-gradient(135deg, #2563EB, #1D4ED8);
+  box-shadow: 0 4px 12px rgba(59,130,246,0.3);
+  transform: translateY(-1px);
+}
+
+.lt-vcard-geo i {
+  font-size: 0.85rem;
+}
+
+.lt-vcard-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+  margin-top: 2px;
+}
+
+.lt-vcard-loc {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
+  color: var(--lt-text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 60%;
+}
+
+.lt-vcard-loc i {
+  font-size: 0.65rem;
+  flex-shrink: 0;
+}
+
+/* ── Simple Pagination for Grid View ── */
+.lt-grid-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1px solid var(--lt-border);
+}
+
+.lt-grid-page-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1.5px solid var(--lt-border);
+  background: var(--lt-surface);
+  color: var(--lt-text-secondary);
+  cursor: pointer;
+  transition: all 0.12s;
+  font-size: 0.85rem;
+}
+
+.lt-grid-page-btn:hover:not(:disabled) {
+  border-color: var(--lt-accent);
+  color: var(--lt-accent);
+}
+
+.lt-grid-page-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.lt-grid-page-info {
+  font-size: 0.78rem;
+  color: var(--lt-text-muted);
+  font-weight: 600;
+}
+
+.lt-grid-page-info strong {
+  color: var(--lt-text-primary);
+}
