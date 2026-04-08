@@ -37,33 +37,35 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] Page Paramètres (SetupInfo): Cartes de réglages
 
 ### Phase 5 - Journal d'Activité Timeline Immersive (Completed - 8 Avril 2026)
-- [x] Header dark premium (gradient #1E293B → #334155) avec nom asset + sous-titre
-- [x] Card LastSeen glassmorphism (backdrop-filter blur, pulsing green dot)
-- [x] Panneau timeline glassmorphism (backdrop-filter blur 20px)
-- [x] Timeline verticale avec nœuds colorés connectés (vert=Entrée, rouge=Sortie)
-- [x] Cartes timeline modernes: badges status, dates, durées en pill, sites cliquables
+- [x] Header dark premium avec nom asset + LastSeen glassmorphism
+- [x] Timeline verticale avec nœuds colorés (vert=Entrée, rouge=Sortie)
+- [x] Cartes timeline modernes: badges, durées, sites cliquables
 - [x] Indicateur "En cours" animé pour les entrées live
-- [x] Bouton toggle pour réouvrir le panneau timeline
 
-## Backlog
+### Phase 6 - Fonctionnalités Avancées (Completed - 8 Avril 2026)
+- [x] P1: Toggle Grille/Tableau sur la page Rapports (214 rapports en vignettes)
+- [x] P2: Page Inventory SaaS (header rose + 3 cartes statistiques)
+- [x] P2: Page Sites/Places SaaS (header teal + badge count)
+- [x] P2: Presets de colonnes ("Vue simple" / "Vue complète") dans DataTable
+- [x] P3: Widget carte GPS temps réel sur le Dashboard (Leaflet intégré)
+- [x] P3: Filtre Entrée/Sortie (Tout/Entrées/Sorties) dans le Timeline
 
-### P1 (Haute priorité)
-- [ ] Toggle Grille/Tableau sur la page Rapports
-
-### P2 (Moyenne priorité)
-- [ ] Vue Grille/Carte sur d'autres pages (Inventory, Places)
-- [ ] Presets pour config colonnes ("Vue complète", "Vue simple")
+## Backlog (Restant)
 
 ### P3 (Basse priorité)
-- [ ] Widget carte GPS temps réel sur le Dashboard
-- [ ] Système de tri rapide sur les vues vignettes
 - [ ] Mode sombre (Dark Theme)
+- [ ] Système de tri rapide sur les vues vignettes (Nom, Batterie, Statut)
+- [ ] Animations de transition entre les pages
 
 ## Key Files
-- `/app/frontend/src/logitag-saas.css` - Thème SaaS global (+ Timeline CSS)
+- `/app/frontend/src/logitag-saas.css` - Thème SaaS global
 - `/app/frontend/src/components/components.js` - Routage dynamique
 - `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Modèle vignettes
 - `/app/frontend/src/components/Engin/EnginList/EnginMapLocation.js` - Dialog Journal
 - `/app/frontend/src/components/shared/HistoryComponent/HistoryListComponent.js` - Panel Timeline
 - `/app/frontend/src/components/Engin/EnginDetail/CardHistory.jsx` - Cartes Timeline
-- `/app/frontend/src/components/Dashboard/` - Dashboard Operations Monitor
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` - Dashboard + GPS Widget
+- `/app/frontend/src/components/shared/DatatableComponent/DataTableComponent.jsx` - DataTable + Presets
+- `/app/frontend/src/components/Repports/user-interface/RapportList/RaportList.jsx` - Rapports Grid
+- `/app/frontend/src/components/Inventory/InventoryList.js` - Inventory SaaS
+- `/app/frontend/src/components/Site/user-interface/SiteList/SiteList.js` - Sites SaaS
