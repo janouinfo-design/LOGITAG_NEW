@@ -13,33 +13,30 @@ Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec un
 
 ## Pages Implémentées
 
-### Dashboard Operations Monitor (/tagdashboard/index) — FAIT
+### Dashboard Operations Monitor (/tagdashboard/index)
 - Header "Operations Monitor" + date/heure + bouton Actualiser
-- **Filtre de période** : 5 pills (Tout, Aujourd'hui, 7 jours, 30 jours, Personnalisé)
-  - Personnalisé: 2 champs date (DE / À) + compteur résultats filtrés (ex: 43/44)
-  - Les graphiques se mettent à jour dynamiquement selon le filtre
-- 4 KPI cards avec format X/Y, icônes gradient, barres progression, % variation
-- **Panneau détail Card-List** (quand KPI card cliquée):
-  - EnginCard: photo thumbnail, nom, badges (Etat+Status+Famille+Tag), barre batterie, bouton map
-  - TagCard: icône famille, nom, badges (Famille+Status+Actif)
-  - Barre de recherche "Rechercher un asset..." avec compteur résultats temps réel
-  - Bouton fermer (X)
-- Donut "Répartition État" (Actif, Entrée) via ApexCharts
-- Barres "Distribution Statuts" (Disponible, Reserve, Livré, Réception, En pannee)
-- Donut "Assets par Famille" (BLE, CAB, SENSOR, etc.)
-- Panneau "Assets nécessitant attention" (table alertes batterie colorées)
-- Fil d'activité "Dernière Activité" (12 items avec noms, badges, localisation)
+- Filtre de période : 5 pills (Tout, Aujourd'hui, 7 jours, 30 jours, Personnalisé) avec date-pickers
+- 4 KPI cards cliquables avec format X/Y, barres progression, % variation
+- Panneau détail avec **toggle Grille/Ligne** :
+  - Grille: Vignettes carrées (EnginVCard / TagVCard) avec Localiser centré
+  - Ligne: Cards horizontales compactes
+  - Barre de recherche + compteur résultats
+- Graphiques: Donut État + Barres Statuts + Donut Familles (ApexCharts)
+- Panneau alertes batterie + Fil d'activité
 
-### Page Assets/Engins (/view/engin/index) — FAIT
-- Header SaaS Premium (gradient bleu, badge 4935 assets)
-- Skeleton loading, badges Etat/Status/Batterie/Famille, thumbnails, Géolocalisation
+### Page Assets/Engins (/view/engin/index)
+- Vue **Vignettes carrées par défaut** (toggle grille/tableau)
+- Chaque vignette: photo, nom, badges (Etat, Status, Famille, Tag ID), bouton "Localiser" centré bleu gradient, footer (localisation + batterie)
+- Search bar + pagination grille (prev/next)
+- Vue tableau: DataTable PrimeReact complète (fallback)
 
-### Page Tags (/tag/index) — FAIT
-- Header SaaS Premium (gradient violet, badge 53 tags)
-- Skeleton loading, badges Actif/Inactif, Status, Famille, boutons adresse
+### Page Tags (/tag/index)
+- Vue **Vignettes carrées par défaut** (toggle grille/tableau)
+- Chaque vignette: icône famille colorée, nom, badges (Famille, Status, Actif), bouton "Localiser" centré (si adresse), footer localisation
+- Search bar + pagination grille
 
 ## Icônes Corrigées
-- FontAwesome Pro → PrimeReact Icons (pi pi-arrow-down, pi pi-arrow-up, pi pi-exclamation-triangle)
+- FontAwesome Pro → PrimeReact Icons
 
 ## Fichiers Clés
 - `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx`
@@ -50,6 +47,6 @@ Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec un
 
 ## Backlog
 - P1: Intégrer Users dans routing dynamique (components.js)
-- P1: Refonte des pages secondaires (Calendrier, Map, Rapports)
+- P1: Refonte pages secondaires (Calendrier, Map, Rapports)
 - P2: Presets colonnes DataTable
 - P3: Carte GPS temps réel
