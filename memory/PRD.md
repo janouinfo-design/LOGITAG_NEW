@@ -1,52 +1,57 @@
-# LOGITAG — Application de Tracking d'Assets (SaaS B2B)
+# LOGITAG - Product Requirements Document
 
-## Problème Original
-Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec une interface moderne, sans modifier les appels API/Redux.
-
-## Contrainte Critique
-**STABILITÉ > DESIGN** : Aucune modification des appels API, endpoints, payloads ou logique métier.
+## Problem Statement
+Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade avec une interface moderne et cohérente. **CONTRAINTE CRITIQUE** : Modifications frontend UI/UX uniquement. Aucune modification des appels API, endpoints, payloads, Redux ou logique métier.
 
 ## Architecture
-- **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Metronic UI
-- **Backend**: API Externe (omniyat.is-certified.com) — interdiction de modifier
+- **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Leaflet, SCSS, Tailwind
+- **Backend**: API Externe Omniyat (https://omniyat.is-certified.com:82/logitag_node/) - NON modifiable
 - **Auth**: admin / user@1234
 
-## Pages Implémentées
+## Completed Features
 
-### Dashboard Operations Monitor (/tagdashboard/index)
-- Header "Operations Monitor" + date/heure + bouton Actualiser
-- Filtre de période : 5 pills (Tout, Aujourd'hui, 7 jours, 30 jours, Personnalisé) avec date-pickers
-- 4 KPI cards cliquables avec format X/Y, barres progression, % variation
-- Panneau détail avec **toggle Grille/Ligne** :
-  - Grille: Vignettes carrées (EnginVCard / TagVCard) avec Localiser centré
-  - Ligne: Cards horizontales compactes
-  - Barre de recherche + compteur résultats
-- Graphiques: Donut État + Barres Statuts + Donut Familles (ApexCharts)
-- Panneau alertes batterie + Fil d'activité
+### Phase 1 - Fondations (Completed)
+- [x] Clone et setup du repo LOGITAG_NEW
+- [x] Fix Craco, Webpack, TS/JS conflicts, ESLint
+- [x] Login page redesign (split-panel moderne)
+- [x] Thème global SaaS (`logitag-saas.css`)
+- [x] Correction icônes FontAwesome Pro → standards
 
-### Page Assets/Engins (/view/engin/index)
-- Vue **Vignettes carrées par défaut** (toggle grille/tableau)
-- Chaque vignette: photo, nom, badges (Etat, Status, Famille, Tag ID), bouton "Localiser" centré bleu gradient, footer (localisation + batterie)
-- Search bar + pagination grille (prev/next)
-- Vue tableau: DataTable PrimeReact complète (fallback)
+### Phase 2 - Dashboard (Completed)
+- [x] Dashboard "Operations Monitor" avec graphiques ApexCharts (Donut/Bar)
+- [x] Filtre de période (Aujourd'hui, 7J, 30J, Custom)
+- [x] Vue détail dynamique en bas du dashboard
 
-### Page Tags (/tag/index)
-- Vue **Vignettes carrées par défaut** (toggle grille/tableau)
-- Chaque vignette: icône famille colorée, nom, badges (Famille, Status, Actif), bouton "Localiser" centré (si adresse), footer localisation
-- Search bar + pagination grille
+### Phase 3 - Vignettes Carrées (Completed)
+- [x] Vue vignettes par défaut sur EnginList, TagList, DashboardDetail
+- [x] Toggle Grille/Tableau sur toutes les listes principales
+- [x] Bouton de géolocalisation centré sur les vignettes
+- [x] Chips modernes pour config colonnes DataTable
+- [x] Option "Tous" dans les filtres
 
-## Icônes Corrigées
-- FontAwesome Pro → PrimeReact Icons
-
-## Fichiers Clés
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx`
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardDetail/DashboardDetail.jsx`
-- `/app/frontend/src/components/Engin/EnginList/EnginList.js`
-- `/app/frontend/src/components/Tag/user-interface/TagList/TagList.js`
-- `/app/frontend/src/logitag-saas.css`
+### Phase 4 - Pages Secondaires SaaS (Completed - 8 Avril 2026)
+- [x] Page Calendrier: Header SaaS violet + toolbar moderne (toggles, recherche, filtres)
+- [x] Page Map: Header SaaS vert + carte Leaflet (badge "4935 positions")
+- [x] Page Rapports: Header SaaS orange + layout sidebar/contenu moderne
+- [x] Page Utilisateurs: Accessible via sidebar, header SaaS indigo + badge count
+- [x] Page Paramètres (SetupInfo): Cartes de réglages avec icônes colorées
+- [x] Styles CSS ajoutés: lt-settings-grid, lt-rapports-layout, lt-calendar overrides
 
 ## Backlog
-- P1: Intégrer Users dans routing dynamique (components.js)
-- P1: Refonte pages secondaires (Calendrier, Map, Rapports)
-- P2: Presets colonnes DataTable
-- P3: Carte GPS temps réel
+
+### P1 (Haute priorité)
+- [ ] Toggle Grille/Tableau sur la page Rapports
+
+### P2 (Moyenne priorité)
+- [ ] Vue Grille/Carte sur d'autres pages principales (Inventory, Places)
+- [ ] Presets pour la configuration colonnes ("Vue complète", "Vue simple")
+
+### P3 (Basse priorité)
+- [ ] Widget carte GPS temps réel sur le Dashboard
+- [ ] Système de tri rapide sur les vues vignettes (Nom, Batterie, Statut)
+
+## Key Files
+- `/app/frontend/src/logitag-saas.css` - Thème SaaS global
+- `/app/frontend/src/components/components.js` - Routage dynamique
+- `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Modèle vignettes
+- `/app/frontend/src/components/Dashboard/` - Dashboard Operations Monitor
