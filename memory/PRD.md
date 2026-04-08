@@ -1,44 +1,59 @@
-# LOGITAG - Product Requirements Document
+# LOGITAG - Application de Tracking d'Assets (SaaS B2B)
 
-## Original Problem Statement
-Refonte UI/UX frontend de l'application LOGITAG (tracking BLE). STABILITÉ > DESIGN. Aucune modification API.
-
-## Tech Stack
-- Frontend: React 18, Redux Toolkit, PrimeReact, Metronic UI
-- Backend: API externe (omniyat.is-certified.com) - NON MODIFIABLE
-- Auth: admin / user@1234
+## Problème Original
+Transformer l'application LOGITAG existante (tracking d'assets IoT) en un SaaS B2B "Enterprise-grade" avec une interface moderne et professionnelle, sans modifier les appels API/Redux sous-jacents.
 
 ## Contrainte Critique
-- AUCUNE modification des appels API, endpoints, payloads, méthodes HTTP
-- Uniquement des changements UI/UX frontend
+**STABILITÉ > DESIGN** : Les modifications sont strictement limitées au frontend (UI/UX). Il est interdit de toucher aux appels API, endpoints, méthodes HTTP, payloads, ou logique métier.
 
-## Completed Features (Apr 8, 2026)
+## Architecture
+- **Frontend**: React 18, Redux Toolkit, PrimeReact, Metronic UI, SCSS
+- **Backend**: API Externe (omniyat.is-certified.com) — aucune modification permise
+- **Authentification**: admin / user@1234
 
-### Re-clone depuis GitHub (DONE)
-- Code frais cloné depuis github.com/janouinfo-design/LOGITAG_NEW
-- Fix compilation: fontawesome-pro supprimé, geoman import corrigé, prettier ajouté
+## Pages et Composants
 
-### Dashboard SaaS Premium (DONE)
-- Header avec titre "Dashboard" + bouton "Actualiser"
-- 4 KPI cards avec icônes colorées, valeurs, labels, barres de progression animées
-- Clic sur KPI ouvre panneau détail avec tableau filtré (DashboardDetail existant)
-- Skeleton loading pendant chargement API lente
-- Empty state si aucune donnée
-- Hover animation (translateY + shadow)
-- Bouton fermer (X) pour le panneau détail
-- Fix: loadingCard toujours réinitialisé (.finally au lieu de .then)
-- Zéro modification API - même dispatch, selectors, endpoints
+### Dashboard (/tagdashboard/index) - FAIT
+- 4 KPI cards modernes (Engins utilisés, Tags alertes, Engins inactifs, Tags actifs)
+- Layout responsive, progress bars
 
-## Files Modified
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardComponent.jsx` (simplifié)
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` (refonte complète)
-- `/app/frontend/src/_metronic/assets/sass/style.react.scss` (suppression fontawesome-pro)
-- `/app/frontend/src/components/shared/MapComponent/user-interface/GeomanComponent/GeomanComponent.js` (fix import)
+### Page Assets/Engins (/view/engin/index) - FAIT
+- Header SaaS Premium (icône gradient bleu, titre, sous-titre, badge compteur)
+- Skeleton loading animé pendant le chargement API
+- Badges Etat : Sortie (rouge), Entrée (vert), Inactif (orange)
+- Widget Batterie : barre visuelle + pourcentage coloré
+- Badges Status : couleur dynamique selon l'API
+- Chips Famille : colorées avec icône
+- Bouton Géolocalisation : badge bleu cliquable
+- Thumbnails images arrondis
+
+### Page Tags (/tag/index) - FAIT
+- Header SaaS Premium (icône gradient violet, titre, sous-titre, badge compteur)
+- Skeleton loading animé
+- Badges Actif/Inactif (vert/rouge)
+- Badges Status colorés
+- Chips Famille (BLE, etc.)
+- Boutons adresse : Géolocalisation ou "Aucune adresse"
+
+### Page Utilisateurs - NON ROUTÉE
+- Le composant UserList.jsx a été modernisé mais n'est pas accessible via le routing dynamique (non présent dans components.js)
+
+## Fichiers Clés
+- `/app/frontend/src/logitag-saas.css` - Thème CSS global SaaS Premium
+- `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Page Assets modernisée
+- `/app/frontend/src/components/Tag/user-interface/TagList/TagList.js` - Page Tags modernisée
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardComponent.jsx` - Dashboard SaaS
+
+## Icônes
+- FontAwesome Pro supprimé (package payant non disponible)
+- Remplacé par PrimeReact Icons (pi pi-*) :
+  - `fa-down-to-bracket` → `pi pi-arrow-down`
+  - `fa-up-from-bracket` → `pi pi-arrow-up`
+  - `fa-octagon-exclamation` → `pi pi-exclamation-triangle`
 
 ## Backlog
-- Refonte page Engins (vignettes + filtres modernes)
-- Refonte page Tags
-- Refonte page Map
-- Refonte page Calendrier
-- Responsive design global
-- États visuels (loading/empty/error) sur toutes les pages
+- P1: Ajouter la page Utilisateurs au routing dynamique (components.js)
+- P2: Refonte des pages secondaires (Calendrier, Map, Rapports, etc.)
+- P2: Ajout de presets pour la configuration des colonnes DataTable
+- P3: Carte GPS en temps réel sur le dashboard
+- P3: Optimisation des temps de chargement (skeletons systématiques sur toutes les pages)
