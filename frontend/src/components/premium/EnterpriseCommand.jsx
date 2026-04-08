@@ -54,6 +54,22 @@ const routerIcon = (on) => L.divIcon({
 /* ── Recenter ── */
 const Recenter = ({center}) => { const m = useMap(); useEffect(() => { if (center) m.flyTo(center, 14, {duration: .8}) }, [center, m]); return null }
 
+/* ── Auto-fit bounds to show all markers ── */
+const FitAllMarkers = ({assets}) => {
+  const map = useMap()
+  const fitted = useRef(false)
+  useEffect(() => {
+    if (!fitted.current && assets.length > 0) {
+      const bounds = L.latLngBounds(assets.map(a => [a.last_lat || a.lat, a.last_lng || a.lng]))
+      if (bounds.isValid()) {
+        map.fitBounds(bounds, {padding: [40, 40], maxZoom: 14})
+        fitted.current = true
+      }
+    }
+  }, [assets, map])
+  return null
+}
+
 /* ── Battery helpers ── */
 const getBattery = (item) => {
   const v = parseFloat(item?.batteryLevelInPercent || item?.battery || 0)
@@ -154,7 +170,7 @@ const EnterpriseCommand = () => {
     const changed = new Set()
     assetList.forEach(a => {
       const prev = prevAssetsRef.current.find(p => p.id === a.id)
-      if (prev && (prev.lat !== a.lat || prev.lng !== a.lng || prev.etatenginname !== a.etatenginname || prev.batteryLevelInPercent !== a.batteryLevelInPercent)) {
+      if (prev && ((prev.last_lat || prev.lat) !== (a.last_lat || a.lat) || (prev.last_lng || prev.lng) !== (a.last_lng || a.lng) || prev.etatenginname !== a.etatenginname || prev.batteryLevelInPercent !== a.batteryLevelInPercent)) {
         changed.add(a.id)
       }
     })
@@ -204,7 +220,7 @@ const EnterpriseCommand = () => {
     return true
   })
 
-  const assetsWithCoords = filtered.filter(a => a.lat && a.lng && a.lat !== 0)
+  const assetsWithCoords = filtered.filter(a => (a.last_lat || a.lat) && (a.last_lng || a.lng) && (a.last_lat || a.lat) !== 0)
 
   // Pagination for sidebar list
   const totalAssetPages = Math.ceil(filtered.length / ASSETS_PER_PAGE)
@@ -214,7 +230,9 @@ const EnterpriseCommand = () => {
   const selectAsset = (asset) => {
     setSelectedAsset(asset)
     setDetailOpen(true)
-    if (asset.lat && asset.lng) setMapCenter([asset.lat, asset.lng])
+    const aLat = asset.last_lat || asset.lat
+    const aLng = asset.last_lng || asset.lng
+    if (aLat && aLng) setMapCenter([aLat, aLng])
   }
 
   const EVENT_META = {
@@ -494,6 +512,7 @@ const EnterpriseCommand = () => {
             <MapContainer center={[46.815, 7.14]} zoom={10} style={{width:'100%', height:'100%'}} zoomControl={false}>
               <TileLayer url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" attribution='&copy; CARTO' />
               {mapCenter && <Recenter center={mapCenter} />}
+              <FitAllMarkers assets={assetsWithCoords} />
 
               {/* Asset markers with clustering */}
               <MarkerClusterGroup chunkedLoading maxClusterRadius={50}
@@ -504,7 +523,7 @@ const EnterpriseCommand = () => {
                 })}
               >
                 {assetsWithCoords.map((asset, i) => (
-                  <Marker key={asset.id || i} position={[asset.lat, asset.lng]} icon={getIcon(asset)}
+                  <Marker key={asset.id || i} position={[asset.last_lat || asset.lat, asset.last_lng || asset.lng]} icon={getIcon(asset)}
                     eventHandlers={{click: () => selectAsset(asset)}}>
                     <Popup>
                       <div style={{fontFamily:'Inter', fontSize:'.78rem', minWidth: 160}}>
@@ -568,8 +587,8 @@ const EnterpriseCommand = () => {
                 <div className="ec-detail-section">
                   <span className="ec-detail-label">LOCALISATION</span>
                   <div className="ec-detail-row"><MapPin size={13} /> {selectedAsset.LocationObjectname || selectedAsset.locationLabel || 'Inconnue'}</div>
-                  {selectedAsset.lat && selectedAsset.lng && (
-                    <div className="ec-detail-row ec-detail-row--sub"><Target size={11} /> {selectedAsset.lat.toFixed(5)}, {selectedAsset.lng.toFixed(5)}</div>
+                  {(selectedAsset.last_lat || selectedAsset.lat) && (selectedAsset.last_lng || selectedAsset.lng) && (
+                    <div className="ec-detail-row ec-detail-row--sub"><Target size={11} /> {(selectedAsset.last_lat || selectedAsset.lat).toFixed(5)}, {(selectedAsset.last_lng || selectedAsset.lng).toFixed(5)}</div>
                   )}
                 </div>
 
