@@ -36,43 +36,25 @@ const DashboardDetail = () => {
   //   dispatch(fetchDashboardDetail(code))
   // }, [])
   const statusEnginTemplate = (rowData) => {
-    if (rowData?.iconName) {
-      return (
-        <i
-          title={rowData?.statuslabel}
-          className={`${rowData?.iconName} text-2xl rounded p-2`}
-          style={{color: `${rowData.statusbgColor}`}}
-        ></i>
-      )
-    } else {
-      return (
-        <Chip
-          label={rowData?.statuslabel}
-          style={{background: `${rowData.statusbgColor}`, color: rowData.color ?? 'white'}}
-          title={`${rowData?.statusDate}`}
-        />
-      )
-    }
+    const bgColor = rowData?.statusbgColor || '#94A3B8'
+    const label = rowData?.statuslabel || '-'
+    return (
+      <span className="lt-badge" style={{background: `${bgColor}18`, color: bgColor}} title={rowData?.statusDate || ''}>
+        <span className="lt-badge-dot" style={{background: bgColor}}></span>
+        {label}
+      </span>
+    )
   }
 
   const statusTagTemplate = (rowData) => {
-    if (rowData?.iconName) {
-      return (
-        <i
-          title={rowData?.status}
-          className={`${rowData?.iconName} text-2xl rounded p-2`}
-          style={{color: `${rowData.statusbgColor}`}}
-        ></i>
-      )
-    } else {
-      return (
-        <Chip
-          label={rowData?.status}
-          style={{background: `${rowData.statusbgColor}`, color: rowData.color ?? 'white'}}
-          title={`${rowData?.statusDate}`}
-        />
-      )
-    }
+    const bgColor = rowData?.statusbgColor || '#94A3B8'
+    const label = rowData?.status || '-'
+    return (
+      <span className="lt-badge" style={{background: `${bgColor}18`, color: bgColor}} title={rowData?.statusDate || ''}>
+        <span className="lt-badge-dot" style={{background: bgColor}}></span>
+        {label}
+      </span>
+    )
   }
   const fakeData = [
     {
@@ -169,40 +151,27 @@ const DashboardDetail = () => {
   }
 
   const BatteryStatus = ({batteries, locationDate}) => {
-    let batteryIcon
-    let textColor
-    let alt
     if (batteries === '' || batteries === null || batteries === undefined) {
-      batteryIcon = 'fas fa-battery-empty'
-      textColor = 'text-700'
-      alt = 'No data'
-    } else {
-      const batteryValue = parseInt(batteries, 10)
-      alt = locationDate ?? 'No date'
-      if (batteryValue >= 80) {
-        batteryIcon = 'fas fa-battery-full'
-        textColor = 'text-success'
-      } else if (batteryValue >= 50) {
-        batteryIcon = 'fas fa-battery-three-quarters'
-        textColor = 'text-success'
-      } else if (batteryValue >= 20) {
-        batteryIcon = 'fas fa-battery-half'
-        textColor = 'text-warning'
-      } else if (batteryValue > 0) {
-        batteryIcon = 'fas fa-battery-quarter'
-        textColor = 'text-danger'
-      } else {
-        batteryIcon = 'fas fa-battery-empty'
-        textColor = 'text-danger'
-      }
-    }
-
-    return (
-      <div className='flex items-center justify-center'>
-        <div className='p-4 rounded-lg text-center'>
-          <i title={alt} alt={alt} className={`text-4xl ${batteryIcon} ${textColor}`}></i>
-          <span className={`block mt-2 font-bold text-lg ${textColor}`}>{batteries}</span>
+      return (
+        <div className="lt-battery">
+          <div className="lt-battery-bar-wrap">
+            <div className="lt-battery-bar-fill" style={{width: '0%', background: '#CBD5E1'}} />
+          </div>
+          <span className="lt-battery-text lt-battery-text-muted">N/A</span>
         </div>
+      )
+    }
+    const val = Math.min(parseInt(batteries, 10) || 0, 100)
+    let color, textClass
+    if (val >= 50) { color = '#22C55E'; textClass = 'lt-battery-text-success' }
+    else if (val >= 20) { color = '#F59E0B'; textClass = 'lt-battery-text-warning' }
+    else { color = '#EF4444'; textClass = 'lt-battery-text-danger' }
+    return (
+      <div className="lt-battery" title={locationDate ?? ''}>
+        <div className="lt-battery-bar-wrap">
+          <div className="lt-battery-bar-fill" style={{width: `${val}%`, background: color}} />
+        </div>
+        <span className={`lt-battery-text ${textClass}`}>{val}%</span>
       </div>
     )
   }
@@ -213,21 +182,22 @@ const DashboardDetail = () => {
 
   const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
     return (
-      <Chip
-        label={famille}
-        icon={familleIcon}
-        style={{background: familleBgcolor, color: 'white'}}
-      />
+      <span className="lt-famille-chip" style={{background: familleBgcolor || '#64748B'}}>
+        {familleIcon && <i className={familleIcon} style={{fontSize: '0.75rem'}}></i>}
+        {famille || '-'}
+      </span>
     )
   }
 
-  const activeTemplate = (rowData) => (
-    <Chip
-      label={rowData?.active == 1 ? 'Actif' : 'Inactif'}
-      icon={rowData?.active == 1 ? 'pi pi-check' : 'pi pi-times'}
-      style={{backgroundColor: `${rowData?.activeColor}`, color: 'white'}}
-    />
-  )
+  const activeTemplate = (rowData) => {
+    const isActive = rowData?.active == 1
+    return (
+      <span className={`lt-badge ${isActive ? 'lt-badge-success' : 'lt-badge-danger'}`}>
+        <span className={`lt-badge-dot ${isActive ? 'lt-badge-dot-success' : 'lt-badge-dot-danger'}`}></span>
+        {isActive ? 'Actif' : 'Inactif'}
+      </span>
+    )
+  }
 
   const addresseeTemplate = (type, {enginAddress, tagAddress}) => {
     return (
