@@ -1,42 +1,44 @@
 # LOGITAG - Product Requirements Document
 
 ## Original Problem Statement
-Refonte complète de l'application LOGITAG vers un SaaS Premium Enterprise de tracking BLE. React + FastAPI + MongoDB + API externe Omniyat.
+Refonte UI/UX frontend de l'application LOGITAG (tracking BLE). STABILITÉ > DESIGN. Aucune modification API.
 
 ## Tech Stack
-- Frontend: React 18, Redux Toolkit, TailwindCSS, Leaflet
-- Backend: FastAPI + MongoDB + Proxy API externe + WebSocket
+- Frontend: React 18, Redux Toolkit, PrimeReact, Metronic UI
+- Backend: API externe (omniyat.is-certified.com) - NON MODIFIABLE
 - Auth: admin / user@1234
 
-## Completed Features
+## Contrainte Critique
+- AUCUNE modification des appels API, endpoints, payloads, méthodes HTTP
+- Uniquement des changements UI/UX frontend
 
-### All Phases 1-20 + B/C/D (DONE)
-### Suppression Assets + Bulk Delete (DONE)
-### Pagination Carte/Command Center (DONE)
-### Simplification Formulaire Réservation (DONE)
-### Mes Réservations en Vignettes (DONE)
-### Menu Sidebar Regroupé (DONE)
-### Dashboard KPI Cliquables (DONE)
-### Renommage Menu: Timeline + Planification (DONE)
+## Completed Features (Apr 8, 2026)
 
-### Activité en Vignettes + Déplacement Menu (DONE - Apr 7, 2026)
-- Page Activité transformée de timeline verticale en grille de vignettes responsive (3 colonnes)
-- Chaque vignette: icône type, temps relatif, nom asset, détail événement, zone, badge type
-- "Activité" déplacé de "Suivi" vers "Tableau de bord" dans le sidebar
-- Section "Suivi" ne contient plus que Alertes et Rapports
+### Re-clone depuis GitHub (DONE)
+- Code frais cloné depuis github.com/janouinfo-design/LOGITAG_NEW
+- Fix compilation: fontawesome-pro supprimé, geoman import corrigé, prettier ajouté
 
-## Menu Sidebar Structure
-- **Tableau de bord**: Carte, Dashboard, Activité
-- **Assets**: Liste Assets, Zones, Gateway
-- **Réservations**: Timeline, Planification, Calendrier, Mes réservations, KPI
-- **Suivi**: Alertes, Rapports
-- **Administration**: Utilisateurs, Rôles, Clients, Paramètres
+### Dashboard SaaS Premium (DONE)
+- Header avec titre "Dashboard" + bouton "Actualiser"
+- 4 KPI cards avec icônes colorées, valeurs, labels, barres de progression animées
+- Clic sur KPI ouvre panneau détail avec tableau filtré (DashboardDetail existant)
+- Skeleton loading pendant chargement API lente
+- Empty state si aucune donnée
+- Hover animation (translateY + shadow)
+- Bouton fermer (X) pour le panneau détail
+- Fix: loadingCard toujours réinitialisé (.finally au lieu de .then)
+- Zéro modification API - même dispatch, selectors, endpoints
+
+## Files Modified
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardComponent.jsx` (simplifié)
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` (refonte complète)
+- `/app/frontend/src/_metronic/assets/sass/style.react.scss` (suppression fontawesome-pro)
+- `/app/frontend/src/components/shared/MapComponent/user-interface/GeomanComponent/GeomanComponent.js` (fix import)
 
 ## Backlog
-- P3: Registres de maintenance (UI)
-- P3: Scan QR/NFC pour check-in rapide
-- Backlog: Notifications Email/Push, Multi-language
-- Backlog: Refactoring PremiumAssets.jsx en sous-composants
-
-## Test Reports
-- /app/test_reports/iteration_1.json through iteration_39.json
+- Refonte page Engins (vignettes + filtres modernes)
+- Refonte page Tags
+- Refonte page Map
+- Refonte page Calendrier
+- Responsive design global
+- États visuels (loading/empty/error) sur toutes les pages
