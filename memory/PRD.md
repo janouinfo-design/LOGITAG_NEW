@@ -1,59 +1,47 @@
-# LOGITAG - Application de Tracking d'Assets (SaaS B2B)
+# LOGITAG — Application de Tracking d'Assets (SaaS B2B)
 
 ## Problème Original
-Transformer l'application LOGITAG existante (tracking d'assets IoT) en un SaaS B2B "Enterprise-grade" avec une interface moderne et professionnelle, sans modifier les appels API/Redux sous-jacents.
+Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec une interface moderne, sans modifier les appels API/Redux.
 
 ## Contrainte Critique
-**STABILITÉ > DESIGN** : Les modifications sont strictement limitées au frontend (UI/UX). Il est interdit de toucher aux appels API, endpoints, méthodes HTTP, payloads, ou logique métier.
+**STABILITÉ > DESIGN** : Aucune modification des appels API, endpoints, payloads ou logique métier.
 
 ## Architecture
-- **Frontend**: React 18, Redux Toolkit, PrimeReact, Metronic UI, SCSS
-- **Backend**: API Externe (omniyat.is-certified.com) — aucune modification permise
-- **Authentification**: admin / user@1234
+- **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Metronic UI
+- **Backend**: API Externe (omniyat.is-certified.com) — interdiction de modifier
+- **Auth**: admin / user@1234
 
-## Pages et Composants
+## Pages Implémentées
 
-### Dashboard (/tagdashboard/index) - FAIT
-- 4 KPI cards modernes (Engins utilisés, Tags alertes, Engins inactifs, Tags actifs)
-- Layout responsive, progress bars
+### Dashboard Operations Monitor (/tagdashboard/index) — FAIT
+- Header "Operations Monitor" + date/heure + bouton Actualiser
+- 4 KPI cards avec format X/Y, icônes gradient, barres progression, % variation
+- Fil d'activité "Dernière Activité" (12 items, noms d'assets, badges status)
+- Donut "Répartition État" (Actif 95%, Entrée 5%) via ApexCharts
+- Barres "Distribution Statuts" (Disponible 28, Reserve, Livré, etc.)
+- Donut "Assets par Famille" (BLE, CAB, SENSOR, etc.)
+- Panneau "Assets nécessitant attention" (table avec barres batterie colorées)
+- KPI cards cliquables → panneau détail DataTable + bouton fermer
 
-### Page Assets/Engins (/view/engin/index) - FAIT
-- Header SaaS Premium (icône gradient bleu, titre, sous-titre, badge compteur)
-- Skeleton loading animé pendant le chargement API
-- Badges Etat : Sortie (rouge), Entrée (vert), Inactif (orange)
-- Widget Batterie : barre visuelle + pourcentage coloré
-- Badges Status : couleur dynamique selon l'API
-- Chips Famille : colorées avec icône
-- Bouton Géolocalisation : badge bleu cliquable
-- Thumbnails images arrondis
+### Page Assets/Engins (/view/engin/index) — FAIT
+- Header SaaS Premium (gradient bleu, badge 4935 assets)
+- Skeleton loading, badges Etat/Status/Batterie/Famille, thumbnails, Géolocalisation
 
-### Page Tags (/tag/index) - FAIT
-- Header SaaS Premium (icône gradient violet, titre, sous-titre, badge compteur)
-- Skeleton loading animé
-- Badges Actif/Inactif (vert/rouge)
-- Badges Status colorés
-- Chips Famille (BLE, etc.)
-- Boutons adresse : Géolocalisation ou "Aucune adresse"
+### Page Tags (/tag/index) — FAIT
+- Header SaaS Premium (gradient violet, badge 53 tags)
+- Skeleton loading, badges Actif/Inactif, Status, Famille, boutons adresse
 
-### Page Utilisateurs - NON ROUTÉE
-- Le composant UserList.jsx a été modernisé mais n'est pas accessible via le routing dynamique (non présent dans components.js)
+## Icônes Corrigées
+- FontAwesome Pro → PrimeReact Icons (pi pi-arrow-down, pi pi-arrow-up, pi pi-exclamation-triangle)
 
 ## Fichiers Clés
-- `/app/frontend/src/logitag-saas.css` - Thème CSS global SaaS Premium
-- `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Page Assets modernisée
-- `/app/frontend/src/components/Tag/user-interface/TagList/TagList.js` - Page Tags modernisée
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardComponent.jsx` - Dashboard SaaS
-
-## Icônes
-- FontAwesome Pro supprimé (package payant non disponible)
-- Remplacé par PrimeReact Icons (pi pi-*) :
-  - `fa-down-to-bracket` → `pi pi-arrow-down`
-  - `fa-up-from-bracket` → `pi pi-arrow-up`
-  - `fa-octagon-exclamation` → `pi pi-exclamation-triangle`
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx`
+- `/app/frontend/src/components/Engin/EnginList/EnginList.js`
+- `/app/frontend/src/components/Tag/user-interface/TagList/TagList.js`
+- `/app/frontend/src/logitag-saas.css`
 
 ## Backlog
-- P1: Ajouter la page Utilisateurs au routing dynamique (components.js)
-- P2: Refonte des pages secondaires (Calendrier, Map, Rapports, etc.)
-- P2: Ajout de presets pour la configuration des colonnes DataTable
-- P3: Carte GPS en temps réel sur le dashboard
-- P3: Optimisation des temps de chargement (skeletons systématiques sur toutes les pages)
+- P1: Intégrer Users dans routing dynamique (components.js)
+- P1: Refonte des pages secondaires (Calendrier, Map, Rapports)
+- P2: Presets colonnes DataTable
+- P3: Carte GPS temps réel
