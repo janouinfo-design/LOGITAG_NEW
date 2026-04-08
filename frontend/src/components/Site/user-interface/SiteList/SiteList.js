@@ -144,17 +144,38 @@ const SiteList = ({client, filter, showEdit, detailView = 'Detail'}) => {
   }, [selectedClientId, sites])
 
   return (
-    <div>
+    <div className='lt-page' data-testid="places-page">
+      <div className='lt-page-header'>
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #14B8A6, #0D9488)'}}>
+            <i className='pi pi-building'></i>
+          </div>
+          <div>
+            <h1 className='lt-page-title'>Sites / Places</h1>
+            <p className='lt-page-subtitle'>Gestion des chantiers et emplacements</p>
+          </div>
+        </div>
+        <div className='lt-page-header-right'>
+          {sitesClient?.length > 0 && (
+            <div className='lt-count-badge' data-testid="places-count">
+              <i className='pi pi-building' style={{fontSize: '0.75rem'}}></i>
+              <strong>{sitesClient.length}</strong> sites
+            </div>
+          )}
+        </div>
+      </div>
       {sitesClient?.length == 0 && client ? (
-        <div className='font-bold text-2xl'>
-          <OlangItem olang="This customer doesn't have a worksite." />
+        <div className='lt-table-wrap' style={{padding: 40, textAlign: 'center'}}>
+          <i className='pi pi-inbox' style={{fontSize: '2rem', color: 'var(--lt-text-muted)', marginBottom: 8}}></i>
+          <div style={{fontWeight: 700, color: 'var(--lt-text-muted)', fontFamily: 'var(--lt-font)'}}>
+            <OlangItem olang="This customer doesn't have a worksite." />
+          </div>
         </div>
       ) : (
         <DatatableComponent
           tableId='site-table'
           data={sitesClient}
           columns={columns}
-          //onNew={create}
           exportFields={exportFields}
           rowGroupTemplates={rowGroupTemplates}
           rowActions={actions}

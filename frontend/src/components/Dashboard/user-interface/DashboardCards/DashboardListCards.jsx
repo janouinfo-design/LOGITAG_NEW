@@ -13,6 +13,58 @@ import {useAppDispatch, useAppSelector} from '../../../../hooks'
 import DashboardDetail from '../DashboardDetail/DashboardDetail'
 import Chart from 'react-apexcharts'
 import {_fetchDashboardDetail} from '../../api/index'
+import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet'
+import L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
+
+/* Fix default marker icon */
+delete L.Icon.Default.prototype._getIconUrl
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+})
+
+/* ── DashboardMap sub-component ── */
+const DashboardMap = ({assets}) => {
+  const bounds = assets.length > 0
+    ? L.latLngBounds(assets.map(a => [a.lat, a.lng]))
+    : L.latLngBounds([[30, -10], [50, 12]])
+
+  const etatColors = {exit: '#EF4444', reception: '#22C55E', nonactive: '#F59E0B'}
+
+  const createIcon = (color) => L.divIcon({
+    className: '',
+    html: `<div style="width:12px;height:12px;border-radius:50%;background:${color};border:2.5px solid #FFF;box-shadow:0 2px 6px rgba(0,0,0,0.3)"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
+  })
+
+  return (
+    <MapContainer
+      bounds={bounds}
+      boundsOptions={{padding: [30, 30]}}
+      style={{width: '100%', height: '100%', borderRadius: '0 0 16px 16px'}}
+      scrollWheelZoom={true}
+      zoomControl={true}
+    >
+      <TileLayer
+        url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+        attribution='&copy; OSM'
+      />
+      {assets.map((a, i) => (
+        <Marker key={i} position={[a.lat, a.lng]} icon={createIcon(etatColors[a.etat] || '#3B82F6')}>
+          <Popup>
+            <div style={{fontFamily: 'Inter, sans-serif', fontSize: '0.82rem'}}>
+              <strong>{a.name}</strong><br/>
+              <span style={{color: '#64748B'}}>{a.location || 'Position GPS'}</span>
+            </div>
+          </Popup>
+        </Marker>
+      ))}
+    </MapContainer>
+  )
+}
 
 /* ── Helpers ── */
 const fmt = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n ?? 0))
@@ -233,6 +285,25 @@ const DashboardListCards = () => {
 
   const isLoading = !loaded
   const isAnalyticsLoading = analyticsLoading
+
+  /* ── Map Assets with GPS coords ── */
+  const mapAssets = useMemo(() => {
+    if (!filteredDetailData.length) return []
+    return filteredDetailData
+      .filter(item => {
+        const lat = parseFloat(item.last_lat || item.lat)
+        const lng = parseFloat(item.last_lng || item.lng)
+        return lat && lng && lat !== 0 && lng !== 0 && !isNaN(lat) && !isNaN(lng)
+      })
+      .map(item => ({
+        lat: parseFloat(item.last_lat || item.lat),
+        lng: parseFloat(item.last_lng || item.lng),
+        name: item.reference || item.label || item.name || 'Asset',
+        etat: item.etatenginname || '',
+        location: item.LocationObjectname || item.enginAddress || '',
+      }))
+      .slice(0, 200)
+  }, [filteredDetailData])
 
   return (
     <div className="om-container" data-testid="operations-monitor">
@@ -528,6 +599,31 @@ const DashboardListCards = () => {
               )}
             </div>
           </div>
+        </div>
+      </div>
+
+      {/* ── GPS Map Widget ── */}
+      <div className="om-panel" style={{marginBottom: 24}} data-testid="om-gps-widget">
+        <div className="om-panel-head">
+          <h3 className="om-panel-title">
+            <i className="pi pi-map" style={{color: '#10B981'}}></i>
+            Carte des positions GPS
+          </h3>
+          <span className="om-panel-badge">{mapAssets.length} positionnés</span>
+        </div>
+        <div style={{height: 380, position: 'relative'}} data-testid="om-gps-map">
+          {isAnalyticsLoading ? (
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>
+              <div className="om-skel-circle" style={{borderRadius: 12, width: '100%', height: '100%'}} />
+            </div>
+          ) : mapAssets.length === 0 ? (
+            <div className="om-chart-empty" style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+              <i className="pi pi-map-marker" style={{fontSize: '2rem', color: '#CBD5E1', marginRight: 8}}></i>
+              Aucune position GPS disponible
+            </div>
+          ) : (
+            <DashboardMap assets={mapAssets} />
+          )}
         </div>
       </div>
 

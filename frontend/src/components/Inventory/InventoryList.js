@@ -211,87 +211,73 @@ const InventoryList = () => {
   }, [selectedStartDate, selectedEndDate])
 
   return (
-    <div>
-      <div className='mb-4'>
-        <h1>
-          <OlangItem olang={'Inventory'} />
-        </h1>
+    <div className='lt-page' data-testid="inventory-page">
+      <div className='lt-page-header' data-testid="inventory-page-header">
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #EC4899, #DB2777)'}}>
+            <i className='pi pi-clipboard'></i>
+          </div>
+          <div>
+            <h1 className='lt-page-title'><OlangItem olang={'Inventory'} /></h1>
+            <p className='lt-page-subtitle'>Gestion et suivi des inventaires</p>
+          </div>
+        </div>
+        <div className='lt-page-header-right'>
+          {inventories[0]?.jsonResult?.length > 0 && (
+            <div className='lt-count-badge' data-testid="inventory-count">
+              <i className='pi pi-clipboard' style={{fontSize: '0.75rem'}}></i>
+              <strong>{inventories[0].jsonResult.length}</strong> inventaires
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Filters */}
-      <div className='mb-4'>
-        <div className='flex'>
-          <div className='p-col-6 p-md-4'>
-            <label htmlFor='startDate'>
-              <OlangItem olang='StartDate' />:
+      <div className='lt-table-wrap' style={{marginBottom: 16, padding: '14px 20px'}} data-testid="inventory-filters">
+        <div style={{display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+            <label style={{fontSize: '0.78rem', fontWeight: 700, color: 'var(--lt-text-muted)', fontFamily: 'var(--lt-font)'}}>
+              <OlangItem olang='StartDate' />
             </label>
             <Calendar
-              placeholder='StartDate'
-              className='mr-2 mx-2'
+              placeholder='Date début'
               dateFormat='dd-mm-yy'
               onChange={(e) => setSelectedStartDate(e.value)}
               value={new Date(selectedStartDate)}
+              style={{borderRadius: 10, fontSize: '0.82rem'}}
             />
           </div>
-          <div className='p-col-6 p-md-4'>
-            <label htmlFor='endDate'>
-              <OlangItem olang='EndDate' />:
+          <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+            <label style={{fontSize: '0.78rem', fontWeight: 700, color: 'var(--lt-text-muted)', fontFamily: 'var(--lt-font)'}}>
+              <OlangItem olang='EndDate' />
             </label>
             <Calendar
-              placeholder='End Date'
-              className='mr-2 mx-2'
+              placeholder='Date fin'
               dateFormat='dd-mm-yy'
               onChange={(e) => setSelectedEndDate(e.value)}
               value={new Date(selectedEndDate)}
+              style={{borderRadius: 10, fontSize: '0.82rem'}}
             />
           </div>
         </div>
       </div>
 
-      {/* Statistics Tiles */}
-      <div className='mb-4'>
-        <div className='row'>
-          <div className='col-md-4'>
-            <Card
-              className='p-card-custom p-text-center p-p-3'
-              style={{backgroundColor: inventories[0]?.createdInventoryBgColor || '#D64B70'}}
-            >
-              <h3 style={{color: '#ffffff'}}>
-                <OlangItem olang={'createdInventory'} />
-              </h3>
-              <p className='p-mb-0 p-text-bold font-weight-bold h1' style={{color: '#ffffff'}}>
-                {inventories[0]?.createdInventory}
-              </p>
-            </Card>
-          </div>
-          <div className='col-md-4'>
-            <Card
-              className='p-card-custom p-text-center p-p-3'
-              style={{backgroundColor: inventories[0]?.confirmedInventoryBgColor || '#59408C'}}
-            >
-              <h3 style={{color: '#ffffff'}}>
-                <OlangItem olang={'confirmedInventory'} />
-              </h3>
-              <p className='p-mb-0 p-text-bold font-weight-bold h1' style={{color: '#ffffff'}}>
-                {inventories[0]?.confirmedInventory}
-              </p>
-            </Card>
-          </div>
-          <div className='col-md-4'>
-            <Card
-              className='p-card-custom p-text-center p-p-3'
-              style={{backgroundColor: inventories[0]?.cloturedInventoryBgColor || '#2A2A3C'}}
-            >
-              <h3 style={{color: '#ffffff'}}>
-                <OlangItem olang={'cloturedInventory'} />
-              </h3>
-              <p className='p-mb-0 p-text-bold font-weight-bold h1' style={{color: '#ffffff'}}>
-                {inventories[0]?.cloturedInventory}
-              </p>
-            </Card>
-          </div>
+      {/* Statistics Cards */}
+      <div className='lt-inv-stats' data-testid="inventory-stats">
+        <div className='lt-inv-stat-card' style={{borderLeft: `4px solid ${inventories[0]?.createdInventoryBgColor || '#D64B70'}`}}>
+          <div className='lt-inv-stat-value' style={{color: inventories[0]?.createdInventoryBgColor || '#D64B70'}}>{inventories[0]?.createdInventory || 0}</div>
+          <div className='lt-inv-stat-label'><OlangItem olang={'createdInventory'} /></div>
+        </div>
+        <div className='lt-inv-stat-card' style={{borderLeft: `4px solid ${inventories[0]?.confirmedInventoryBgColor || '#59408C'}`}}>
+          <div className='lt-inv-stat-value' style={{color: inventories[0]?.confirmedInventoryBgColor || '#59408C'}}>{inventories[0]?.confirmedInventory || 0}</div>
+          <div className='lt-inv-stat-label'><OlangItem olang={'confirmedInventory'} /></div>
+        </div>
+        <div className='lt-inv-stat-card' style={{borderLeft: `4px solid ${inventories[0]?.cloturedInventoryBgColor || '#2A2A3C'}`}}>
+          <div className='lt-inv-stat-value' style={{color: inventories[0]?.cloturedInventoryBgColor || '#2A2A3C'}}>{inventories[0]?.cloturedInventory || 0}</div>
+          <div className='lt-inv-stat-label'><OlangItem olang={'cloturedInventory'} /></div>
         </div>
       </div>
+
       <DatatableComponent
         title={<OlangItem olang={'inventory.list'} />}
         tableId={'inventory-table'}

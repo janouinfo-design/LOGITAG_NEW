@@ -68,13 +68,20 @@ const HistoryListComponent = (props) => {
               <i className='pi pi-history' style={{fontSize: '1rem'}}></i>
               <span>{paramList.title || 'Journal d\'activité'}</span>
             </div>
-            <button
-              onClick={hidList}
-              className='lt-timeline-close-btn'
-              data-testid="timeline-close-btn"
-            >
-              <i className='pi pi-times'></i>
-            </button>
+            <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+              <div className="lt-timeline-filters" data-testid="timeline-filters">
+                <button className={`lt-timeline-filter-pill ${!props.timelineFilter || props.timelineFilter === 'all' ? 'lt-timeline-filter-pill--active' : ''}`} onClick={() => props.onFilterChange && props.onFilterChange('all')} data-testid="timeline-filter-all">Tout</button>
+                <button className={`lt-timeline-filter-pill ${props.timelineFilter === 'reception' ? 'lt-timeline-filter-pill--active' : ''}`} onClick={() => props.onFilterChange && props.onFilterChange('reception')} data-testid="timeline-filter-entry">Entrées</button>
+                <button className={`lt-timeline-filter-pill ${props.timelineFilter === 'exit' ? 'lt-timeline-filter-pill--active' : ''}`} onClick={() => props.onFilterChange && props.onFilterChange('exit')} data-testid="timeline-filter-exit">Sorties</button>
+              </div>
+              <button
+                onClick={hidList}
+                className='lt-timeline-close-btn'
+                data-testid="timeline-close-btn"
+              >
+                <i className='pi pi-times'></i>
+              </button>
+            </div>
           </div>
 
           {isLoading ? (

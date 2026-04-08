@@ -373,7 +373,33 @@ export const DatatableComponent = ({
           <OverlayPanel ref={settingsRef} className='p-0'>
             <div style={{width: '350px'}} className='p-3'>
               <div>
-                <h4>Visibilité colones</h4>
+                <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8}}>
+                  <h4 style={{margin: 0}}>Visibilité colones</h4>
+                  <div style={{display: 'flex', gap: 6}}>
+                    <button
+                      onClick={() => {
+                        const simple = {}
+                        tblColumns.forEach((c, i) => { simple[c.field] = i < 4 })
+                        const data = {...(conf || {}), visibility: simple}
+                        localStorage.setItem(customSession, JSON.stringify(data))
+                        setVisibility(simple)
+                      }}
+                      className='lt-preset-btn'
+                      data-testid="preset-simple"
+                    >Vue simple</button>
+                    <button
+                      onClick={() => {
+                        const full = {}
+                        tblColumns.forEach((c) => { full[c.field] = true })
+                        const data = {...(conf || {}), visibility: full}
+                        localStorage.setItem(customSession, JSON.stringify(data))
+                        setVisibility(full)
+                      }}
+                      className='lt-preset-btn lt-preset-btn--active'
+                      data-testid="preset-full"
+                    >Vue complète</button>
+                  </div>
+                </div>
                 {!tableId && typeof tableId != 'string' ? (
                   <strong className='text-red-400 mt-2 text-sm'>Pas d'identifiant de table</strong>
                 ) : (

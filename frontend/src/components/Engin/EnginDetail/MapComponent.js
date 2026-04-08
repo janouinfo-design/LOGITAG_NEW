@@ -46,6 +46,7 @@ const MapComponent = forwardRef((props) => {
   const [polygonCoordinates, setPolygonCoordinates] = useState(null)
 
   const [routeLine, setRouteLine] = useState(null)
+  const [timelineFilter, setTimelineFilter] = useState('all')
 
   const [zoom, setZoom] = useState(20)
   const ref = useRef(null)
@@ -197,13 +198,14 @@ const MapComponent = forwardRef((props) => {
       >
         <HistoryListComponent
           mapRef={ref}
-          allGeo={props.locationHistory}
+          allGeo={timelineFilter === 'all' ? props.locationHistory : props.locationHistory?.filter(item => item?.etatenginname === timelineFilter)}
           history={true}
-          // onClickLastSeen={displayLastSeen}
           onDisplayGeo={(e) => {}}
           handleOnClickLayer={(e, index) => {
             onHandleOnClickLayer(e, index)
           }}
+          timelineFilter={timelineFilter}
+          onFilterChange={setTimelineFilter}
         />
       </div>
       <MapContainer
