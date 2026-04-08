@@ -63,13 +63,13 @@ const ETAT_DATA = [
   {
     label: 'Entrée',
     code: 'reception',
-    icon: 'fa-solid fa-down-to-bracket',
+    icon: 'pi pi-arrow-down',
     backgroundColor: '#29bf12',
   },
   {
     label: 'Sortie',
     code: 'exit',
-    icon: 'fa-solid fa-up-from-bracket',
+    icon: 'pi pi-arrow-up',
     backgroundColor: '#D64B70',
   },
 ]
@@ -375,29 +375,29 @@ const EnginList = () => {
 
   const imageTemplate = useCallback(
     (rowData) => (
-      <>
+      <div className="lt-img-cell" data-testid="img-cell">
         <Image
           src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
           alt='EngineImage'
-          width='60'
-          height='60'
+          width='48'
+          height='48'
           preview
-          imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
+          imageStyle={{objectFit: 'cover', width: '48px', height: '48px'}}
         />
-      </>
+      </div>
     ),
     []
   )
 
   const addresseeTemplate = useCallback(
     (rowData) => (
-      <div>
-        <Chip
-          label={'Géolocalisation'}
-          className='w-11rem m-1 flex justify-content-center align-items-center cursor-pointer'
-          onClick={() => getPosOfAddress(rowData)}
-          icon='pi pi-map-marker text-blue-500'
-        />
+      <div
+        className="lt-geo-btn"
+        onClick={() => getPosOfAddress(rowData)}
+        data-testid="geo-btn"
+      >
+        <i className="pi pi-map-marker" style={{fontSize: '0.85rem'}}></i>
+        Localiser
       </div>
     ),
     [getPosOfAddress]
@@ -494,17 +494,24 @@ const EnginList = () => {
 
   const statusTemplate = useCallback(
     (rowData) => {
-      if (rowData?.iconName) {
-        return (
-          <i
-            title={rowData?.statuslabel}
-            className={`${rowData?.iconName} text-2xl rounded p-2 cursor-pointer`}
-            style={{color: `${rowData.statusbgColor}`}}
-            onClick={() => onClickStatus(rowData)}
-          ></i>
-        )
-      }
-      return <Chip label={rowData?.statuslabel} title={`${rowData?.statusDate}`} />
+      const bgColor = rowData?.statusbgColor || '#94A3B8'
+      const label = rowData?.statuslabel || '-'
+      return (
+        <div
+          className="lt-badge"
+          style={{
+            background: `${bgColor}18`,
+            color: bgColor,
+            cursor: 'pointer',
+          }}
+          onClick={() => onClickStatus(rowData)}
+          title={rowData?.statusDate || ''}
+          data-testid="status-badge"
+        >
+          <span className="lt-badge-dot" style={{background: bgColor}}></span>
+          {label}
+        </div>
+      )
     },
     [onClickStatus]
   )
@@ -512,27 +519,36 @@ const EnginList = () => {
   //etatengin
   const iconTemplate = useCallback(
     (rowData) => {
-      let icon = ''
-      let color = ''
+      let label = ''
+      let badgeClass = 'lt-badge lt-badge-neutral'
+      let dotClass = 'lt-badge-dot lt-badge-dot-neutral'
+      let iconClass = ''
       if (rowData?.etatenginname == 'exit') {
-        icon = 'fa-solid fa-up-from-bracket'
-        color = '#D64B70'
+        label = 'Sortie'
+        badgeClass = 'lt-badge lt-badge-danger'
+        dotClass = 'lt-badge-dot lt-badge-dot-danger'
+        iconClass = 'pi pi-arrow-up'
       } else if (rowData?.etatenginname == 'reception') {
-        icon = 'fa-solid fa-down-to-bracket'
-        color = 'green'
+        label = 'Entrée'
+        badgeClass = 'lt-badge lt-badge-success'
+        dotClass = 'lt-badge-dot lt-badge-dot-success'
+        iconClass = 'pi pi-arrow-down'
       } else if (rowData?.etatenginname == 'nonactive') {
-        icon = 'fa-solid fa-octagon-exclamation'
-        color = 'red'
+        label = 'Inactif'
+        badgeClass = 'lt-badge lt-badge-danger'
+        dotClass = 'lt-badge-dot lt-badge-dot-danger'
+        iconClass = 'pi pi-exclamation-triangle'
       }
       return (
-        <div>
-          <i
-            style={{color}}
-            className={`${icon} text-2xl rounded p-2 cursor-pointer`}
-            // title={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
-            // alt={`${rowData?.etatengin} ${rowData?.locationDate ?? 'No Date'}`}
-            onClick={() => handleShowMap(rowData, null)}
-          ></i>
+        <div
+          className={badgeClass}
+          style={{cursor: 'pointer'}}
+          onClick={() => handleShowMap(rowData, null)}
+          data-testid="etat-badge"
+        >
+          <span className={dotClass}></span>
+          {iconClass && <i className={iconClass} style={{fontSize: '0.75rem'}}></i>}
+          {label || rowData?.etatenginname || '-'}
         </div>
       )
     },
@@ -673,42 +689,28 @@ const EnginList = () => {
   )
 
   const BatteryStatus = useCallback(({batteries, locationDate}) => {
-    let batteryIcon
-    let textColor
-    let alt
     if (batteries === '' || batteries === null || batteries === undefined) {
-      batteryIcon = 'fas fa-battery-empty'
-      textColor = 'text-700'
-      alt = 'No data'
-    } else {
-      const batteryValue = parseInt(batteries, 10)
-      alt = locationDate ?? 'No date'
-      if (batteryValue >= 80) {
-        batteryIcon = 'fas fa-battery-full'
-        textColor = 'text-success'
-      } else if (batteryValue >= 50) {
-        batteryIcon = 'fas fa-battery-three-quarters'
-        textColor = 'text-success'
-      } else if (batteryValue >= 20) {
-        batteryIcon = 'fas fa-battery-half'
-        textColor = 'text-warning'
-      } else if (batteryValue > 0) {
-        batteryIcon = 'fas fa-battery-quarter'
-        textColor = 'text-danger'
-      } else {
-        batteryIcon = 'fas fa-battery-empty'
-        textColor = 'text-danger'
-      }
+      return (
+        <div className="lt-battery" data-testid="battery-status">
+          <div className="lt-battery-bar-wrap">
+            <div className="lt-battery-bar-fill" style={{width: '0%', background: '#CBD5E1'}} />
+          </div>
+          <span className="lt-battery-text lt-battery-text-muted">N/A</span>
+        </div>
+      )
     }
+    const val = Math.min(parseInt(batteries, 10) || 0, 100)
+    let color, textClass
+    if (val >= 50) { color = '#22C55E'; textClass = 'lt-battery-text-success' }
+    else if (val >= 20) { color = '#F59E0B'; textClass = 'lt-battery-text-warning' }
+    else { color = '#EF4444'; textClass = 'lt-battery-text-danger' }
 
     return (
-      <div className='flex items-center justify-center'>
-        <div className='p-4 rounded-lg text-center'>
-          <i title={alt} alt={alt} className={`text-4xl ${batteryIcon} ${textColor}`}></i>
-          <span className={`block mt-2 font-bold text-lg ${textColor}`}>
-            {batteries > 100 ? '100%' : batteries + '%'}
-          </span>
+      <div className="lt-battery" title={locationDate ?? ''} data-testid="battery-status">
+        <div className="lt-battery-bar-wrap">
+          <div className="lt-battery-bar-fill" style={{width: `${val}%`, background: color}} />
         </div>
+        <span className={`lt-battery-text ${textClass}`}>{val}%</span>
       </div>
     )
   }, [])
@@ -719,11 +721,14 @@ const EnginList = () => {
 
   const familleTemplate = useCallback(
     ({famille, familleIcon, familleBgcolor}) => (
-      <Chip
-        label={famille}
-        icon={familleIcon}
-        style={{background: familleBgcolor, color: 'white'}}
-      />
+      <span
+        className="lt-famille-chip"
+        style={{background: familleBgcolor || '#64748B'}}
+        data-testid="famille-chip"
+      >
+        {familleIcon && <i className={familleIcon} style={{fontSize: '0.75rem'}}></i>}
+        {famille || '-'}
+      </span>
     ),
     []
   )
@@ -1404,7 +1409,7 @@ const EnginList = () => {
   }
 
   return (
-    <div>
+    <div className="lt-page" data-testid="engin-list-page">
       <DialogComponent
         visible={savePosVisible}
         header={'Save Pos'}
@@ -1491,56 +1496,85 @@ const EnginList = () => {
         </div>
       </DialogComponent>
       <DynamicInputs visible={visible} setVisible={setVisible} onHide={onHide} />
-      {/* <TypesEditor visible={visible} setVisible={setVisible} /> */}
-      <div
-        // style={{backgroundColor: '#53408C'}}
-        className='flex flex-row pb-3 align-items-center gap-3'
-      >
-        <div className='text-3xl text-700 font-bold'>
-          <OlangItem olang={'engin.list'} />
+
+      {/* Modern SaaS Header */}
+      <div className="lt-page-header" data-testid="page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)'}}>
+            <i className="pi pi-box"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title"><OlangItem olang={'engin.list'} /></h1>
+            <p className="lt-page-subtitle">Gestion et suivi de vos assets</p>
+          </div>
+        </div>
+        <div className="lt-page-header-right">
+          {totalRecords > 0 && (
+            <div className="lt-count-badge" data-testid="total-count">
+              <i className="pi pi-database" style={{fontSize: '0.75rem'}}></i>
+              <strong>{totalRecords}</strong> assets
+            </div>
+          )}
         </div>
       </div>
+
       <EnginMapLocation
         dialogVisible={dialogVisible}
         setDialogVisible={hideShowDialog}
-        // historySrc={{
-        //   srcId: selectedEngin?.id,
-        //   srcObject: 'engin',
-        //   srcMovement: mouvement,
-        // }}
       />
 
-      <DatatableComponent
-        tableId='engin-table'
-        data={engines}
-        splitAction={splitAction}
-        columns={columns}
-        onNew={create}
-        serverSearched={true}
-        onSearchServer={handleSearch}
-        searchServ={searchInput}
-        exportFields={exportFields}
-        rowGroupTemplates={rowGroupTemplates}
-        allowedGroupFields={allowedGroupFields}
-        rowActions={actions}
-        sortField={'id'}
-        sortOrder={-1}
-        isLoading={isLoadingButton}
-        totalRecords={totalRecords}
-        rows={rows}
-        page={page}
-        onPageChange={handlePageChange}
-        onPdfClick={checkPdf}
-        loadingPdf={pdfLoading}
-        onExcelClick={onClickExcel}
-        loadingExcel={loadingExcel}
-        lazy={true}
-        onOrderClick={handleOrderClick}
-        orderBy={orderBy}
-        extraActionTemplate={extraActionTemplate}
-        notSortedColumns={['image', 'latlng']}
-        isDataSelectable={false}
-      />
+      {/* Table with SaaS wrapper */}
+      {loading ? (
+        <div className="lt-table-wrap" data-testid="skeleton-loading">
+          <div className="lt-skeleton-wrap">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="lt-skeleton-row" style={{animationDelay: `${i * 0.08}s`}}>
+                <div className="lt-skeleton-cell" style={{width: 48, height: 48, borderRadius: 10}} />
+                <div className="lt-skeleton-cell" style={{width: 120, height: 14}} />
+                <div className="lt-skeleton-cell" style={{width: 80, height: 14}} />
+                <div className="lt-skeleton-cell" style={{width: 70, height: 28, borderRadius: 8}} />
+                <div className="lt-skeleton-cell" style={{width: 60, height: 28, borderRadius: 8}} />
+                <div className="lt-skeleton-cell" style={{width: 90, height: 14}} />
+                <div className="lt-skeleton-cell" style={{flex: 1, height: 14}} />
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="lt-table-wrap" data-testid="engin-table">
+          <DatatableComponent
+            tableId='engin-table'
+            data={engines}
+            splitAction={splitAction}
+            columns={columns}
+            onNew={create}
+            serverSearched={true}
+            onSearchServer={handleSearch}
+            searchServ={searchInput}
+            exportFields={exportFields}
+            rowGroupTemplates={rowGroupTemplates}
+            allowedGroupFields={allowedGroupFields}
+            rowActions={actions}
+            sortField={'id'}
+            sortOrder={-1}
+            isLoading={isLoadingButton}
+            totalRecords={totalRecords}
+            rows={rows}
+            page={page}
+            onPageChange={handlePageChange}
+            onPdfClick={checkPdf}
+            loadingPdf={pdfLoading}
+            onExcelClick={onClickExcel}
+            loadingExcel={loadingExcel}
+            lazy={true}
+            onOrderClick={handleOrderClick}
+            orderBy={orderBy}
+            extraActionTemplate={extraActionTemplate}
+            notSortedColumns={['image', 'latlng']}
+            isDataSelectable={false}
+          />
+        </div>
+      )}
     </div>
   )
 }

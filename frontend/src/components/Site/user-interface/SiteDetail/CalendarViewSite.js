@@ -29,13 +29,13 @@ function CalendarViewSite() {
     let icon = ''
     let color = ''
     if (info === 'exit') {
-      icon = 'fa-solid fa-up-from-bracket'
+      icon = 'pi pi-arrow-up'
       color = '#D64B70'
     } else if (info === 'reception') {
-      icon = 'fa-solid fa-down-to-bracket'
+      icon = 'pi pi-arrow-down'
       color = 'green'
     } else if (info === 'nonactive') {
-      icon = 'fa-solid fa-octagon-exclamation'
+      icon = 'pi pi-exclamation-triangle'
       color = 'red'
     }
     return (

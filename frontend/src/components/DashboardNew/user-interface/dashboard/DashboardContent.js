@@ -61,13 +61,13 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
     {
       label: 'Entrée',
       code: 'reception',
-      icon: 'fa-solid fa-down-to-bracket',
+      icon: 'pi pi-arrow-down',
       backgroundColor: '#29bf12',
     },
     {
       label: 'Sortie',
       code: 'exit',
-      icon: 'fa-solid fa-up-from-bracket',
+      icon: 'pi pi-arrow-up',
       backgroundColor: '#D64B70',
     },
   ]

@@ -3,10 +3,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setToastParams } from '../../../../store/slices/ui.slice'
 import { fetchUsers, getUsers, removeUser, setSelectedUser, setUserView } from '../../slice/user.slice'
 import { useNavigate } from 'react-router-dom'
-import ImageViewerComponent from '../../../../components/Shared/ImageViewerComponent/ImageViewerComponent'
 import { InputSwitch } from 'primereact/inputswitch'
 import { setAlertParams } from '../../../../store/slices/alert.slice'
-import { DataTableComponent } from '@dodjidev/reactcomponents'
+import { DatatableComponent } from '../../../shared/DatatableComponent/DataTableComponent'
+import { API_BASE_URL_IMAGE } from '../../../../api/config'
+
 export const UserList = ({root}) => {
   const data = useSelector(getUsers)
   const dispatch = useDispatch()
@@ -14,12 +15,7 @@ export const UserList = ({root}) => {
 
   const toggleUsrActive = (id , value)=>{
     return
-    // let usrs = data.map( u => ({...u , active: u.id == id ? value : u.active}));
-    // dispatch(setUsers(usrs))
-
     dispatch(setAlertParams({ 
-      // type: "message", 
-      // action: "error", 
       title: 'ATTENTION',
       message: `Voulez vous vraiment ${value ? 'activer' : 'desactiver'}  cet utilisateur ?`, 
       visible: true 
@@ -37,103 +33,93 @@ export const UserList = ({root}) => {
           else
             dispatch(setToastParams({ show: true, severity: 'success', detail: "Supprimé avec succès !!!" }))
         })
-
       }
     },
     {
       label: "Modifier",
-      icon: "pi pi-bookmark-fill text-blue-500",
+      icon: "pi pi-pencil text-blue-500",
       command: (e) => {
-        // toast.current.show({severity: 'success', summary: "success", detail: "Supprimer avec success!!!"})
         dispatch(setSelectedUser(e.item.data))
         navigate(root+'/edit')
       }
     }
-
   ]
 
+  const colors = ['blue', 'indigo', 'cyan', 'purple', 'teal', 'green']
 
-  const colors = [
-    "blue",
-    "indigo",
-    "cyan",
-    "purple",
-    "gray",
-    "pink",
-    "teal",
-  ]
-
-  const getRandomColor = () => {
-    let random = Math.floor(Math.random() * 6);
-    return colors[random]
-  }
+  const getRandomColor = () => colors[Math.floor(Math.random() * colors.length)]
 
   const profileTemplate = (rowData) => {
     const color = getRandomColor()
-    const photo = rowData.photo  || rowData.image
-    return <div className="flex gap-3 align-items-center">
-      {
-         photo  ?
-          <ImageViewerComponent
-            src={photo} style={{ width: '70px', height: '70px' }} /> :
-          <div className={`
-                            flex text-lg align-items-center 
-                            justify-content-center font-semibold 
-                            bg-${color}-100  text-${color}-600
-                            border-round-sm`}
-            style={{ width: '70px', height: '70px' }}>
-            {(rowData.pseudo)}
+    const photo = rowData.photo || rowData.image
+    return (
+      <div className="lt-user-cell" data-testid="user-profile-cell">
+        {photo ? (
+          <img
+            src={photo.startsWith('http') ? photo : `${API_BASE_URL_IMAGE}${photo}`}
+            alt={rowData.pseudo || ''}
+            className="lt-user-avatar"
+            style={{objectFit: 'cover', border: '1.5px solid var(--lt-border)'}}
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        ) : (
+          <div
+            className="lt-user-avatar"
+            style={{
+              background: `var(--${color}-100, #EFF6FF)`,
+              color: `var(--${color}-600, #2563EB)`,
+              border: '1.5px solid var(--lt-border)',
+            }}
+          >
+            {(rowData.pseudo || rowData.fname?.charAt(0) || '?').toUpperCase().charAt(0)}
           </div>
-      }
-      {/* <ImgContainer src={rowData.photo || UserIcon} circle style={{ width: '50px', height: '50px' }} />
-      */}
-      <div>
-        <strong className="block">{rowData.fname} {rowData.sname} </strong>
-        <span className="text-sm text-gray-500">{rowData.login}</span>
+        )}
+        <div className="lt-user-info">
+          <span className="lt-user-name">{rowData.fname} {rowData.sname}</span>
+          <span className="lt-user-login">{rowData.login}</span>
+        </div>
       </div>
-    </div>
+    )
   }
 
-  const rolesTemplate = (rowData) => {
-    return <div className='flex gap-2 flex-wrap' style={{ maxWidth: '500px' }}>
-      {(rowData.Roles || []).map((_i, index) => (
-        <span key={index} className={`p-1 border-round-sm bg-purple-100 text-purple-600 m-2`}>{_i.label}</span>
-      ))}
+  const emailTemplate = (rowData) => (
+    <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+      <i className="pi pi-envelope" style={{color: 'var(--lt-accent)', fontSize: '0.85rem'}}></i>
+      <span style={{fontSize: '0.85rem', color: 'var(--lt-text-secondary)'}}>{rowData?.email || '-'}</span>
     </div>
+  )
+
+  const roleTemplate = (rowData) => {
+    const isAdmin = rowData?.role === 'admin'
+    return (
+      <span
+        className={`lt-badge ${isAdmin ? 'lt-badge-purple' : 'lt-badge-info'}`}
+        data-testid="user-role-badge"
+      >
+        <i className={`pi pi-${isAdmin ? 'shield' : 'user'}`} style={{fontSize: '0.7rem'}}></i>
+        {rowData?.role || '-'}
+      </span>
+    )
   }
 
-  const emailTemplate = (rowData)=>(
-    <div className='gap-2 flex align-items-center'>
-       <span className='pi pi-envelope text-blue-300'></span>
-       <span>{rowData?.email}</span>
-    </div>
-  )
-
-  const roleTemplate = (rowData)=>(
-    <div className='gap-2 flex align-items-center'>
-       <span className={`pi pi-${rowData?.role == 'admin' ? 'user-plus' : 'user'} text-blue-300`}></span>
-       <span>{rowData?.role}</span>
-    </div>
-  )
-
-  const activeTemplate = (rowData)=>(
-    <div className='gap-2 flex align-items-center'>
-      <InputSwitch 
-          checked={rowData?.active == 1}
-          onChange={ e => toggleUsrActive(rowData.id , !(rowData?.active == 1))}
-          pt={{
-            slider: ({props})=>({
-              className: props.checked ? 'bg-green-300' : 'bg-gray-300'
-            })
-          }}/>
-    </div>
-  )
+  const activeTemplate = (rowData) => {
+    const isActive = rowData?.active == 1
+    return (
+      <span
+        className={`lt-badge ${isActive ? 'lt-badge-success' : 'lt-badge-neutral'}`}
+        data-testid="user-active-badge"
+      >
+        <span className={`lt-badge-dot ${isActive ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>
+        {isActive ? 'Actif' : 'Inactif'}
+      </span>
+    )
+  }
 
   const columns = [
-    { field: 'fname', 'header': 'Profile', body: profileTemplate, filter: true },
-    { field: 'email', 'header': 'Email', body: emailTemplate ,filter: true },
-    { field: 'role', 'header': 'Roles', body: roleTemplate, filter: true },
-    { field: 'active', 'header': 'Actif', body: activeTemplate, filter: true },
+    { field: 'fname', header: 'Profil', body: profileTemplate, filter: true },
+    { field: 'email', header: 'Email', body: emailTemplate, filter: true },
+    { field: 'role', header: 'Rôle', body: roleTemplate, filter: true },
+    { field: 'active', header: 'Statut', body: activeTemplate, filter: true },
   ]
 
   useEffect(() => {
@@ -141,17 +127,40 @@ export const UserList = ({root}) => {
   }, [])
 
   return (
-    <div>
-      <DataTableComponent 
-        tableId='users-list' 
-        data={data} 
-        columns={columns} 
-        onNew={()=> {
-          dispatch(setSelectedUser(null))
-          dispatch(setUserView('editor'))
-          navigate(root+'/edit')
-        }}
-        rowActions={actions}/>
+    <div className="lt-page" data-testid="user-list-page">
+      <div className="lt-page-header" data-testid="user-page-header">
+        <div className="lt-page-header-left">
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #F59E0B, #D97706)'}}>
+            <i className="pi pi-users"></i>
+          </div>
+          <div>
+            <h1 className="lt-page-title">Utilisateurs</h1>
+            <p className="lt-page-subtitle">Gestion des comptes utilisateurs</p>
+          </div>
+        </div>
+        <div className="lt-page-header-right">
+          {data && data.length > 0 && (
+            <div className="lt-count-badge" data-testid="user-total-count">
+              <i className="pi pi-users" style={{fontSize: '0.75rem'}}></i>
+              <strong>{data.length}</strong> utilisateurs
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="lt-table-wrap" data-testid="user-table">
+        <DatatableComponent
+          tableId='users-list'
+          data={data}
+          columns={columns}
+          onNew={() => {
+            dispatch(setSelectedUser(null))
+            dispatch(setUserView('editor'))
+            navigate(root + '/edit')
+          }}
+          rowActions={actions}
+        />
+      </div>
     </div>
   )
 }

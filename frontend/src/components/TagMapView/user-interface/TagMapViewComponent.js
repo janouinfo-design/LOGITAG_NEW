@@ -45,11 +45,11 @@ const TagMapViewComponent = ({type}) => {
     {
       label: <OlangItem olang='Enter' />,
       value: 'reception',
-      icon: 'fa-down-to-bracket',
+      icon: 'pi pi-arrow-down',
       color: 'green',
     },
 
-    {label: <OlangItem olang='Exit' />, value: 'exit', icon: 'fa-up-from-bracket', color: 'red'},
+    {label: <OlangItem olang='Exit' />, value: 'exit', icon: 'pi pi-arrow-up', color: 'red'},
   ]
 
   const itemTemplate = (item) => {

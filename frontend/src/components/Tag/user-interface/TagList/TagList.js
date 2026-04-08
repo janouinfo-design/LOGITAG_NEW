@@ -150,29 +150,31 @@ const TagList = ({titleShow, detailView, tags}) => {
     debouncedSearch(event.target.value)
   }
 
-  const activeTemplate = (rowData) => (
-    <Chip
-      label={rowData?.active == 1 ? 'Actif' : 'Inactif'}
-      icon={rowData?.active == 1 ? 'pi pi-check' : 'pi pi-times'}
-      style={{backgroundColor: `${rowData?.activeColor}`, color: 'white'}}
-    />
-  )
-  const statusTemplate = (rowData) => {
-    if (rowData?.iconName) {
-      return (
-        <i
-          title={rowData?.status}
-          className={`${rowData?.iconName} text-2xl rounded p-2`}
-          style={{color: `${rowData.statusbgColor}`}}
-        ></i>
-      )
-    }
+  const activeTemplate = (rowData) => {
+    const isActive = rowData?.active == 1
     return (
-      <Chip
-        label={rowData?.status}
-        style={{background: `${rowData.statusbgColor}`, color: rowData.color ?? 'white'}}
-        title={`${rowData?.statusDate}`}
-      />
+      <span
+        className={`lt-badge ${isActive ? 'lt-badge-success' : 'lt-badge-danger'}`}
+        data-testid="tag-active-badge"
+      >
+        <span className={`lt-badge-dot ${isActive ? 'lt-badge-dot-success' : 'lt-badge-dot-danger'}`}></span>
+        {isActive ? 'Actif' : 'Inactif'}
+      </span>
+    )
+  }
+  const statusTemplate = (rowData) => {
+    const bgColor = rowData?.statusbgColor || '#94A3B8'
+    const label = rowData?.status || '-'
+    return (
+      <span
+        className="lt-badge"
+        style={{background: `${bgColor}18`, color: bgColor}}
+        title={rowData?.statusDate || ''}
+        data-testid="tag-status-badge"
+      >
+        <span className="lt-badge-dot" style={{background: bgColor}}></span>
+        {label}
+      </span>
     )
   }
 
@@ -183,11 +185,14 @@ const TagList = ({titleShow, detailView, tags}) => {
 
   const familleTemplate = ({famille, familleIcon, familleBgcolor, familleColor}) => {
     return (
-      <Chip
-        label={famille}
-        icon={familleIcon}
-        style={{background: familleBgcolor, color: 'white'}}
-      />
+      <span
+        className="lt-famille-chip"
+        style={{background: familleBgcolor || '#64748B'}}
+        data-testid="tag-famille-chip"
+      >
+        {familleIcon && <i className={familleIcon} style={{fontSize: '0.75rem'}}></i>}
+        {famille || '-'}
+      </span>
     )
   }
 
@@ -255,21 +260,23 @@ const TagList = ({titleShow, detailView, tags}) => {
   const addresseeTemplate = (rowData) => {
     const {tagAddress} = rowData
     return (
-      <>
-        {
-          <div>
-            {tagAddress ? (
-              <Chip
-                label={tagAddress}
-                className='w-11rem m-1 flex justify-content-center align-items-center cursor-pointer'
-                onClick={() => showLocationAddress(rowData)}
-              />
-            ) : (
-              'No address found.'
-            )}
-          </div>
-        }
-      </>
+      <div>
+        {tagAddress ? (
+          <span
+            className="lt-geo-btn"
+            onClick={() => showLocationAddress(rowData)}
+            data-testid="tag-address-btn"
+          >
+            <i className="pi pi-map-marker" style={{fontSize: '0.78rem'}}></i>
+            {tagAddress.length > 25 ? tagAddress.substring(0, 25) + '...' : tagAddress}
+          </span>
+        ) : (
+          <span className="lt-badge lt-badge-neutral" data-testid="no-address">
+            <i className="pi pi-map" style={{fontSize: '0.7rem'}}></i>
+            Aucune adresse
+          </span>
+        )}
+      </div>
     )
   }
 
@@ -376,41 +383,73 @@ const TagList = ({titleShow, detailView, tags}) => {
           </div>
         </div>
       </DialogComponent>
-      <div className='py-3 flex flex-row align-items-center'>
-        <h1 className='text-700'>
-          <OlangItem olang={'tag.list'} />
-        </h1>
+      <div className="lt-page" data-testid="tag-list-page">
+        {/* Modern SaaS Header */}
+        <div className="lt-page-header" data-testid="tag-page-header">
+          <div className="lt-page-header-left">
+            <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'}}>
+              <i className="pi pi-tag"></i>
+            </div>
+            <div>
+              <h1 className="lt-page-title"><OlangItem olang={'tag.list'} /></h1>
+              <p className="lt-page-subtitle">Inventaire et suivi de vos tags</p>
+            </div>
+          </div>
+          <div className="lt-page-header-right">
+            {totalRecords > 0 && (
+              <div className="lt-count-badge" data-testid="tag-total-count">
+                <i className="pi pi-tag" style={{fontSize: '0.75rem'}}></i>
+                <strong>{totalRecords}</strong> tags
+              </div>
+            )}
+          </div>
+        </div>
+
+        {isLoading ? (
+          <div className="lt-table-wrap" data-testid="tag-skeleton">
+            <div className="lt-skeleton-wrap">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="lt-skeleton-row" style={{animationDelay: `${i * 0.08}s`}}>
+                  <div className="lt-skeleton-cell" style={{width: 100, height: 14}} />
+                  <div className="lt-skeleton-cell" style={{width: 80, height: 14}} />
+                  <div className="lt-skeleton-cell" style={{width: 70, height: 28, borderRadius: 8}} />
+                  <div className="lt-skeleton-cell" style={{width: 120, height: 14}} />
+                  <div className="lt-skeleton-cell" style={{width: 60, height: 28, borderRadius: 8}} />
+                  <div className="lt-skeleton-cell" style={{flex: 1, height: 28, borderRadius: 8}} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <div className="lt-table-wrap" data-testid="tag-table">
+            <DatatableComponent
+              tableId='tag-table'
+              data={tags}
+              columns={columns}
+              exportFields={exportFields}
+              onNew={create}
+              isLoading={isLoadingButton}
+              rowGroupTemplates={rowGroupTemplates}
+              contextMenuModel={actions}
+              allowedGroupFields={allowedGroupFields}
+              rowActions={actions}
+              sortField={'id'}
+              sortOrder={-1}
+              rows={rows}
+              page={page}
+              onPageChange={handlePageChange}
+              totalRecords={totalRecords}
+              onSearchServer={handleSearch}
+              searchServ={searchInput}
+              serverSearched={true}
+              onPdfClick={checkPdf}
+              loadingPdf={pdfLoading}
+              loadingExcel={loadingExcel}
+              lazy={true}
+            />
+          </div>
+        )}
       </div>
-      {isLoading ? (
-        <Loader />
-      ) : (
-        <DatatableComponent
-          tableId='tag-table'
-          data={tags}
-          columns={columns}
-          exportFields={exportFields}
-          onNew={create}
-          isLoading={isLoadingButton}
-          rowGroupTemplates={rowGroupTemplates}
-          contextMenuModel={actions}
-          allowedGroupFields={allowedGroupFields}
-          rowActions={actions}
-          sortField={'id'}
-          sortOrder={-1}
-          rows={rows}
-          page={page}
-          onPageChange={handlePageChange}
-          totalRecords={totalRecords}
-          onSearchServer={handleSearch}
-          searchServ={searchInput}
-          serverSearched={true}
-          onPdfClick={checkPdf}
-          loadingPdf={pdfLoading}
-          // onExcelClick={onClickExcel}
-          loadingExcel={loadingExcel}
-          lazy={true}
-        />
-      )}
     </>
   )
 }
