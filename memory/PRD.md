@@ -15,13 +15,20 @@ Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec un
 
 ### Dashboard Operations Monitor (/tagdashboard/index) — FAIT
 - Header "Operations Monitor" + date/heure + bouton Actualiser
+- **Filtre de période** : 5 pills (Tout, Aujourd'hui, 7 jours, 30 jours, Personnalisé)
+  - Personnalisé: 2 champs date (DE / À) + compteur résultats filtrés (ex: 43/44)
+  - Les graphiques se mettent à jour dynamiquement selon le filtre
 - 4 KPI cards avec format X/Y, icônes gradient, barres progression, % variation
-- Fil d'activité "Dernière Activité" (12 items, noms d'assets, badges status)
-- Donut "Répartition État" (Actif 95%, Entrée 5%) via ApexCharts
-- Barres "Distribution Statuts" (Disponible 28, Reserve, Livré, etc.)
+- **Panneau détail Card-List** (quand KPI card cliquée):
+  - EnginCard: photo thumbnail, nom, badges (Etat+Status+Famille+Tag), barre batterie, bouton map
+  - TagCard: icône famille, nom, badges (Famille+Status+Actif)
+  - Barre de recherche "Rechercher un asset..." avec compteur résultats temps réel
+  - Bouton fermer (X)
+- Donut "Répartition État" (Actif, Entrée) via ApexCharts
+- Barres "Distribution Statuts" (Disponible, Reserve, Livré, Réception, En pannee)
 - Donut "Assets par Famille" (BLE, CAB, SENSOR, etc.)
-- Panneau "Assets nécessitant attention" (table avec barres batterie colorées)
-- KPI cards cliquables → panneau détail DataTable + bouton fermer
+- Panneau "Assets nécessitant attention" (table alertes batterie colorées)
+- Fil d'activité "Dernière Activité" (12 items avec noms, badges, localisation)
 
 ### Page Assets/Engins (/view/engin/index) — FAIT
 - Header SaaS Premium (gradient bleu, badge 4935 assets)
@@ -36,6 +43,7 @@ Transformer l'application LOGITAG existante en SaaS B2B Enterprise-grade avec un
 
 ## Fichiers Clés
 - `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx`
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardDetail/DashboardDetail.jsx`
 - `/app/frontend/src/components/Engin/EnginList/EnginList.js`
 - `/app/frontend/src/components/Tag/user-interface/TagList/TagList.js`
 - `/app/frontend/src/logitag-saas.css`
