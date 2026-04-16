@@ -85,6 +85,12 @@ const DashboardListCards = () => {
   const fetchedRef = useRef(false)
   const [periodFilter, setPeriodFilter] = useState('all')
   const [customRange, setCustomRange] = useState({from: '', to: ''})
+  const [alertThresholds, setAlertThresholds] = useState(() => {
+    const saved = localStorage.getItem('logitag_alert_thresholds')
+    return saved ? JSON.parse(saved) : {immobilized: 30, battery: 10, inactive: 14}
+  })
+  const [showAlertSettings, setShowAlertSettings] = useState(false)
+  const [selectedAlert, setSelectedAlert] = useState(null)
 
   /* Clock */
   useEffect(() => {
@@ -248,6 +254,65 @@ const DashboardListCards = () => {
     return {etatData, statusData, familleData, batteryAlerts: batteryAlerts.slice(0, 8), activityFeed}
   }, [filteredDetailData])
 
+  /* ── Smart Alerts ── */
+  const alerts = useMemo(() => {
+    if (!allDetailData.length) return {immobilized: [], lowBattery: [], underUtilized: [], inactiveTags: []}
+    const now = new Date()
+    const immobilizedCutoff = new Date(now.getTime() - alertThresholds.immobilized * 24 * 60 * 60 * 1000)
+    const inactiveCutoff = new Date(now.getTime() - alertThresholds.inactive * 24 * 60 * 60 * 1000)
+
+    const immobilized = []
+    const lowBattery = []
+    const underUtilized = []
+    const inactiveTags = []
+
+    allDetailData.forEach(item => {
+      const lastDate = new Date(item.locationDate || item.statusDate || item.tagDate || 0)
+
+      /* Immobilized: no movement since threshold */
+      if (item.etatenginname && lastDate < immobilizedCutoff && lastDate.getFullYear() > 2000) {
+        const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24))
+        immobilized.push({...item, _daysSince: daysSince})
+      }
+
+      /* Low battery */
+      if (item.batteries !== undefined && item.batteries !== null && item.batteries !== '') {
+        const bat = parseInt(item.batteries, 10)
+        if (!isNaN(bat) && bat <= alertThresholds.battery && bat >= 0) {
+          lowBattery.push({...item, _batteryLevel: bat})
+        }
+      }
+
+      /* Under-utilized: had movement but very long duration on same site */
+      if (item.etatenginname === 'nonactive' || item.etatenginname === 'exit') {
+        if (lastDate < inactiveCutoff && lastDate.getFullYear() > 2000) {
+          const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24))
+          underUtilized.push({...item, _daysSince: daysSince})
+        }
+      }
+
+      /* Inactive tags */
+      if (item.active !== undefined && item.active == 0) {
+        inactiveTags.push(item)
+      }
+    })
+
+    return {
+      immobilized: immobilized.sort((a, b) => b._daysSince - a._daysSince).slice(0, 50),
+      lowBattery: lowBattery.sort((a, b) => a._batteryLevel - b._batteryLevel).slice(0, 50),
+      underUtilized: underUtilized.sort((a, b) => b._daysSince - a._daysSince).slice(0, 50),
+      inactiveTags: inactiveTags.slice(0, 50),
+    }
+  }, [allDetailData, alertThresholds])
+
+  const saveThresholds = (newThresholds) => {
+    setAlertThresholds(newThresholds)
+    localStorage.setItem('logitag_alert_thresholds', JSON.stringify(newThresholds))
+    setShowAlertSettings(false)
+  }
+
+  const totalAlerts = alerts.immobilized.length + alerts.lowBattery.length + alerts.underUtilized.length + alerts.inactiveTags.length
+
   /* ── Chart Configs ── */
   const etatChartOptions = useMemo(() => ({
     chart: {type: 'donut', fontFamily: 'Inter, sans-serif'},
@@ -381,6 +446,124 @@ const DashboardListCards = () => {
           <span className="om-filter-result">
             <strong>{filteredDetailData.length}</strong> / {allDetailData.length} résultats
           </span>
+        )}
+      </div>
+
+      {/* ── Alert Center ── */}
+      <div className="om-alert-center" data-testid="om-alert-center">
+        <div className="om-alert-header">
+          <div className="om-alert-header-left">
+            <div className="om-alert-bell">
+              <i className="pi pi-bell"></i>
+              {totalAlerts > 0 && <span className="om-alert-badge">{totalAlerts}</span>}
+            </div>
+            <div>
+              <h3 className="om-alert-title">Centre d'Alertes</h3>
+              <p className="om-alert-subtitle">Surveillance automatique du parc</p>
+            </div>
+          </div>
+          <button className="om-alert-settings-btn" onClick={() => setShowAlertSettings(!showAlertSettings)} data-testid="alert-settings-btn">
+            <i className="pi pi-cog"></i>
+            Seuils
+          </button>
+        </div>
+
+        {/* Settings Panel */}
+        {showAlertSettings && (
+          <div className="om-alert-settings" data-testid="alert-settings-panel">
+            <div className="om-alert-setting-row">
+              <label className="om-alert-setting-label">
+                <i className="pi pi-clock" style={{color: '#EF4444'}}></i>
+                Immobilisé depuis (jours)
+              </label>
+              <input type="number" className="om-alert-setting-input" value={alertThresholds.immobilized}
+                onChange={e => setAlertThresholds(t => ({...t, immobilized: parseInt(e.target.value) || 1}))} min="1" max="365"
+                data-testid="threshold-immobilized" />
+            </div>
+            <div className="om-alert-setting-row">
+              <label className="om-alert-setting-label">
+                <i className="pi pi-bolt" style={{color: '#F59E0B'}}></i>
+                Batterie critique (%)
+              </label>
+              <input type="number" className="om-alert-setting-input" value={alertThresholds.battery}
+                onChange={e => setAlertThresholds(t => ({...t, battery: parseInt(e.target.value) || 1}))} min="1" max="100"
+                data-testid="threshold-battery" />
+            </div>
+            <div className="om-alert-setting-row">
+              <label className="om-alert-setting-label">
+                <i className="pi pi-ban" style={{color: '#8B5CF6'}}></i>
+                Sous-utilisé depuis (jours)
+              </label>
+              <input type="number" className="om-alert-setting-input" value={alertThresholds.inactive}
+                onChange={e => setAlertThresholds(t => ({...t, inactive: parseInt(e.target.value) || 1}))} min="1" max="365"
+                data-testid="threshold-inactive" />
+            </div>
+            <div style={{display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8}}>
+              <button className="om-alert-setting-cancel" onClick={() => setShowAlertSettings(false)}>Annuler</button>
+              <button className="om-alert-setting-save" onClick={() => saveThresholds(alertThresholds)} data-testid="save-thresholds">
+                <i className="pi pi-check" style={{fontSize: '0.7rem'}}></i> Enregistrer
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Alert Cards */}
+        <div className="om-alert-cards" data-testid="om-alert-cards">
+          {[
+            {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j sans mouvement`},
+            {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie critique', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
+            {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j inactifs`},
+            {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags inactifs', count: alerts.inactiveTags.length, desc: 'Non émetteurs'},
+          ].map(a => (
+            <div
+              key={a.key}
+              className={`om-alert-card ${selectedAlert === a.key ? 'om-alert-card--active' : ''} ${a.count > 0 ? 'om-alert-card--warn' : ''}`}
+              style={{'--alert-color': a.color}}
+              onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)}
+              data-testid={`alert-card-${a.key}`}
+            >
+              <div className="om-alert-card-icon" style={{background: `${a.color}12`, color: a.color}}>
+                <i className={a.icon}></i>
+              </div>
+              <div className="om-alert-card-value" style={{color: a.count > 0 ? a.color : 'var(--lt-text-muted)'}}>{a.count}</div>
+              <div className="om-alert-card-label">{a.label}</div>
+              <div className="om-alert-card-desc">{a.desc}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Alert Detail List */}
+        {selectedAlert && (
+          <div className="om-alert-detail" data-testid="om-alert-detail">
+            <div className="om-alert-detail-header">
+              <strong>{selectedAlert === 'immobilized' ? 'Matériel immobilisé' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Équipements sous-utilisés' : 'Tags inactifs'}</strong>
+              <button className="om-alert-detail-close" onClick={() => setSelectedAlert(null)}>
+                <i className="pi pi-times"></i>
+              </button>
+            </div>
+            <div className="om-alert-detail-list">
+              {(alerts[selectedAlert] || []).length === 0 ? (
+                <div className="om-alert-detail-empty">
+                  <i className="pi pi-check-circle" style={{color: '#22C55E', fontSize: '1.2rem'}}></i>
+                  Aucune alerte
+                </div>
+              ) : (alerts[selectedAlert] || []).map((item, i) => (
+                <div key={i} className="om-alert-detail-item">
+                  <div className="om-alert-detail-name">{item.reference || item.label || item.name || 'Asset'}</div>
+                  <div className="om-alert-detail-info">
+                    {selectedAlert === 'immobilized' && <span><i className="pi pi-clock" style={{fontSize: '0.65rem'}}></i> {item._daysSince}j immobilisé</span>}
+                    {selectedAlert === 'lowBattery' && <span><i className="pi pi-bolt" style={{fontSize: '0.65rem'}}></i> {item._batteryLevel}%</span>}
+                    {selectedAlert === 'underUtilized' && <span><i className="pi pi-ban" style={{fontSize: '0.65rem'}}></i> {item._daysSince}j inactif</span>}
+                    {selectedAlert === 'inactiveTags' && <span><i className="pi pi-wifi" style={{fontSize: '0.65rem'}}></i> Non émetteur</span>}
+                  </div>
+                  <div className="om-alert-detail-location">
+                    <i className="pi pi-map-marker" style={{fontSize: '0.6rem'}}></i>
+                    {item.LocationObjectname || item.enginAddress || 'Position inconnue'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         )}
       </div>
 
