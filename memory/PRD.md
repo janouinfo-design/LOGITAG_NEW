@@ -37,15 +37,26 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **RapportDisplay résumé** : Groupement par engin/site, colonnes (Site/Adresse, Entrées, Durée), carte "Au total"
 - [x] **Rapport par Site** : Affiche temps de présence de chaque engin sur le site
 
+### Phase 8 - Centre d'Alertes Automatiques (Completed - 16 Avril 2026)
+- [x] **Centre d'Alertes Dashboard** : Détection automatique des équipements à risque
+  - 4 catégories : Immobilisés (>30j), Batterie critique (<10%), Sous-utilisés (>14j), Tags inactifs
+  - Panneau de paramétrage des seuils (persisté localStorage)
+  - Liste détaillée cliquable par catégorie d'alerte
+  - Badge compteur total sur l'icône cloche
+- [x] **Tests** : 16/16 tests passés (100%) - iteration_48.json
+
 ## Backlog
+
+### P2 (Moyenne priorité)
+- [ ] Export PDF des rapports de présence B2B
 
 ### P3 (Basse priorité)
 - [ ] Mode sombre (Dark Theme)
 - [ ] Système de notifications push (batterie critique, sortie non autorisée)
 
 ## Key Files
-- `/app/frontend/src/logitag-saas.css` - Thème global + animations + rapport CSS
+- `/app/frontend/src/logitag-saas.css` - Thème global + animations + alertes CSS
 - `/app/frontend/src/components/Repports/` - Système de rapports complet
 - `/app/frontend/src/components/Engin/EnginList/EnginList.js` - Vignettes + tri rapide
-- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` - Dashboard + GPS
+- `/app/frontend/src/components/Dashboard/user-interface/DashboardCards/DashboardListCards.jsx` - Dashboard + GPS + Centre d'Alertes
 - `/app/frontend/src/components/shared/HistoryComponent/HistoryListComponent.js` - Timeline + filtres
