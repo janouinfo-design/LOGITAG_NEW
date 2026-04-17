@@ -370,318 +370,279 @@ const DashboardListCards = () => {
       .slice(0, 200)
   }, [filteredDetailData])
 
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  /* Navigation items from sidebar links */
+  const navItems = [
+    {label: 'Dashboard', icon: 'pi pi-th-large', to: '/tagdashboard/index', active: true},
+    {label: 'Engins', icon: 'pi pi-box', to: '/view/engin/index'},
+    {label: 'Tags', icon: 'pi pi-tag', to: '/tag/index'},
+    {label: 'Map', icon: 'pi pi-map', to: '/tour/index'},
+    {label: 'Calendrier', icon: 'pi pi-calendar', to: '/timeline/index'},
+    {label: 'Rapports', icon: 'pi pi-chart-bar', to: '/rapports/index'},
+    {label: 'Utilisateurs', icon: 'pi pi-users', to: '/view/staff/index'},
+  ]
+
+  const navigateTo = (to) => {
+    window.location.href = to
+  }
+
   return (
-    <div className="db" data-testid="operations-monitor">
+    <div className="dbn" data-testid="operations-monitor">
       <style>{STYLES}</style>
 
-      {/* ── Compact Header ── */}
-      <header className="db-topbar" data-testid="om-header">
-        <div className="db-topbar-left">
-          <div className="db-logo-mark">
-            <i className="pi pi-th-large"></i>
+      {/* ══════ TOP NAVIGATION ══════ */}
+      <nav className="dbn-nav" data-testid="om-header">
+        <div className="dbn-nav-inner">
+          <div className="dbn-nav-left">
+            <img src={require('../../../../assets/images/Logitag Color.png')} alt="Logitag" className="dbn-logo" />
+            <div className="dbn-nav-links">
+              {navItems.map(n => (
+                <button key={n.to} className={`dbn-nav-link ${n.active ? 'dbn-nav-link--on' : ''}`}
+                  onClick={() => !n.active && navigateTo(n.to)} data-testid={`nav-${n.label.toLowerCase()}`}>
+                  <i className={n.icon}></i>{n.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <span className="db-brand">IoT Asset Tracking</span>
-        </div>
-        <div className="db-topbar-center" data-testid="om-period-filter">
-          {[
-            {key: 'all', label: 'Tout'},
-            {key: 'today', label: "Aujourd'hui"},
-            {key: '7d', label: '7j'},
-            {key: '30d', label: '30j'},
-            {key: 'custom', label: 'Dates'},
-          ].map(p => (
-            <button key={p.key}
-              className={`db-pill ${periodFilter === p.key ? 'db-pill--on' : ''}`}
-              onClick={() => setPeriodFilter(p.key)}
-              data-testid={`filter-${p.key}`}
-            >{p.label}</button>
-          ))}
-          {periodFilter === 'custom' && (
-            <div className="db-dates" data-testid="custom-range">
-              <input type="date" className="db-date-input" value={customRange.from}
-                onChange={e => setCustomRange(r => ({...r, from: e.target.value}))} data-testid="filter-date-from" />
-              <span className="db-date-sep">-</span>
-              <input type="date" className="db-date-input" value={customRange.to}
-                onChange={e => setCustomRange(r => ({...r, to: e.target.value}))} data-testid="filter-date-to" />
+          <div className="dbn-nav-right">
+            <div className="dbn-nav-search">
+              <i className="pi pi-search"></i>
+              <input type="text" placeholder="Rechercher..." className="dbn-search-input" />
             </div>
-          )}
-          {periodFilter !== 'all' && filteredDetailData.length > 0 && (
-            <span className="db-count-badge"><strong>{filteredDetailData.length}</strong>/{allDetailData.length}</span>
-          )}
+            <button className="dbn-nav-icon" title="Notifications"><i className="pi pi-bell"></i></button>
+            <button className="dbn-nav-icon" title="Paramètres" onClick={() => navigateTo('/setup/index')}><i className="pi pi-cog"></i></button>
+            <div className="dbn-avatar" title="Profil">
+              <i className="pi pi-user"></i>
+            </div>
+            <button className="dbn-hamburger" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+              <i className={`pi ${mobileMenuOpen ? 'pi-times' : 'pi-bars'}`}></i>
+            </button>
+          </div>
         </div>
-        <div className="db-topbar-right">
-          <span className="db-datetime">
-            {now.toLocaleDateString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short'})}
-            {' '}
-            {now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
-          </span>
-          <button className="db-refresh" onClick={handleRefresh} data-testid="om-refresh">
-            <i className="pi pi-refresh"></i>
-          </button>
-        </div>
-      </header>
+        {mobileMenuOpen && (
+          <div className="dbn-mobile-menu">
+            {navItems.map(n => (
+              <button key={n.to} className={`dbn-mobile-link ${n.active ? 'dbn-mobile-link--on' : ''}`}
+                onClick={() => { setMobileMenuOpen(false); if (!n.active) navigateTo(n.to); }}>
+                <i className={n.icon}></i>{n.label}
+              </button>
+            ))}
+          </div>
+        )}
+      </nav>
 
-      {/* ── KPI Cards ── */}
-      <div className="db-kpi-row" data-testid="om-kpi-grid">
-        {isLoading ? (
-          [...Array(4)].map((_, i) => (
-            <div key={i} className="db-kpi db-kpi--skel" data-testid={`kpi-skel-${i}`}>
-              <div className="db-skel-block db-skel-block--title" />
-              <div className="db-skel-block db-skel-block--num" />
-              <div className="db-skel-block db-skel-block--label" />
-              <div className="db-skel-block db-skel-block--bar" />
+      {/* ══════ HERO SECTION ══════ */}
+      <div className="dbn-content">
+        <div className="dbn-hero">
+          <div className="dbn-hero-left">
+            <h1 className="dbn-hero-title">Tableau de bord</h1>
+            <p className="dbn-hero-sub">
+              {now.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})}
+            </p>
+          </div>
+          <div className="dbn-hero-right">
+            <div className="dbn-filter-bar" data-testid="om-period-filter">
+              {[
+                {key: 'all', label: 'Tout', icon: ''},
+                {key: 'today', label: "Aujourd'hui", icon: ''},
+                {key: '7d', label: '7 jours', icon: ''},
+                {key: '30d', label: '30 jours', icon: ''},
+                {key: 'custom', label: 'Dates', icon: 'pi pi-calendar'},
+              ].map(p => (
+                <button key={p.key} className={`dbn-filter ${periodFilter === p.key ? 'dbn-filter--on' : ''}`}
+                  onClick={() => setPeriodFilter(p.key)} data-testid={`filter-${p.key}`}>
+                  {p.icon && <i className={p.icon} style={{fontSize: '0.72rem'}}></i>}{p.label}
+                </button>
+              ))}
             </div>
-          ))
-        ) : (
-          dashboardData.map((item, i) => {
+            {periodFilter === 'custom' && (
+              <div className="dbn-dates" data-testid="custom-range">
+                <input type="date" value={customRange.from} onChange={e => setCustomRange(r => ({...r, from: e.target.value}))} data-testid="filter-date-from" />
+                <span>-</span>
+                <input type="date" value={customRange.to} onChange={e => setCustomRange(r => ({...r, to: e.target.value}))} data-testid="filter-date-to" />
+              </div>
+            )}
+            <button className="dbn-refresh" onClick={handleRefresh} data-testid="om-refresh">
+              <i className="pi pi-refresh"></i>Actualiser
+            </button>
+          </div>
+        </div>
+
+        {/* ══════ KPI CARDS ══════ */}
+        <div className="dbn-kpi-row" data-testid="om-kpi-grid">
+          {isLoading ? (
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="dbn-kpi dbn-kpi--skel" data-testid={`kpi-skel-${i}`}>
+                <div className="dbn-skel dbn-skel--sm" /><div className="dbn-skel dbn-skel--lg" /><div className="dbn-skel dbn-skel--md" /><div className="dbn-skel dbn-skel--bar" />
+              </div>
+            ))
+          ) : dashboardData.map((item, i) => {
             const color = KPI_COLORS[i % KPI_COLORS.length]
             const icon = KPI_ICONS[i % KPI_ICONS.length]
             const isActive = selectedCard?.code === item.code
             const pct = item.value ?? 0
             return (
-              <div key={item.code || i}
-                className={`db-kpi ${isActive ? 'db-kpi--on' : ''}`}
-                onClick={() => handleSelectCard(item)}
-                style={{'--kc': color}}
-                data-testid={`kpi-card-${i}`}
-              >
-                {isActive && loadingCard && (
-                  <div className="db-kpi-spin"><div className="db-spin" style={{borderTopColor: color}} /></div>
-                )}
-                <div className="db-kpi-head">
-                  <span className="db-kpi-title">{item.quantityLabel || item.label || item.title}</span>
-                  <div className="db-kpi-icon" style={{background: `${color}14`, color}}><i className={icon}></i></div>
-                </div>
-                <div className="db-kpi-num">{item.quantity ?? 0}</div>
-                <div className="db-kpi-sub">{item.quantityLabel || item.label || item.title}</div>
-                <div className="db-kpi-track">
-                  <div className="db-kpi-fill" style={{width: `${Math.min(pct, 100)}%`, background: color}} />
-                </div>
-                {pct > 0 && (
-                  <span className={`db-kpi-pct ${pct > 50 ? 'db-kpi-pct--up' : 'db-kpi-pct--dn'}`}>
+              <div key={item.code || i} className={`dbn-kpi ${isActive ? 'dbn-kpi--on' : ''}`}
+                onClick={() => handleSelectCard(item)} style={{'--kc': color}} data-testid={`kpi-card-${i}`}>
+                <div className="dbn-kpi-top">
+                  <div className="dbn-kpi-ico" style={{background: `${color}12`, color}}><i className={icon}></i></div>
+                  {pct > 0 && <span className={`dbn-kpi-trend ${pct > 50 ? 'dbn-kpi-trend--up' : 'dbn-kpi-trend--dn'}`}>
                     <i className={`pi ${pct > 50 ? 'pi-arrow-up-right' : 'pi-arrow-down-right'}`}></i>{pct}%
-                  </span>
-                )}
+                  </span>}
+                </div>
+                <div className="dbn-kpi-val">{item.quantity ?? 0}</div>
+                <div className="dbn-kpi-label">{item.quantityLabel || item.label || item.title}</div>
+                <div className="dbn-kpi-bar"><div className="dbn-kpi-fill" style={{width: `${Math.min(pct, 100)}%`, background: color}} /></div>
+                {isActive && <div className="dbn-kpi-accent" style={{background: color}} />}
+                {isActive && loadingCard && <div className="dbn-kpi-spin"><div className="dbn-spin" style={{borderTopColor: color}} /></div>}
               </div>
             )
-          })
+          })}
+        </div>
+
+        {/* Detail Panel */}
+        {selectedCard && !loadingCard && (
+          <div className="dbn-detail" data-testid="om-detail-panel">
+            <div className="dbn-detail-head">
+              <h2 className="dbn-detail-title"><i className="pi pi-list"></i>{selectedCard.titledetail || selectedCard.title}</h2>
+              <button className="dbn-close" onClick={handleCloseDetail} data-testid="om-detail-close"><i className="pi pi-times"></i></button>
+            </div>
+            <div style={{padding: 4}}><DashboardDetail /></div>
+          </div>
         )}
-      </div>
-
-      {/* ── Detail Panel ── */}
-      {selectedCard && !loadingCard && (
-        <div className="db-detail" data-testid="om-detail-panel">
-          <div className="db-detail-head">
-            <h2 className="db-detail-title"><i className="pi pi-list"></i>{selectedCard.titledetail || selectedCard.title}</h2>
-            <button className="db-detail-close" onClick={handleCloseDetail} data-testid="om-detail-close"><i className="pi pi-times"></i></button>
+        {selectedCard && loadingCard && (
+          <div className="dbn-detail" data-testid="om-detail-loading">
+            <div className="dbn-detail-head"><h2 className="dbn-detail-title">{selectedCard.titledetail || selectedCard.title}</h2></div>
+            <div style={{padding: 16, display: 'flex', flexDirection: 'column', gap: 10}}>{[...Array(4)].map((_, i) => <div key={i} className="dbn-skel dbn-skel--row" style={{animationDelay: `${i*0.1}s`}} />)}</div>
           </div>
-          <div className="db-detail-body"><DashboardDetail /></div>
-        </div>
-      )}
-      {selectedCard && loadingCard && (
-        <div className="db-detail db-detail--loading" data-testid="om-detail-loading">
-          <div className="db-detail-head"><h2 className="db-detail-title">{selectedCard.titledetail || selectedCard.title}</h2></div>
-          <div className="db-detail-skel">{[...Array(4)].map((_, i) => <div key={i} className="db-skel-row" style={{animationDelay: `${i * 0.1}s`}} />)}</div>
-        </div>
-      )}
+        )}
 
-      {/* ── Main Split: Map + Alert Center ── */}
-      <div className="db-split" data-testid="om-analytics">
-        {/* LEFT: GPS Map */}
-        <div className="db-card db-map-card" data-testid="om-gps-widget">
-          <div className="db-card-head">
-            <h3 className="db-card-title"><i className="pi pi-map" style={{color: '#10B981'}}></i>Positions en temps réel</h3>
-            <span className="db-badge">{mapAssets.length} assets</span>
+        {/* ══════ MAIN GRID: Map + Alerts ══════ */}
+        <div className="dbn-grid-main" data-testid="om-analytics">
+          {/* Map */}
+          <div className="dbn-card dbn-card--map" data-testid="om-gps-widget">
+            <div className="dbn-card-head">
+              <h3 className="dbn-card-title"><i className="pi pi-map" style={{color: '#10B981'}}></i>Carte des assets en temps réel</h3>
+              <span className="dbn-badge">{mapAssets.length} positionnés</span>
+            </div>
+            <div className="dbn-map-wrap" data-testid="om-gps-map">
+              {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--fill" /> : mapAssets.length === 0 ? (
+                <div className="dbn-empty"><i className="pi pi-map-marker"></i>Aucune position GPS</div>
+              ) : <DashboardMap assets={mapAssets} />}
+            </div>
           </div>
-          <div className="db-map-body" data-testid="om-gps-map">
-            {isAnalyticsLoading ? (
-              <div className="db-skel-fill" />
-            ) : mapAssets.length === 0 ? (
-              <div className="db-empty"><i className="pi pi-map-marker"></i>Aucune position GPS</div>
-            ) : (
-              <DashboardMap assets={mapAssets} />
+
+          {/* Alert Center */}
+          <div className="dbn-card" data-testid="om-alert-center">
+            <div className="dbn-card-head">
+              <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                <div className="dbn-bell"><i className="pi pi-bell"></i>{totalAlerts > 0 && <span className="dbn-bell-dot">{totalAlerts}</span>}</div>
+                <h3 className="dbn-card-title">Centre d'alertes</h3>
+              </div>
+              <button className="dbn-icon-btn" onClick={() => setShowAlertSettings(!showAlertSettings)} data-testid="alert-settings-btn"><i className="pi pi-cog"></i></button>
+            </div>
+
+            {showAlertSettings && (
+              <div className="om-alert-settings" data-testid="alert-settings-panel">
+                <div className="om-alert-setting-row"><label className="om-alert-setting-label"><i className="pi pi-clock" style={{color: '#EF4444'}}></i>Immobilisé (jours)</label><input type="number" className="om-alert-setting-input" value={alertThresholds.immobilized} onChange={e => setAlertThresholds(t => ({...t, immobilized: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-immobilized" /></div>
+                <div className="om-alert-setting-row"><label className="om-alert-setting-label"><i className="pi pi-bolt" style={{color: '#F59E0B'}}></i>Batterie (%)</label><input type="number" className="om-alert-setting-input" value={alertThresholds.battery} onChange={e => setAlertThresholds(t => ({...t, battery: parseInt(e.target.value) || 1}))} min="1" max="100" data-testid="threshold-battery" /></div>
+                <div className="om-alert-setting-row"><label className="om-alert-setting-label"><i className="pi pi-ban" style={{color: '#8B5CF6'}}></i>Sous-utilisé (jours)</label><input type="number" className="om-alert-setting-input" value={alertThresholds.inactive} onChange={e => setAlertThresholds(t => ({...t, inactive: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-inactive" /></div>
+                <div style={{display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8}}><button className="om-alert-setting-cancel" onClick={() => setShowAlertSettings(false)}>Annuler</button><button className="om-alert-setting-save" onClick={() => saveThresholds(alertThresholds)} data-testid="save-thresholds"><i className="pi pi-check" style={{fontSize: '0.7rem'}}></i> OK</button></div>
+              </div>
+            )}
+
+            <div className="dbn-alert-grid" data-testid="om-alert-cards">
+              {[
+                {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j`},
+                {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
+                {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j`},
+                {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags off', count: alerts.inactiveTags.length, desc: 'Inactifs'},
+              ].map(a => (
+                <div key={a.key} className={`dbn-alert-item ${selectedAlert === a.key ? 'dbn-alert-item--on' : ''} ${a.count > 0 ? 'dbn-alert-item--warn' : ''}`}
+                  style={{'--ac': a.color}} onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)} data-testid={`alert-card-${a.key}`}>
+                  <div className="dbn-alert-ico" style={{background: `${a.color}12`, color: a.color}}><i className={a.icon}></i></div>
+                  <div className="dbn-alert-num" style={{color: a.count > 0 ? a.color : '#CBD5E1'}}>{a.count}</div>
+                  <div className="dbn-alert-lbl">{a.label}</div>
+                  <div className="dbn-alert-desc">{a.desc}</div>
+                </div>
+              ))}
+            </div>
+
+            {selectedAlert && (
+              <div className="dbn-alert-list" data-testid="om-alert-detail">
+                <div className="dbn-alert-list-head"><strong>{selectedAlert === 'immobilized' ? 'Immobilisés' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Sous-utilisés' : 'Tags inactifs'}</strong>
+                  <button className="dbn-close-sm" onClick={() => setSelectedAlert(null)}><i className="pi pi-times"></i></button></div>
+                <div className="dbn-alert-list-body">
+                  {(alerts[selectedAlert] || []).length === 0 ? <div className="dbn-empty-sm"><i className="pi pi-check-circle" style={{color: '#22C55E'}}></i>RAS</div> :
+                  (alerts[selectedAlert] || []).map((item, i) => (
+                    <div key={i} className="dbn-alert-row">
+                      <span className="dbn-alert-row-name">{item.reference || item.label || item.name || 'Asset'}</span>
+                      <span className="dbn-alert-row-val">{selectedAlert === 'immobilized' ? `${item._daysSince}j` : selectedAlert === 'lowBattery' ? `${item._batteryLevel}%` : selectedAlert === 'underUtilized' ? `${item._daysSince}j` : 'Off'}</span>
+                      <span className="dbn-alert-row-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!selectedAlert && analytics.batteryAlerts.length > 0 && (
+              <div className="dbn-bat-section" data-testid="om-alert-panel">
+                <div className="dbn-bat-head"><span className="dbn-bat-label"><i className="pi pi-exclamation-triangle" style={{color: '#EF4444', fontSize: '0.7rem'}}></i> Attention requise</span><span className="dbn-badge dbn-badge--red">{analytics.batteryAlerts.length}</span></div>
+                <div className="dbn-bat-list" data-testid="om-alerts-table">
+                  {analytics.batteryAlerts.slice(0, 5).map((item, i) => {
+                    const bat = parseInt(item.batteries, 10) || 0
+                    const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
+                    return (<div key={i} className="dbn-bat-row" data-testid={`alert-row-${i}`}><span className="dbn-bat-name">{item.reference || item.label || '-'}</span><div className="dbn-bat-bar-w"><div className="dbn-bat-bar"><div style={{width: `${Math.min(bat,100)}%`, height: '100%', borderRadius: 3, background: batColor}} /></div><span style={{color: batColor, fontSize: '0.7rem', fontWeight: 700}}>{bat}%</span></div></div>)
+                  })}
+                </div>
+              </div>
             )}
           </div>
         </div>
 
-        {/* RIGHT: Alert Center */}
-        <div className="db-card db-alert-card" data-testid="om-alert-center">
-          <div className="db-card-head">
-            <div className="db-alert-head-left">
-              <div className="db-bell">
-                <i className="pi pi-bell"></i>
-                {totalAlerts > 0 && <span className="db-bell-badge">{totalAlerts}</span>}
-              </div>
-              <h3 className="db-card-title">Centre d'Alertes</h3>
+        {/* ══════ ANALYTICS ROW ══════ */}
+        <div className="dbn-grid-analytics">
+          {/* Activity Feed */}
+          <div className="dbn-card" data-testid="om-activity-feed">
+            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-clock"></i>Activité récente</h3><span className="dbn-badge">{analytics.activityFeed.length}</span></div>
+            <div className="dbn-feed">
+              {isAnalyticsLoading ? [...Array(5)].map((_, i) => <div key={i} className="dbn-skel dbn-skel--row" style={{animationDelay: `${i*0.08}s`}} />) :
+              analytics.activityFeed.length === 0 ? <div className="dbn-empty"><i className="pi pi-inbox"></i>Aucune activité</div> :
+              analytics.activityFeed.slice(0, 8).map((item, i) => {
+                const isExit = item.etatenginname === 'exit'
+                const isEntry = item.etatenginname === 'reception'
+                const ec = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
+                return (<div key={i} className="dbn-feed-row" data-testid={`feed-item-${i}`}>
+                  <div className="dbn-feed-dot" style={{background: ec}} />
+                  <div className="dbn-feed-info"><span className="dbn-feed-name">{item.reference || item.label || item.name || `#${i+1}`}</span><span className="dbn-feed-loc">{item.LocationObjectname || item.enginAddress || '-'}</span></div>
+                </div>)
+              })}
             </div>
-            <button className="db-settings-btn" onClick={() => setShowAlertSettings(!showAlertSettings)} data-testid="alert-settings-btn">
-              <i className="pi pi-cog"></i>
-            </button>
           </div>
 
-          {showAlertSettings && (
-            <div className="om-alert-settings" data-testid="alert-settings-panel">
-              <div className="om-alert-setting-row">
-                <label className="om-alert-setting-label"><i className="pi pi-clock" style={{color: '#EF4444'}}></i>Immobilisé (jours)</label>
-                <input type="number" className="om-alert-setting-input" value={alertThresholds.immobilized}
-                  onChange={e => setAlertThresholds(t => ({...t, immobilized: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-immobilized" />
-              </div>
-              <div className="om-alert-setting-row">
-                <label className="om-alert-setting-label"><i className="pi pi-bolt" style={{color: '#F59E0B'}}></i>Batterie critique (%)</label>
-                <input type="number" className="om-alert-setting-input" value={alertThresholds.battery}
-                  onChange={e => setAlertThresholds(t => ({...t, battery: parseInt(e.target.value) || 1}))} min="1" max="100" data-testid="threshold-battery" />
-              </div>
-              <div className="om-alert-setting-row">
-                <label className="om-alert-setting-label"><i className="pi pi-ban" style={{color: '#8B5CF6'}}></i>Sous-utilisé (jours)</label>
-                <input type="number" className="om-alert-setting-input" value={alertThresholds.inactive}
-                  onChange={e => setAlertThresholds(t => ({...t, inactive: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-inactive" />
-              </div>
-              <div style={{display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8}}>
-                <button className="om-alert-setting-cancel" onClick={() => setShowAlertSettings(false)}>Annuler</button>
-                <button className="om-alert-setting-save" onClick={() => saveThresholds(alertThresholds)} data-testid="save-thresholds">
-                  <i className="pi pi-check" style={{fontSize: '0.7rem'}}></i> OK
-                </button>
-              </div>
+          {/* Etat Donut */}
+          <div className="dbn-card" data-testid="om-etat-chart">
+            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-chart-pie"></i>État des assets</h3></div>
+            <div className="dbn-chart-body">
+              {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" /> : analytics.etatData.length > 0 ? <Chart options={etatChartOptions} series={analytics.etatData.map(d => d.value)} type="donut" height={210} /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
-          )}
-
-          <div className="db-alert-grid" data-testid="om-alert-cards">
-            {[
-              {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j`},
-              {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
-              {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j`},
-              {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags off', count: alerts.inactiveTags.length, desc: 'Inactifs'},
-            ].map(a => (
-              <div key={a.key}
-                className={`db-alert-item ${selectedAlert === a.key ? 'db-alert-item--on' : ''} ${a.count > 0 ? 'db-alert-item--warn' : ''}`}
-                style={{'--ac': a.color}}
-                onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)}
-                data-testid={`alert-card-${a.key}`}
-              >
-                <div className="db-alert-ico" style={{background: `${a.color}14`, color: a.color}}><i className={a.icon}></i></div>
-                <div className="db-alert-num" style={{color: a.count > 0 ? a.color : '#94A3B8'}}>{a.count}</div>
-                <div className="db-alert-lbl">{a.label}</div>
-                <div className="db-alert-desc">{a.desc}</div>
-              </div>
-            ))}
           </div>
 
-          {selectedAlert && (
-            <div className="db-alert-list" data-testid="om-alert-detail">
-              <div className="db-alert-list-head">
-                <strong>{selectedAlert === 'immobilized' ? 'Matériel immobilisé' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Sous-utilisés' : 'Tags inactifs'}</strong>
-                <button className="db-close-sm" onClick={() => setSelectedAlert(null)}><i className="pi pi-times"></i></button>
-              </div>
-              <div className="db-alert-list-body">
-                {(alerts[selectedAlert] || []).length === 0 ? (
-                  <div className="db-empty-sm"><i className="pi pi-check-circle" style={{color: '#22C55E'}}></i>Aucune alerte</div>
-                ) : (alerts[selectedAlert] || []).map((item, i) => (
-                  <div key={i} className="db-alert-row">
-                    <span className="db-alert-row-name">{item.reference || item.label || item.name || 'Asset'}</span>
-                    <span className="db-alert-row-val">
-                      {selectedAlert === 'immobilized' && `${item._daysSince}j`}
-                      {selectedAlert === 'lowBattery' && `${item._batteryLevel}%`}
-                      {selectedAlert === 'underUtilized' && `${item._daysSince}j`}
-                      {selectedAlert === 'inactiveTags' && 'Off'}
-                    </span>
-                    <span className="db-alert-row-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
-                  </div>
-                ))}
-              </div>
+          {/* Status Bar */}
+          <div className="dbn-card" data-testid="om-status-chart">
+            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-chart-bar"></i>Distribution statuts</h3></div>
+            <div className="dbn-chart-body">
+              {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" style={{borderRadius: 8, height: 140}} /> : analytics.statusData.length > 0 ? <Chart options={statusBarOptions} series={[{name: 'Assets', data: analytics.statusData.map(d => d.value)}]} type="bar" height={Math.max(140, analytics.statusData.length * 34)} width="100%" /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
-          )}
+          </div>
 
-          {/* Battery Alerts Table (compact) */}
-          {!selectedAlert && analytics.batteryAlerts.length > 0 && (
-            <div className="db-bat-section" data-testid="om-alert-panel">
-              <div className="db-bat-head">
-                <span className="db-bat-label"><i className="pi pi-exclamation-triangle" style={{color: '#EF4444', fontSize: '0.7rem'}}></i> Attention requise</span>
-                <span className="db-badge db-badge--red">{analytics.batteryAlerts.length}</span>
-              </div>
-              <div className="db-bat-list" data-testid="om-alerts-table">
-                {analytics.batteryAlerts.slice(0, 5).map((item, i) => {
-                  const bat = parseInt(item.batteries, 10) || 0
-                  const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
-                  return (
-                    <div key={i} className="db-bat-row" data-testid={`alert-row-${i}`}>
-                      <span className="db-bat-name">{item.reference || item.label || '-'}</span>
-                      <div className="db-bat-bar-wrap">
-                        <div className="db-bat-bar"><div className="db-bat-fill" style={{width: `${Math.min(bat, 100)}%`, background: batColor}} /></div>
-                        <span style={{color: batColor, fontSize: '0.7rem', fontWeight: 700}}>{bat}%</span>
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
+          {/* Famille Donut */}
+          <div className="dbn-card" data-testid="om-famille-chart">
+            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-sitemap"></i>Familles</h3></div>
+            <div className="dbn-chart-body">
+              {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" /> : analytics.familleData.length > 0 ? <Chart options={familleChartOptions} series={analytics.familleData.map(d => d.value)} type="donut" height={210} /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
-          )}
-        </div>
-      </div>
-
-      {/* ── Bottom Charts Row (4 columns) ── */}
-      <div className="db-charts-row">
-        {/* Activity Feed */}
-        <div className="db-card" data-testid="om-activity-feed">
-          <div className="db-card-head">
-            <h3 className="db-card-title"><i className="pi pi-clock"></i>Activité</h3>
-            <span className="db-badge">{analytics.activityFeed.length}</span>
-          </div>
-          <div className="db-feed-body">
-            {isAnalyticsLoading ? (
-              [...Array(5)].map((_, i) => <div key={i} className="db-skel-row" style={{animationDelay: `${i * 0.08}s`}} />)
-            ) : analytics.activityFeed.length === 0 ? (
-              <div className="db-empty"><i className="pi pi-inbox"></i>Aucune activité</div>
-            ) : analytics.activityFeed.slice(0, 8).map((item, i) => {
-              const isExit = item.etatenginname === 'exit'
-              const isEntry = item.etatenginname === 'reception'
-              const etatColor = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
-              return (
-                <div key={i} className="db-feed-row" data-testid={`feed-item-${i}`}>
-                  <div className="db-feed-dot" style={{background: etatColor}} />
-                  <div className="db-feed-info">
-                    <span className="db-feed-name">{item.reference || item.label || item.name || `#${i+1}`}</span>
-                    <span className="db-feed-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-
-        {/* Etat Donut */}
-        <div className="db-card" data-testid="om-etat-chart">
-          <div className="db-card-head">
-            <h3 className="db-card-title"><i className="pi pi-chart-pie"></i>Répartition État</h3>
-          </div>
-          <div className="db-chart-body">
-            {isAnalyticsLoading ? <div className="db-skel-circle" /> : analytics.etatData.length > 0 ? (
-              <Chart options={etatChartOptions} series={analytics.etatData.map(d => d.value)} type="donut" height={200} />
-            ) : <div className="db-empty">Aucune donnée</div>}
-          </div>
-        </div>
-
-        {/* Status Bar */}
-        <div className="db-card" data-testid="om-status-chart">
-          <div className="db-card-head">
-            <h3 className="db-card-title"><i className="pi pi-chart-bar"></i>Statuts</h3>
-          </div>
-          <div className="db-chart-body">
-            {isAnalyticsLoading ? <div className="db-skel-circle" style={{borderRadius: 8, height: 140}} /> : analytics.statusData.length > 0 ? (
-              <Chart options={statusBarOptions} series={[{name: 'Assets', data: analytics.statusData.map(d => d.value)}]}
-                type="bar" height={Math.max(140, analytics.statusData.length * 34)} width="100%" />
-            ) : <div className="db-empty">Aucune donnée</div>}
-          </div>
-        </div>
-
-        {/* Famille Donut */}
-        <div className="db-card" data-testid="om-famille-chart">
-          <div className="db-card-head">
-            <h3 className="db-card-title"><i className="pi pi-sitemap"></i>Familles</h3>
-          </div>
-          <div className="db-chart-body">
-            {isAnalyticsLoading ? <div className="db-skel-circle" /> : analytics.familleData.length > 0 ? (
-              <Chart options={familleChartOptions} series={analytics.familleData.map(d => d.value)} type="donut" height={200} />
-            ) : <div className="db-empty">Aucune donnée</div>}
           </div>
         </div>
       </div>
@@ -693,335 +654,219 @@ const DashboardListCards = () => {
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
 
-/* ── Dashboard Container ── */
-.db {
-  padding: 16px 20px;
-  font-family: 'Inter', -apple-system, sans-serif;
-  background: #EEF1F5;
-  min-height: 100vh;
-}
+/* ── Base ── */
+.dbn { font-family: 'Inter', -apple-system, sans-serif; background: #F1F5F9; min-height: 100vh; }
 
-/* ── Top Bar ── */
-.db-topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 18px;
-  background: #FFF;
-  border-radius: 16px;
-  margin-bottom: 16px;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-  gap: 12px;
-  flex-wrap: wrap;
+/* ══════ TOP NAVIGATION ══════ */
+.dbn-nav { background: #FFF; border-bottom: 1px solid #E2E8F0; position: sticky; top: 0; z-index: 100; }
+.dbn-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 56px; max-width: 1600px; margin: 0 auto; }
+.dbn-nav-left { display: flex; align-items: center; gap: 28px; }
+.dbn-logo { height: 32px; object-fit: contain; }
+.dbn-nav-links { display: flex; align-items: center; gap: 2px; }
+.dbn-nav-link {
+  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px;
+  border: none; background: transparent; font-family: 'Inter', sans-serif; font-size: 0.82rem;
+  font-weight: 500; color: #64748B; cursor: pointer; transition: all 0.15s; white-space: nowrap;
 }
-.db-topbar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.db-logo-mark {
-  width: 34px; height: 34px; border-radius: 10px;
-  background: linear-gradient(135deg, #3B82F6, #2563EB);
-  display: flex; align-items: center; justify-content: center;
-  color: #FFF; font-size: 0.95rem;
+.dbn-nav-link i { font-size: 0.85rem; }
+.dbn-nav-link:hover { background: #F8FAFC; color: #0F172A; }
+.dbn-nav-link--on { background: #EFF6FF; color: #2563EB; font-weight: 700; }
+.dbn-nav-link--on i { color: #3B82F6; }
+.dbn-nav-right { display: flex; align-items: center; gap: 8px; }
+.dbn-nav-search {
+  display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px;
+  background: #F8FAFC; border: 1px solid #E2E8F0; color: #94A3B8;
 }
-.db-brand {
-  font-family: 'Manrope', sans-serif; font-size: 1.05rem; font-weight: 800;
-  color: #0F172A; letter-spacing: -0.02em;
+.dbn-nav-search i { font-size: 0.8rem; }
+.dbn-search-input {
+  border: none; background: transparent; outline: none; font-family: 'Inter', sans-serif;
+  font-size: 0.8rem; color: #0F172A; width: 140px;
 }
-.db-topbar-center { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; justify-content: center; }
-.db-pill {
-  padding: 5px 14px; border-radius: 8px; border: 1.5px solid #E2E8F0;
-  background: #FFF; font-family: 'Inter', sans-serif; font-size: 0.74rem;
-  font-weight: 600; color: #64748B; cursor: pointer; transition: all 0.15s;
-  white-space: nowrap;
+.dbn-search-input::placeholder { color: #94A3B8; }
+.dbn-nav-icon {
+  width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent;
+  color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 0.95rem; transition: all 0.12s;
 }
-.db-pill:hover { border-color: #CBD5E1; color: #475569; }
-.db-pill--on { background: #0F172A; color: #FFF; border-color: #0F172A; }
-.db-dates { display: flex; align-items: center; gap: 4px; }
-.db-date-input {
-  padding: 4px 8px; border-radius: 6px; border: 1.5px solid #E2E8F0;
-  font-size: 0.72rem; font-family: 'Inter', sans-serif; color: #0F172A;
+.dbn-nav-icon:hover { background: #F1F5F9; color: #0F172A; }
+.dbn-avatar {
+  width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #2563EB);
+  display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 0.82rem; cursor: pointer;
 }
-.db-date-sep { color: #94A3B8; font-size: 0.7rem; }
-.db-count-badge {
-  font-size: 0.68rem; font-weight: 700; color: #475569;
-  background: #F1F5F9; padding: 3px 8px; border-radius: 6px;
-}
-.db-topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
-.db-datetime { font-size: 0.72rem; color: #64748B; font-weight: 500; white-space: nowrap; }
-.db-refresh {
-  width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid #E2E8F0;
-  background: #FFF; display: flex; align-items: center; justify-content: center;
-  color: #64748B; cursor: pointer; transition: all 0.15s; font-size: 0.85rem;
-}
-.db-refresh:hover { border-color: #3B82F6; color: #3B82F6; background: #EFF6FF; }
+.dbn-hamburger { display: none; width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent; color: #475569; cursor: pointer; font-size: 1.1rem; align-items: center; justify-content: center; }
+.dbn-mobile-menu { display: none; }
 
-/* ── KPI Row ── */
-.db-kpi-row {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 14px; margin-bottom: 16px;
+/* ══════ CONTENT ══════ */
+.dbn-content { max-width: 1600px; margin: 0 auto; padding: 20px 28px 32px; }
+
+/* ══════ HERO ══════ */
+.dbn-hero { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
+.dbn-hero-title { font-family: 'Manrope', sans-serif; font-size: 1.5rem; font-weight: 800; color: #0F172A; margin: 0; letter-spacing: -0.02em; }
+.dbn-hero-sub { font-size: 0.82rem; color: #64748B; margin: 2px 0 0; }
+.dbn-hero-right { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dbn-filter-bar { display: flex; gap: 3px; background: #FFF; border-radius: 10px; padding: 3px; border: 1px solid #E2E8F0; }
+.dbn-filter {
+  padding: 6px 14px; border-radius: 7px; border: none; background: transparent;
+  font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600; color: #64748B;
+  cursor: pointer; transition: all 0.12s; display: flex; align-items: center; gap: 4px; white-space: nowrap;
 }
-.db-kpi {
-  background: #FFF; border-radius: 16px; padding: 18px 20px;
-  border: 1.5px solid transparent; cursor: pointer;
+.dbn-filter:hover { color: #475569; background: #F8FAFC; }
+.dbn-filter--on { background: #0F172A; color: #FFF; }
+.dbn-dates { display: flex; align-items: center; gap: 4px; }
+.dbn-dates input { padding: 5px 10px; border-radius: 7px; border: 1px solid #E2E8F0; font-size: 0.78rem; font-family: 'Inter', sans-serif; }
+.dbn-dates span { color: #94A3B8; font-size: 0.72rem; }
+.dbn-refresh {
+  display: flex; align-items: center; gap: 6px; padding: 7px 16px; border-radius: 8px;
+  border: 1px solid #E2E8F0; background: #FFF; font-family: 'Inter', sans-serif;
+  font-size: 0.78rem; font-weight: 600; color: #475569; cursor: pointer; transition: all 0.12s;
+}
+.dbn-refresh:hover { border-color: #3B82F6; color: #3B82F6; background: #EFF6FF; }
+
+/* ══════ KPI ROW ══════ */
+.dbn-kpi-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 20px; }
+.dbn-kpi {
+  background: #FFF; border-radius: 14px; padding: 20px; cursor: pointer;
   transition: all 0.2s; position: relative; overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  border: 1.5px solid transparent; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
-.db-kpi:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.07); transform: translateY(-1px); }
-.db-kpi--on { border-color: var(--kc); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
-.db-kpi--on::after {
-  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
-  height: 3px; background: var(--kc);
-}
-.db-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
-.db-kpi-title {
-  font-size: 0.72rem; font-weight: 600; color: #94A3B8;
-  text-transform: uppercase; letter-spacing: 0.04em;
-}
-.db-kpi-icon {
-  width: 36px; height: 36px; border-radius: 10px;
-  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
-}
-.db-kpi-num {
-  font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800;
-  color: #0F172A; line-height: 1; margin-bottom: 4px;
-}
-.db-kpi-sub { font-size: 0.72rem; color: #94A3B8; font-weight: 500; margin-bottom: 12px; }
-.db-kpi-track { height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
-.db-kpi-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-.db-kpi-pct {
-  position: absolute; top: 18px; right: 58px;
-  font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 5px;
-}
-.db-kpi-pct--up { background: #F0FDF4; color: #166534; }
-.db-kpi-pct--dn { background: #FEF2F2; color: #991B1B; }
-.db-kpi-spin { position: absolute; top: 14px; right: 14px; }
-.db-spin {
-  width: 16px; height: 16px; border: 2.5px solid #E2E8F0;
-  border-top-color: #3B82F6; border-radius: 50%;
-  animation: dbSpin 0.7s linear infinite;
-}
-@keyframes dbSpin { to { transform: rotate(360deg); } }
+.dbn-kpi:hover { box-shadow: 0 8px 24px rgba(0,0,0,0.07); transform: translateY(-2px); }
+.dbn-kpi--on { border-color: var(--kc); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.dbn-kpi-accent { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
+.dbn-kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.dbn-kpi-ico { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; }
+.dbn-kpi-trend { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: flex; align-items: center; gap: 2px; }
+.dbn-kpi-trend--up { background: #F0FDF4; color: #166534; }
+.dbn-kpi-trend--dn { background: #FEF2F2; color: #991B1B; }
+.dbn-kpi-val { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; color: #0F172A; line-height: 1; }
+.dbn-kpi-label { font-size: 0.78rem; color: #64748B; font-weight: 500; margin: 6px 0 14px; }
+.dbn-kpi-bar { height: 5px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
+.dbn-kpi-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+.dbn-kpi-spin { position: absolute; top: 16px; right: 16px; }
+.dbn-spin { width: 16px; height: 16px; border: 2.5px solid #E2E8F0; border-top-color: #3B82F6; border-radius: 50%; animation: dbnSpin 0.7s linear infinite; }
+@keyframes dbnSpin { to { transform: rotate(360deg); } }
 
 /* ── KPI Skeleton ── */
-.db-kpi--skel { display: flex; flex-direction: column; gap: 10px; cursor: default; }
-.db-skel-block {
-  border-radius: 6px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
-}
-.db-skel-block--title { height: 10px; width: 60%; }
-.db-skel-block--num { height: 28px; width: 45%; }
-.db-skel-block--label { height: 10px; width: 80%; }
-.db-skel-block--bar { height: 6px; width: 100%; border-radius: 3px; }
-@keyframes dbShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+.dbn-kpi--skel { display: flex; flex-direction: column; gap: 10px; cursor: default; }
+.dbn-skel { border-radius: 6px; background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%); background-size: 200% 100%; animation: dbnShim 1.5s infinite; }
+.dbn-skel--sm { height: 10px; width: 50%; }
+.dbn-skel--md { height: 10px; width: 80%; }
+.dbn-skel--lg { height: 28px; width: 45%; }
+.dbn-skel--bar { height: 5px; width: 100%; border-radius: 3px; }
+.dbn-skel--row { height: 32px; border-radius: 8px; }
+.dbn-skel--fill { width: 100%; height: 100%; }
+.dbn-skel--circle { width: 140px; height: 140px; border-radius: 50%; margin: 20px auto; }
+@keyframes dbnShim { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-/* ── Detail Panel ── */
-.db-detail {
-  background: #FFF; border-radius: 16px; border: 1.5px solid #E2E8F0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;
-  animation: dbSlide 0.25s ease; margin-bottom: 16px;
-}
-@keyframes dbSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
-.db-detail-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px; border-bottom: 1px solid #F1F5F9;
-}
-.db-detail-title {
-  font-family: 'Manrope', sans-serif; font-size: 0.92rem; font-weight: 800;
-  color: #0F172A; margin: 0; display: flex; align-items: center; gap: 8px;
-}
-.db-detail-title i { opacity: 0.4; font-size: 0.85rem; }
-.db-detail-close {
-  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0;
-  background: #FAFBFC; display: flex; align-items: center; justify-content: center;
-  color: #64748B; cursor: pointer; font-size: 0.75rem; transition: all 0.12s;
-}
-.db-detail-close:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
-.db-detail-body { padding: 4px; }
-.db-detail-skel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.db-skel-row {
-  height: 32px; border-radius: 8px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
-}
+/* ══════ DETAIL PANEL ══════ */
+.dbn-detail { background: #FFF; border-radius: 14px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); overflow: hidden; animation: dbnSlide 0.25s ease; margin-bottom: 20px; }
+@keyframes dbnSlide { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+.dbn-detail-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #F1F5F9; }
+.dbn-detail-title { font-family: 'Manrope', sans-serif; font-size: 0.95rem; font-weight: 800; color: #0F172A; margin: 0; display: flex; align-items: center; gap: 8px; }
+.dbn-detail-title i { opacity: 0.4; font-size: 0.82rem; }
+.dbn-close { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #E2E8F0; background: #FAFBFC; display: flex; align-items: center; justify-content: center; color: #64748B; cursor: pointer; font-size: 0.75rem; }
+.dbn-close:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
 
-/* ── Main Split ── */
-.db-split {
-  display: grid; grid-template-columns: 55fr 45fr;
-  gap: 14px; margin-bottom: 16px;
-}
+/* ══════ MAIN GRID ══════ */
+.dbn-grid-main { display: grid; grid-template-columns: 60fr 40fr; gap: 16px; margin-bottom: 20px; }
 
-/* ── Card (generic) ── */
-.db-card {
-  background: #FFF; border-radius: 16px; overflow: hidden;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-.db-card-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 18px; border-bottom: 1px solid #F1F5F9;
-}
-.db-card-title {
-  font-family: 'Manrope', sans-serif; font-size: 0.82rem; font-weight: 800;
-  color: #0F172A; margin: 0; display: flex; align-items: center; gap: 7px;
-}
-.db-card-title i { font-size: 0.85rem; color: #64748B; }
-.db-badge {
-  padding: 2px 9px; border-radius: 6px; font-size: 0.68rem; font-weight: 700;
-  background: #F1F5F9; color: #475569;
-}
-.db-badge--red { background: #FEF2F2; color: #DC2626; }
+/* ══════ CARD ══════ */
+.dbn-card { background: #FFF; border-radius: 14px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); overflow: hidden; }
+.dbn-card-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #F1F5F9; }
+.dbn-card-title { font-family: 'Manrope', sans-serif; font-size: 0.85rem; font-weight: 800; color: #0F172A; margin: 0; display: flex; align-items: center; gap: 7px; }
+.dbn-card-title i { font-size: 0.88rem; color: #64748B; }
+.dbn-badge { padding: 2px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: #F1F5F9; color: #475569; }
+.dbn-badge--red { background: #FEF2F2; color: #DC2626; }
 
-/* ── Map Card ── */
-.db-map-body { height: 380px; position: relative; }
-.db-map-body .leaflet-container { border-radius: 0 0 16px 16px; }
+/* Map */
+.dbn-card--map { min-height: 400px; }
+.dbn-map-wrap { height: 400px; position: relative; }
+.dbn-map-wrap .leaflet-container { border-radius: 0 0 14px 14px; }
 
-/* ── Alert Center Card ── */
-.db-alert-card { display: flex; flex-direction: column; }
-.db-alert-head-left { display: flex; align-items: center; gap: 10px; }
-.db-bell {
-  width: 34px; height: 34px; border-radius: 9px;
-  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
-  display: flex; align-items: center; justify-content: center;
-  color: #D97706; font-size: 0.95rem; position: relative;
-}
-.db-bell-badge {
-  position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px;
-  border-radius: 8px; background: #EF4444; color: #FFF; font-size: 0.55rem;
-  font-weight: 800; display: flex; align-items: center; justify-content: center;
-  padding: 0 3px; border: 2px solid #FFF;
-}
-.db-settings-btn {
-  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0;
-  background: #FFF; display: flex; align-items: center; justify-content: center;
-  color: #94A3B8; cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
-}
-.db-settings-btn:hover { border-color: #CBD5E1; color: #475569; }
+/* Bell */
+.dbn-bell { width: 34px; height: 34px; border-radius: 9px; background: linear-gradient(135deg, #FEF3C7, #FDE68A); display: flex; align-items: center; justify-content: center; color: #D97706; font-size: 0.95rem; position: relative; }
+.dbn-bell-dot { position: absolute; top: -3px; right: -3px; min-width: 16px; height: 16px; border-radius: 8px; background: #EF4444; color: #FFF; font-size: 0.5rem; font-weight: 800; display: flex; align-items: center; justify-content: center; padding: 0 3px; border: 2px solid #FFF; }
+.dbn-icon-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid #E2E8F0; background: #FFF; display: flex; align-items: center; justify-content: center; color: #94A3B8; cursor: pointer; font-size: 0.8rem; }
+.dbn-icon-btn:hover { border-color: #CBD5E1; color: #475569; }
 
-.db-alert-grid {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
-  border-bottom: 1px solid #F1F5F9;
-}
-.db-alert-item {
-  display: flex; flex-direction: column; align-items: center; gap: 4px;
-  padding: 14px 8px; cursor: pointer; transition: all 0.15s;
-  border-right: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9;
-  text-align: center;
-}
-.db-alert-item:nth-child(2n) { border-right: none; }
-.db-alert-item:nth-child(n+3) { border-bottom: none; }
-.db-alert-item:hover { background: #FAFBFC; }
-.db-alert-item--on { background: #F8FAFC; }
-.db-alert-item--on::after {
-  content: ''; display: block; width: 24px; height: 2.5px;
-  border-radius: 2px; background: var(--ac); margin-top: 2px;
-}
-.db-alert-ico {
-  width: 32px; height: 32px; border-radius: 8px;
-  display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
-}
-.db-alert-num { font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
-.db-alert-lbl { font-size: 0.7rem; font-weight: 700; color: #0F172A; }
-.db-alert-desc { font-size: 0.6rem; color: #94A3B8; }
-.db-alert-item--warn .db-alert-ico { animation: dbPulse 2.5s infinite; }
-@keyframes dbPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+/* Alert Grid */
+.dbn-alert-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border-bottom: 1px solid #F1F5F9; }
+.dbn-alert-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 8px; cursor: pointer; transition: all 0.12s; border-right: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9; text-align: center; }
+.dbn-alert-item:nth-child(2n) { border-right: none; }
+.dbn-alert-item:nth-child(n+3) { border-bottom: none; }
+.dbn-alert-item:hover { background: #FAFBFC; }
+.dbn-alert-item--on { background: #F8FAFC; }
+.dbn-alert-item--on::after { content: ''; display: block; width: 24px; height: 2.5px; border-radius: 2px; background: var(--ac); margin-top: 2px; }
+.dbn-alert-ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
+.dbn-alert-num { font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
+.dbn-alert-lbl { font-size: 0.7rem; font-weight: 700; color: #0F172A; }
+.dbn-alert-desc { font-size: 0.6rem; color: #94A3B8; }
+.dbn-alert-item--warn .dbn-alert-ico { animation: dbnPulse 2.5s infinite; }
+@keyframes dbnPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
-/* Alert Detail List */
-.db-alert-list { animation: dbSlide 0.2s ease; }
-.db-alert-list-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9;
-  font-size: 0.8rem; color: #0F172A;
-}
-.db-close-sm {
-  width: 24px; height: 24px; border-radius: 6px; border: 1px solid #E2E8F0;
-  background: #FFF; display: flex; align-items: center; justify-content: center;
-  cursor: pointer; font-size: 0.65rem; color: #94A3B8;
-}
-.db-alert-list-body { max-height: 200px; overflow-y: auto; }
-.db-alert-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 16px; border-bottom: 1px solid #FAFBFC; font-size: 0.75rem;
-  transition: background 0.1s;
-}
-.db-alert-row:hover { background: #FAFBFC; }
-.db-alert-row-name { font-weight: 700; color: #0F172A; min-width: 100px; }
-.db-alert-row-val {
-  font-weight: 700; color: #EF4444; padding: 2px 8px;
-  background: #FEF2F2; border-radius: 4px; font-size: 0.68rem;
-}
-.db-alert-row-loc { color: #94A3B8; font-size: 0.68rem; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Alert List */
+.dbn-alert-list { animation: dbnSlide 0.2s ease; }
+.dbn-alert-list-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9; font-size: 0.8rem; }
+.dbn-close-sm { width: 24px; height: 24px; border-radius: 6px; border: 1px solid #E2E8F0; background: #FFF; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.65rem; color: #94A3B8; }
+.dbn-alert-list-body { max-height: 200px; overflow-y: auto; }
+.dbn-alert-row { display: flex; align-items: center; gap: 10px; padding: 8px 16px; border-bottom: 1px solid #FAFBFC; font-size: 0.75rem; }
+.dbn-alert-row:hover { background: #FAFBFC; }
+.dbn-alert-row-name { font-weight: 700; color: #0F172A; min-width: 100px; }
+.dbn-alert-row-val { font-weight: 700; color: #EF4444; padding: 2px 8px; background: #FEF2F2; border-radius: 4px; font-size: 0.68rem; }
+.dbn-alert-row-loc { color: #94A3B8; font-size: 0.68rem; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbn-empty-sm { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 20px; font-size: 0.8rem; color: #94A3B8; }
 
-.db-empty-sm {
-  display: flex; align-items: center; gap: 6px; justify-content: center;
-  padding: 20px; font-size: 0.8rem; color: #94A3B8;
-}
+/* Battery */
+.dbn-bat-section { border-top: 1px solid #F1F5F9; }
+.dbn-bat-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; font-size: 0.72rem; }
+.dbn-bat-label { display: flex; align-items: center; gap: 5px; font-weight: 700; color: #475569; }
+.dbn-bat-list { padding: 0 16px 10px; }
+.dbn-bat-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; font-size: 0.75rem; }
+.dbn-bat-name { font-weight: 600; color: #0F172A; min-width: 80px; }
+.dbn-bat-bar-w { display: flex; align-items: center; gap: 6px; flex: 1; }
+.dbn-bat-bar { flex: 1; height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
 
-/* Battery section */
-.db-bat-section { border-top: 1px solid #F1F5F9; }
-.db-bat-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 8px 16px; font-size: 0.72rem;
-}
-.db-bat-label { display: flex; align-items: center; gap: 5px; font-weight: 700; color: #475569; }
-.db-bat-list { padding: 0 16px 10px; }
-.db-bat-row {
-  display: flex; align-items: center; gap: 10px; padding: 5px 0;
-  font-size: 0.75rem;
-}
-.db-bat-name { font-weight: 600; color: #0F172A; min-width: 80px; }
-.db-bat-bar-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
-.db-bat-bar { flex: 1; height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
-.db-bat-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+/* ══════ ANALYTICS ROW ══════ */
+.dbn-grid-analytics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.dbn-chart-body { padding: 12px 16px; display: flex; align-items: center; justify-content: center; min-height: 210px; }
+.dbn-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 30px; color: #94A3B8; font-size: 0.78rem; }
+.dbn-empty i { font-size: 1.3rem; }
 
-/* ── Bottom Charts Row ── */
-.db-charts-row {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-.db-chart-body { padding: 10px 14px; display: flex; align-items: center; justify-content: center; min-height: 200px; }
-.db-skel-circle {
-  width: 140px; height: 140px; border-radius: 50%;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
-}
-.db-skel-fill {
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
-}
-.db-empty {
-  display: flex; flex-direction: column; align-items: center; gap: 6px;
-  padding: 30px; color: #94A3B8; font-size: 0.78rem;
-}
-.db-empty i { font-size: 1.3rem; }
+/* Feed */
+.dbn-feed { padding: 6px 0; max-height: 380px; overflow-y: auto; }
+.dbn-feed-row { display: flex; align-items: center; gap: 10px; padding: 9px 18px; transition: background 0.1s; }
+.dbn-feed-row:hover { background: #F8FAFC; }
+.dbn-feed-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(0,0,0,0.04); }
+.dbn-feed-info { flex: 1; min-width: 0; }
+.dbn-feed-name { display: block; font-weight: 700; font-size: 0.78rem; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbn-feed-loc { display: block; font-size: 0.68rem; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-/* ── Activity Feed ── */
-.db-feed-body { padding: 6px 0; max-height: 350px; overflow-y: auto; }
-.db-feed-row {
-  display: flex; align-items: center; gap: 10px;
-  padding: 8px 18px; transition: background 0.1s; cursor: default;
-}
-.db-feed-row:hover { background: #F8FAFC; }
-.db-feed-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
-}
-.db-feed-info { flex: 1; min-width: 0; }
-.db-feed-name { display: block; font-weight: 700; font-size: 0.76rem; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.db-feed-loc { display: block; font-size: 0.66rem; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ── Responsive ── */
+/* ══════ RESPONSIVE ══════ */
 @media (max-width: 1200px) {
-  .db-charts-row { grid-template-columns: repeat(2, 1fr); }
+  .dbn-grid-analytics { grid-template-columns: repeat(2, 1fr); }
+  .dbn-nav-search { display: none; }
 }
 @media (max-width: 900px) {
-  .db-split { grid-template-columns: 1fr; }
-  .db-kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .dbn-grid-main { grid-template-columns: 1fr; }
+  .dbn-kpi-row { grid-template-columns: repeat(2, 1fr); }
+  .dbn-nav-links { display: none; }
+  .dbn-hamburger { display: flex; }
+  .dbn-mobile-menu {
+    display: flex; flex-direction: column; padding: 8px 16px 12px; border-top: 1px solid #E2E8F0;
+    background: #FFF; gap: 2px;
+  }
+  .dbn-mobile-link {
+    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px;
+    border: none; background: transparent; font-size: 0.85rem; font-weight: 500; color: #475569;
+    cursor: pointer; width: 100%; text-align: left;
+  }
+  .dbn-mobile-link:hover { background: #F8FAFC; }
+  .dbn-mobile-link--on { background: #EFF6FF; color: #2563EB; font-weight: 700; }
 }
 @media (max-width: 600px) {
-  .db { padding: 10px 12px; }
-  .db-topbar { flex-direction: column; align-items: stretch; }
-  .db-topbar-center { justify-content: flex-start; }
-  .db-kpi-row { grid-template-columns: 1fr 1fr; }
-  .db-charts-row { grid-template-columns: 1fr; }
+  .dbn-content { padding: 12px 14px 24px; }
+  .dbn-hero { flex-direction: column; align-items: stretch; }
+  .dbn-kpi-row { grid-template-columns: 1fr 1fr; }
+  .dbn-grid-analytics { grid-template-columns: 1fr; }
 }
 `
 
