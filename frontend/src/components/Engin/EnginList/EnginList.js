@@ -1609,8 +1609,8 @@ const EnginList = () => {
                     <div className="lt-vcard-img">
                       <Image
                         src={`${API_BASE_URL_IMAGE}${item.image}`}
-                        alt={item.reference || ''} width="72" height="72" preview
-                        imageStyle={{objectFit: 'cover', width: 72, height: 72}}
+                        alt={item.reference || ''} width="48" height="48" preview
+                        imageStyle={{objectFit: 'cover', width: 48, height: 48}}
                       />
                     </div>
                   ) : (
