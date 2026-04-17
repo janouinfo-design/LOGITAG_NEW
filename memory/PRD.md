@@ -74,6 +74,17 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
   - Testé sur Engins, Tags, Utilisateurs
 - [x] **Tests** : 100% (iteration_51.json)
 
+### Phase 12 - Modale de Consultation Rapide (Completed - 17 Avril 2026)
+- [x] **4ème bouton "Consulter"** (crayon orange #F59E0B) ajouté sur chaque ligne de tableau
+  - Ouvre une modale centrée PrimeReact Dialog en lecture seule
+  - 3 onglets dynamiques : Identité, État & Tags, Localisation (avec compteurs)
+  - Header personnalisé : icône orange, nom de l'entité, "Consultation rapide"
+  - Champs auto-classifiés par catégorie (IDENTITY_FIELDS, STATUS_FIELDS, LOCATION_FIELDS)
+  - Rendu spécial : barres de batterie colorées, badges d'état, badges de statut
+  - Bouton oeil bleu conserve la navigation vers la page détail complète
+- [x] Appliqué à toutes les entités via le composant partagé DataTableComponent
+- [x] **Tests** : 100% sur Engins et Tags (iteration_52.json)
+
 ## Backlog
 
 ### P2 (Moyenne priorité)
