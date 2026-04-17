@@ -2372,11 +2372,36 @@
 
 /* App header bar - make it minimal */
 #kt_app_header.app-header {
-  background: #FAFBFC !important;
+  background: #FFF !important;
   border-bottom: 1px solid #E8ECF0 !important;
   box-shadow: none !important;
-  min-height: 50px !important;
-  height: 50px !important;
+  min-height: 44px !important;
+  height: 44px !important;
+}
+
+/* Crush all Metronic empty spaces */
+:root {
+  --bs-app-header-height: 44px !important;
+}
+
+#kt_app_toolbar {
+  display: none !important;
+}
+
+.app-toolbar {
+  display: none !important;
+}
+
+#kt_app_content {
+  padding-top: 0 !important;
+}
+
+.app-content {
+  padding: 0 !important;
+}
+
+.app-main {
+  padding-top: 0 !important;
 }
 
 /* Footer minimal */
