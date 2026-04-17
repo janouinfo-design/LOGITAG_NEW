@@ -1,0 +1,112 @@
+{
+  "summary": "Frontend testing for SplitButton dropdown replacement with inline action buttons in DataTableComponent. All tests PASSED. The new design shows 3 icon buttons (eye blue for Detail, comment green for Chat, trash red for Supprimer) instead of the old dropdown menu. Verified on Engins, Tags, and Utilisateurs pages.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "External API (omniyat.is-certified.com)", "issue": "Occasional 500 errors and WebSocket connection failures - external dependency, not a code issue"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "DataTableComponent", "issues": ["React warning: 'class' should be 'className' in div element (line 805 in DataTableComponent.jsx)", "React warning: 'sortable' prop on non-boolean attribute"]}
+    ]
+  },
+  "test_results": {
+    "login_flow": {
+      "credentials": "admin / user@1234",
+      "result": "PASS - Login successful, redirected to /tagdashboard/index"
+    },
+    "engins_page": {
+      "url": "/view/engin/index",
+      "grid_view": "PASS - Page loads with grid/vignette view showing asset cards",
+      "table_view_toggle": "PASS - Clicking list icon switches to TABLE view",
+      "table_view": {
+        "dataTableFound": true,
+        "rowCount": 10,
+        "rowActionsFound": true,
+        "actionButtonsCount": 30,
+        "eyeIconFound": true,
+        "commentIconFound": true,
+        "trashIconFound": true,
+        "splitButtonFound": false
+      },
+      "action_button_details": [
+        {"index": 0, "title": "Detail", "iconClass": "pi pi-eye", "testId": "row-action-detail"},
+        {"index": 1, "title": "Chat", "iconClass": "pi pi-comment", "testId": "row-action-chat"},
+        {"index": 2, "title": "Supprimer", "iconClass": "pi pi-trash", "testId": "row-action-supprimer"}
+      ],
+      "detail_button_click": "PASS - Opens EnginDetail view with form fields and map",
+      "old_splitbutton_gone": "PASS - No .p-splitbutton elements found"
+    },
+    "tags_page": {
+      "url": "/tag/index",
+      "table_view": {
+        "dataTableFound": true,
+        "rowCount": 10,
+        "rowActionsFound": true,
+        "actionButtonsCount": 20,
+        "eyeIconFound": true,
+        "commentIconFound": false,
+        "trashIconFound": true,
+        "splitButtonFound": false
+      },
+      "note": "Tags page has 2 action buttons per row (Detail, Supprimer) - no Chat action"
+    },
+    "utilisateurs_page": {
+      "url": "/view/staff/index",
+      "table_view": {
+        "dataTableFound": true,
+        "rowCount": 10,
+        "rowActionsFound": true,
+        "actionButtonsCount": 30,
+        "splitButtonFound": false
+      },
+      "note": "Utilisateurs page has 3 action buttons per row"
+    },
+    "css_styling": {
+      "lt_row_actions_class": "PASS - .lt-row-actions container with flex layout and gap: 6px",
+      "lt_row_action_btn_class": "PASS - .lt-row-action-btn with 32x32px, border-radius: 8px, CSS variables for colors",
+      "icon_colors": {
+        "detail_eye": "blue (#3B82F6) with light blue background (#EFF6FF)",
+        "chat_comment": "green (#10B981) with light green background (#F0FDF4)",
+        "supprimer_trash": "red (#EF4444) with light red background (#FEF2F2)"
+      },
+      "hover_effects": "PASS - Scale 1.08 and box-shadow on hover"
+    },
+    "no_react_errors": {
+      "result": "PASS - No critical React errors, only minor warnings (key props in PrivateRoutes, SidebarMenuMain, ChatMessage)"
+    }
+  },
+  "code_review_verification": {
+    "DataTableComponent.jsx": {
+      "actionTemplate_function": "Lines 490-528: Replaced SplitButton with inline icon buttons",
+      "iconMap": "Lines 500-504: Maps action labels to icons and colors (Detail=pi-eye blue, Chat=pi-comment green, Supprimer=pi-trash red)",
+      "lt_row_actions_container": "Line 507: div with class 'lt-row-actions' and data-testid='row-actions'",
+      "button_rendering": "Lines 508-524: Maps actions to buttons with CSS variables --ra-color and --ra-bg",
+      "data_testids": "PASS - data-testid='row-action-{label.toLowerCase()}' for each button"
+    },
+    "logitag-saas.css": {
+      "lt_row_actions_styles": "Lines 2725-2731: Flex container with gap: 6px, centered alignment",
+      "lt_row_action_btn_styles": "Lines 2733-2757: 32x32px buttons with CSS variable colors, hover effects",
+      "splitbutton_hidden": "Lines 2759-2762: .p-splitbutton.p-component { display: none !important; }"
+    }
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Line 805 in DataTableComponent.jsx uses 'class' instead of 'className' - should be fixed for React best practices",
+    "React key warnings in PrivateRoutes, SidebarMenuMain, ChatMessage, DatatableComponent - minor, non-blocking"
+  ],
+  "updated_files": [],
+  "success_rate": {
+    "backend": "N/A (frontend only testing)",
+    "frontend": "100%"
+  },
+  "test_credentials": "admin / user@1234",
+  "seed_data_creation": "",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "SplitButton dropdown replacement with inline action buttons tested and working. DataTableComponent.jsx actionTemplate function (lines 490-528) now renders 3 icon buttons instead of SplitButton dropdown. Icons: pi-eye (blue) for Detail, pi-comment (green) for Chat, pi-trash (red) for Supprimer. CSS styles in logitag-saas.css (lines 2725-2762) with .lt-row-actions and .lt-row-action-btn classes. Old SplitButton is hidden via CSS. Tested on Engins (/view/engin/index), Tags (/tag/index), and Utilisateurs (/view/staff/index) pages. All pages show inline action buttons in TABLE view. Detail button click opens detail view correctly. External API (Omniyat) has slow response times (5-15s) and occasional 500 errors."
+}

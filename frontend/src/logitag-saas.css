@@ -2720,3 +2720,293 @@
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+
+/* ══════ ROW ACTION BUTTONS (Replaces SplitButton dropdown) ══════ */
+.lt-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}
+
+.lt-row-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  border: 1.5px solid transparent;
+  background: var(--ra-bg, #F8FAFC);
+  color: var(--ra-color, #64748B);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 0.82rem;
+}
+
+.lt-row-action-btn:hover {
+  border-color: var(--ra-color, #64748B);
+  background: var(--ra-bg, #F8FAFC);
+  transform: scale(1.08);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+
+.lt-row-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Hide the old SplitButton action menu styling */
+.p-splitbutton.p-component {
+  display: none !important;
+}
+
+/* ══════ ENTITY EDIT MODAL (PrimeReact Dialog override) ══════ */
+.lt-entity-dialog .p-dialog {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+  border: none !important;
+  max-height: 90vh;
+}
+
+.lt-entity-dialog .p-dialog-header {
+  padding: 20px 24px 16px !important;
+  border-bottom: 1px solid #E8ECF0 !important;
+  background: #FFF !important;
+}
+
+.lt-entity-dialog .p-dialog-title {
+  font-family: var(--lt-font-heading) !important;
+  font-size: 1.15rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+}
+
+.lt-entity-dialog .p-dialog-header-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  color: #94A3B8 !important;
+}
+
+.lt-entity-dialog .p-dialog-header-icon:hover {
+  background: #FEF2F2 !important;
+  color: #EF4444 !important;
+}
+
+.lt-entity-dialog .p-dialog-content {
+  padding: 0 !important;
+  background: #FFF !important;
+}
+
+.lt-entity-dialog .p-dialog-footer {
+  padding: 16px 24px !important;
+  border-top: 1px solid #E8ECF0 !important;
+  background: #FFF !important;
+}
+
+/* ── Modal Tabs ── */
+.lt-modal-tabs {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 24px;
+  border-bottom: 1.5px solid #E8ECF0;
+  background: #FFF;
+}
+
+.lt-modal-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 18px;
+  font-family: var(--lt-font);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #94A3B8;
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.lt-modal-tab:hover {
+  color: #475569;
+}
+
+.lt-modal-tab--active {
+  color: #3B82F6;
+  border-bottom-color: #3B82F6;
+}
+
+.lt-modal-tab i {
+  font-size: 0.85rem;
+}
+
+/* ── Modal Form ── */
+.lt-modal-form {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.lt-modal-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.lt-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.lt-modal-field--full {
+  grid-column: 1 / -1;
+}
+
+.lt-modal-label {
+  font-family: var(--lt-font);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0F172A;
+}
+
+.lt-modal-label .lt-required {
+  color: #EF4444;
+  margin-left: 2px;
+}
+
+.lt-modal-input {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1.5px solid #E2E8F0;
+  background: #F8FAFC;
+  font-family: var(--lt-font);
+  font-size: 0.85rem;
+  color: #0F172A;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.lt-modal-input:focus {
+  border-color: #3B82F6;
+  background: #FFF;
+  box-shadow: 0 0 0 3px rgba(59,130,246,0.08);
+}
+
+.lt-modal-input:read-only {
+  background: #F1F5F9;
+  color: #64748B;
+  cursor: default;
+}
+
+/* ── Chip Selectors (Role, Status, etc.) ── */
+.lt-modal-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.lt-modal-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1.5px solid #E2E8F0;
+  background: #FFF;
+  font-family: var(--lt-font);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lt-modal-chip:hover {
+  border-color: #CBD5E1;
+  background: #F8FAFC;
+}
+
+.lt-modal-chip--active {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  color: #2563EB;
+}
+
+.lt-modal-chip--purple {
+  background: #F3E8FF;
+  border-color: #8B5CF6;
+  color: #7C3AED;
+}
+
+.lt-modal-chip i {
+  font-size: 0.75rem;
+}
+
+/* ── Modal Action Buttons ── */
+.lt-modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.lt-modal-btn-cancel {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: none;
+  background: transparent;
+  font-family: var(--lt-font);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #64748B;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lt-modal-btn-cancel:hover {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.lt-modal-btn-save {
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: none;
+  background: #3B82F6;
+  color: #FFF;
+  font-family: var(--lt-font);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.lt-modal-btn-save:hover {
+  background: #2563EB;
+}
+
+/* ── Section headers inside modal ── */
+.lt-modal-section {
+  font-family: var(--lt-font);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #0F172A;
+  margin: 4px 0 0;
+}
+
+/* ── Badge inside modal fields ── */
+.lt-modal-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}

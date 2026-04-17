@@ -496,34 +496,33 @@ export const DatatableComponent = ({
           typeof a.visible != 'function' ||
           (typeof a.visible == 'function' && a.visible(rowData, a) === true)
       )
+
+    const iconMap = {
+      'Detail': {icon: 'pi pi-eye', color: '#3B82F6', bg: '#EFF6FF'},
+      'Chat': {icon: 'pi pi-comment', color: '#10B981', bg: '#F0FDF4'},
+      'Supprimer': {icon: 'pi pi-trash', color: '#EF4444', bg: '#FEF2F2'},
+    }
+
     return (
-      <div>
-        {/* <SplitButton
-          model={_actions}
-          className='action-split-button  p-button-raised'
-          menuButtonProps={{
-            style: {width: '50px', height: '50px'},
-            severity: 'primary',
-            icon: rowActionIcon || 'pi pi-cog',
-            className: 'border-round-sm',
-          }}
-          buttonClassName='hidden'
-          label={<OlangItem olang='Actions' />}
-        /> */}
-        <SplitButton
-          label={<OlangItem olang='Details' />}
-          icon='pi pi-cog'
-          model={_actions}
-          // severity='secondary'
-          menuButtonProps={{
-            icon: rowActionIcon || 'pi pi-chevron-down',
-            className:
-              'border-none bg-transparent hover:bg-gray-100 text-gray-800 hover:text-blue-900',
-          }}
-          rounded
-          buttonClassName='hidden'
-          onClick={() => splitAction(rowData)}
-        />
+      <div className="lt-row-actions" data-testid="row-actions">
+        {_actions.map((action, idx) => {
+          const mapped = iconMap[action.label] || {icon: 'pi pi-cog', color: '#64748B', bg: '#F8FAFC'}
+          return (
+            <button
+              key={idx}
+              className="lt-row-action-btn"
+              title={action.label}
+              onClick={(e) => {
+                e.stopPropagation()
+                if (action.command) action.command({item: action, originalEvent: e})
+              }}
+              style={{'--ra-color': mapped.color, '--ra-bg': mapped.bg}}
+              data-testid={`row-action-${(action.label || '').toLowerCase()}`}
+            >
+              <i className={mapped.icon}></i>
+            </button>
+          )
+        })}
       </div>
     )
   }
@@ -803,7 +802,7 @@ export const DatatableComponent = ({
   }, [rowActions, currentLang, langs])
 
   return (
-    <div class='shadow-3'>
+    <div className='shadow-3'>
       {/** Menu contextuel */}
       <ContextMenu
         model={
