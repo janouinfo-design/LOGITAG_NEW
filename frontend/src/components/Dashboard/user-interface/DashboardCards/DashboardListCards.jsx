@@ -371,212 +371,65 @@ const DashboardListCards = () => {
   }, [filteredDetailData])
 
   return (
-    <div className="om-container" data-testid="operations-monitor">
+    <div className="db" data-testid="operations-monitor">
       <style>{STYLES}</style>
 
-      {/* ── Header ── */}
-      <header className="om-header" data-testid="om-header">
-        <div className="om-header-left">
-          <div className="om-header-icon">
+      {/* ── Compact Header ── */}
+      <header className="db-topbar" data-testid="om-header">
+        <div className="db-topbar-left">
+          <div className="db-logo-mark">
             <i className="pi pi-th-large"></i>
           </div>
-          <div>
-            <h1 className="om-title">Operations Monitor</h1>
-            <p className="om-subtitle">
-              {now.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'})}
-              {' — '}
-              {now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
-            </p>
-          </div>
+          <span className="db-brand">IoT Asset Tracking</span>
         </div>
-        <div className="om-header-actions">
-          <button className="om-refresh-btn" onClick={handleRefresh} data-testid="om-refresh">
+        <div className="db-topbar-center" data-testid="om-period-filter">
+          {[
+            {key: 'all', label: 'Tout'},
+            {key: 'today', label: "Aujourd'hui"},
+            {key: '7d', label: '7j'},
+            {key: '30d', label: '30j'},
+            {key: 'custom', label: 'Dates'},
+          ].map(p => (
+            <button key={p.key}
+              className={`db-pill ${periodFilter === p.key ? 'db-pill--on' : ''}`}
+              onClick={() => setPeriodFilter(p.key)}
+              data-testid={`filter-${p.key}`}
+            >{p.label}</button>
+          ))}
+          {periodFilter === 'custom' && (
+            <div className="db-dates" data-testid="custom-range">
+              <input type="date" className="db-date-input" value={customRange.from}
+                onChange={e => setCustomRange(r => ({...r, from: e.target.value}))} data-testid="filter-date-from" />
+              <span className="db-date-sep">-</span>
+              <input type="date" className="db-date-input" value={customRange.to}
+                onChange={e => setCustomRange(r => ({...r, to: e.target.value}))} data-testid="filter-date-to" />
+            </div>
+          )}
+          {periodFilter !== 'all' && filteredDetailData.length > 0 && (
+            <span className="db-count-badge"><strong>{filteredDetailData.length}</strong>/{allDetailData.length}</span>
+          )}
+        </div>
+        <div className="db-topbar-right">
+          <span className="db-datetime">
+            {now.toLocaleDateString('fr-FR', {weekday: 'short', day: 'numeric', month: 'short'})}
+            {' '}
+            {now.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'})}
+          </span>
+          <button className="db-refresh" onClick={handleRefresh} data-testid="om-refresh">
             <i className="pi pi-refresh"></i>
-            Actualiser
           </button>
         </div>
       </header>
 
-      {/* ── Period Filter Bar ── */}
-      <div className="om-filter-bar" data-testid="om-period-filter">
-        <div className="om-filter-pills">
-          {[
-            {key: 'all', label: 'Tout'},
-            {key: 'today', label: "Aujourd'hui"},
-            {key: '7d', label: '7 jours'},
-            {key: '30d', label: '30 jours'},
-            {key: 'custom', label: 'Personnalisé'},
-          ].map(p => (
-            <button
-              key={p.key}
-              className={`om-filter-pill ${periodFilter === p.key ? 'om-filter-pill--active' : ''}`}
-              onClick={() => setPeriodFilter(p.key)}
-              data-testid={`filter-${p.key}`}
-            >
-              {p.key === 'custom' && <i className="pi pi-calendar" style={{fontSize: '0.75rem'}}></i>}
-              {p.label}
-            </button>
-          ))}
-        </div>
-        {periodFilter === 'custom' && (
-          <div className="om-filter-custom" data-testid="custom-range">
-            <div className="om-filter-date-group">
-              <label className="om-filter-date-label">De</label>
-              <input
-                type="date"
-                className="om-filter-date-input"
-                value={customRange.from}
-                onChange={e => setCustomRange(r => ({...r, from: e.target.value}))}
-                data-testid="filter-date-from"
-              />
-            </div>
-            <div className="om-filter-date-group">
-              <label className="om-filter-date-label">À</label>
-              <input
-                type="date"
-                className="om-filter-date-input"
-                value={customRange.to}
-                onChange={e => setCustomRange(r => ({...r, to: e.target.value}))}
-                data-testid="filter-date-to"
-              />
-            </div>
-          </div>
-        )}
-        {periodFilter !== 'all' && filteredDetailData.length > 0 && (
-          <span className="om-filter-result">
-            <strong>{filteredDetailData.length}</strong> / {allDetailData.length} résultats
-          </span>
-        )}
-      </div>
-
-      {/* ── Alert Center ── */}
-      <div className="om-alert-center" data-testid="om-alert-center">
-        <div className="om-alert-header">
-          <div className="om-alert-header-left">
-            <div className="om-alert-bell">
-              <i className="pi pi-bell"></i>
-              {totalAlerts > 0 && <span className="om-alert-badge">{totalAlerts}</span>}
-            </div>
-            <div>
-              <h3 className="om-alert-title">Centre d'Alertes</h3>
-              <p className="om-alert-subtitle">Surveillance automatique du parc</p>
-            </div>
-          </div>
-          <button className="om-alert-settings-btn" onClick={() => setShowAlertSettings(!showAlertSettings)} data-testid="alert-settings-btn">
-            <i className="pi pi-cog"></i>
-            Seuils
-          </button>
-        </div>
-
-        {/* Settings Panel */}
-        {showAlertSettings && (
-          <div className="om-alert-settings" data-testid="alert-settings-panel">
-            <div className="om-alert-setting-row">
-              <label className="om-alert-setting-label">
-                <i className="pi pi-clock" style={{color: '#EF4444'}}></i>
-                Immobilisé depuis (jours)
-              </label>
-              <input type="number" className="om-alert-setting-input" value={alertThresholds.immobilized}
-                onChange={e => setAlertThresholds(t => ({...t, immobilized: parseInt(e.target.value) || 1}))} min="1" max="365"
-                data-testid="threshold-immobilized" />
-            </div>
-            <div className="om-alert-setting-row">
-              <label className="om-alert-setting-label">
-                <i className="pi pi-bolt" style={{color: '#F59E0B'}}></i>
-                Batterie critique (%)
-              </label>
-              <input type="number" className="om-alert-setting-input" value={alertThresholds.battery}
-                onChange={e => setAlertThresholds(t => ({...t, battery: parseInt(e.target.value) || 1}))} min="1" max="100"
-                data-testid="threshold-battery" />
-            </div>
-            <div className="om-alert-setting-row">
-              <label className="om-alert-setting-label">
-                <i className="pi pi-ban" style={{color: '#8B5CF6'}}></i>
-                Sous-utilisé depuis (jours)
-              </label>
-              <input type="number" className="om-alert-setting-input" value={alertThresholds.inactive}
-                onChange={e => setAlertThresholds(t => ({...t, inactive: parseInt(e.target.value) || 1}))} min="1" max="365"
-                data-testid="threshold-inactive" />
-            </div>
-            <div style={{display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8}}>
-              <button className="om-alert-setting-cancel" onClick={() => setShowAlertSettings(false)}>Annuler</button>
-              <button className="om-alert-setting-save" onClick={() => saveThresholds(alertThresholds)} data-testid="save-thresholds">
-                <i className="pi pi-check" style={{fontSize: '0.7rem'}}></i> Enregistrer
-              </button>
-            </div>
-          </div>
-        )}
-
-        {/* Alert Cards */}
-        <div className="om-alert-cards" data-testid="om-alert-cards">
-          {[
-            {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j sans mouvement`},
-            {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie critique', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
-            {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j inactifs`},
-            {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags inactifs', count: alerts.inactiveTags.length, desc: 'Non émetteurs'},
-          ].map(a => (
-            <div
-              key={a.key}
-              className={`om-alert-card ${selectedAlert === a.key ? 'om-alert-card--active' : ''} ${a.count > 0 ? 'om-alert-card--warn' : ''}`}
-              style={{'--alert-color': a.color}}
-              onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)}
-              data-testid={`alert-card-${a.key}`}
-            >
-              <div className="om-alert-card-icon" style={{background: `${a.color}12`, color: a.color}}>
-                <i className={a.icon}></i>
-              </div>
-              <div className="om-alert-card-value" style={{color: a.count > 0 ? a.color : 'var(--lt-text-muted)'}}>{a.count}</div>
-              <div className="om-alert-card-label">{a.label}</div>
-              <div className="om-alert-card-desc">{a.desc}</div>
-            </div>
-          ))}
-        </div>
-
-        {/* Alert Detail List */}
-        {selectedAlert && (
-          <div className="om-alert-detail" data-testid="om-alert-detail">
-            <div className="om-alert-detail-header">
-              <strong>{selectedAlert === 'immobilized' ? 'Matériel immobilisé' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Équipements sous-utilisés' : 'Tags inactifs'}</strong>
-              <button className="om-alert-detail-close" onClick={() => setSelectedAlert(null)}>
-                <i className="pi pi-times"></i>
-              </button>
-            </div>
-            <div className="om-alert-detail-list">
-              {(alerts[selectedAlert] || []).length === 0 ? (
-                <div className="om-alert-detail-empty">
-                  <i className="pi pi-check-circle" style={{color: '#22C55E', fontSize: '1.2rem'}}></i>
-                  Aucune alerte
-                </div>
-              ) : (alerts[selectedAlert] || []).map((item, i) => (
-                <div key={i} className="om-alert-detail-item">
-                  <div className="om-alert-detail-name">{item.reference || item.label || item.name || 'Asset'}</div>
-                  <div className="om-alert-detail-info">
-                    {selectedAlert === 'immobilized' && <span><i className="pi pi-clock" style={{fontSize: '0.65rem'}}></i> {item._daysSince}j immobilisé</span>}
-                    {selectedAlert === 'lowBattery' && <span><i className="pi pi-bolt" style={{fontSize: '0.65rem'}}></i> {item._batteryLevel}%</span>}
-                    {selectedAlert === 'underUtilized' && <span><i className="pi pi-ban" style={{fontSize: '0.65rem'}}></i> {item._daysSince}j inactif</span>}
-                    {selectedAlert === 'inactiveTags' && <span><i className="pi pi-wifi" style={{fontSize: '0.65rem'}}></i> Non émetteur</span>}
-                  </div>
-                  <div className="om-alert-detail-location">
-                    <i className="pi pi-map-marker" style={{fontSize: '0.6rem'}}></i>
-                    {item.LocationObjectname || item.enginAddress || 'Position inconnue'}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
       {/* ── KPI Cards ── */}
-      <div className="om-kpi-grid" data-testid="om-kpi-grid">
+      <div className="db-kpi-row" data-testid="om-kpi-grid">
         {isLoading ? (
           [...Array(4)].map((_, i) => (
-            <div key={i} className="om-kpi om-kpi-skeleton" data-testid={`kpi-skel-${i}`}>
-              <div className="om-skel-icon" />
-              <div className="om-skel-lines">
-                <div className="om-skel-line om-skel-line--lg" />
-                <div className="om-skel-line om-skel-line--sm" />
-              </div>
+            <div key={i} className="db-kpi db-kpi--skel" data-testid={`kpi-skel-${i}`}>
+              <div className="db-skel-block db-skel-block--title" />
+              <div className="db-skel-block db-skel-block--num" />
+              <div className="db-skel-block db-skel-block--label" />
+              <div className="db-skel-block db-skel-block--bar" />
             </div>
           ))
         ) : (
@@ -586,34 +439,28 @@ const DashboardListCards = () => {
             const isActive = selectedCard?.code === item.code
             const pct = item.value ?? 0
             return (
-              <div
-                key={item.code || i}
-                className={`om-kpi ${isActive ? 'om-kpi--active' : ''}`}
+              <div key={item.code || i}
+                className={`db-kpi ${isActive ? 'db-kpi--on' : ''}`}
                 onClick={() => handleSelectCard(item)}
-                style={{'--kpi-color': color}}
+                style={{'--kc': color}}
                 data-testid={`kpi-card-${i}`}
               >
-                <div className="om-kpi-header">
-                  <div className="om-kpi-icon" style={{background: `${color}15`, color}}>
-                    <i className={icon}></i>
-                  </div>
-                  {pct > 0 && (
-                    <span className={`om-kpi-change ${pct > 50 ? 'om-kpi-change--up' : 'om-kpi-change--down'}`}>
-                      <i className={`pi ${pct > 50 ? 'pi-arrow-up-right' : 'pi-arrow-down-right'}`}></i>
-                      {pct}%
-                    </span>
-                  )}
-                </div>
-                <div className="om-kpi-value">{item.quantity ?? 0}</div>
-                <div className="om-kpi-label">{item.quantityLabel || item.label || item.title}</div>
-                <div className="om-kpi-bar">
-                  <div className="om-kpi-bar-fill" style={{width: `${Math.min(pct, 100)}%`, background: color}} />
-                </div>
-                {isActive && <div className="om-kpi-active-line" style={{background: color}} />}
                 {isActive && loadingCard && (
-                  <div className="om-kpi-spinner">
-                    <div className="om-spinner" style={{borderTopColor: color}} />
-                  </div>
+                  <div className="db-kpi-spin"><div className="db-spin" style={{borderTopColor: color}} /></div>
+                )}
+                <div className="db-kpi-head">
+                  <span className="db-kpi-title">{item.quantityLabel || item.label || item.title}</span>
+                  <div className="db-kpi-icon" style={{background: `${color}14`, color}}><i className={icon}></i></div>
+                </div>
+                <div className="db-kpi-num">{item.quantity ?? 0}</div>
+                <div className="db-kpi-sub">{item.quantityLabel || item.label || item.title}</div>
+                <div className="db-kpi-track">
+                  <div className="db-kpi-fill" style={{width: `${Math.min(pct, 100)}%`, background: color}} />
+                </div>
+                {pct > 0 && (
+                  <span className={`db-kpi-pct ${pct > 50 ? 'db-kpi-pct--up' : 'db-kpi-pct--dn'}`}>
+                    <i className={`pi ${pct > 50 ? 'pi-arrow-up-right' : 'pi-arrow-down-right'}`}></i>{pct}%
+                  </span>
                 )}
               </div>
             )
@@ -621,265 +468,221 @@ const DashboardListCards = () => {
         )}
       </div>
 
-      {/* ── Detail Panel (when card is clicked) ── */}
+      {/* ── Detail Panel ── */}
       {selectedCard && !loadingCard && (
-        <div className="om-detail-panel" data-testid="om-detail-panel">
-          <div className="om-detail-head">
-            <h2 className="om-detail-title">
-              <i className="pi pi-list" style={{marginRight: 8, opacity: 0.5}}></i>
-              {selectedCard.titledetail || selectedCard.title}
-            </h2>
-            <button className="om-detail-close" onClick={handleCloseDetail} data-testid="om-detail-close">
-              <i className="pi pi-times"></i>
-            </button>
+        <div className="db-detail" data-testid="om-detail-panel">
+          <div className="db-detail-head">
+            <h2 className="db-detail-title"><i className="pi pi-list"></i>{selectedCard.titledetail || selectedCard.title}</h2>
+            <button className="db-detail-close" onClick={handleCloseDetail} data-testid="om-detail-close"><i className="pi pi-times"></i></button>
           </div>
-          <div className="om-detail-body">
-            <DashboardDetail />
-          </div>
+          <div className="db-detail-body"><DashboardDetail /></div>
         </div>
       )}
       {selectedCard && loadingCard && (
-        <div className="om-detail-panel om-detail-panel--loading" data-testid="om-detail-loading">
-          <div className="om-detail-head">
-            <h2 className="om-detail-title">{selectedCard.titledetail || selectedCard.title}</h2>
-          </div>
-          <div className="om-detail-skel">
-            {[...Array(4)].map((_, i) => <div key={i} className="om-detail-skel-row" style={{animationDelay: `${i * 0.1}s`}} />)}
-          </div>
+        <div className="db-detail db-detail--loading" data-testid="om-detail-loading">
+          <div className="db-detail-head"><h2 className="db-detail-title">{selectedCard.titledetail || selectedCard.title}</h2></div>
+          <div className="db-detail-skel">{[...Array(4)].map((_, i) => <div key={i} className="db-skel-row" style={{animationDelay: `${i * 0.1}s`}} />)}</div>
         </div>
       )}
 
-      {/* ── Analytics Section ── */}
-      <div className="om-analytics" data-testid="om-analytics">
-        {/* LEFT: Activity Feed */}
-        <div className="om-panel om-feed-panel" data-testid="om-activity-feed">
-          <div className="om-panel-head">
-            <h3 className="om-panel-title">
-              <i className="pi pi-clock"></i>
-              Dernière Activité
-            </h3>
-            <span className="om-panel-badge">{analytics.activityFeed.length} récents</span>
+      {/* ── Main Split: Map + Alert Center ── */}
+      <div className="db-split" data-testid="om-analytics">
+        {/* LEFT: GPS Map */}
+        <div className="db-card db-map-card" data-testid="om-gps-widget">
+          <div className="db-card-head">
+            <h3 className="db-card-title"><i className="pi pi-map" style={{color: '#10B981'}}></i>Positions en temps réel</h3>
+            <span className="db-badge">{mapAssets.length} assets</span>
           </div>
-          <div className="om-feed-list">
+          <div className="db-map-body" data-testid="om-gps-map">
             {isAnalyticsLoading ? (
-              [...Array(6)].map((_, i) => (
-                <div key={i} className="om-feed-item-skel" style={{animationDelay: `${i * 0.08}s`}}>
-                  <div className="om-skel-dot" />
-                  <div className="om-skel-lines" style={{flex: 1}}>
-                    <div className="om-skel-line om-skel-line--sm" />
-                    <div className="om-skel-line om-skel-line--lg" />
-                  </div>
-                </div>
-              ))
-            ) : analytics.activityFeed.length === 0 ? (
-              <div className="om-feed-empty">
-                <i className="pi pi-inbox" style={{fontSize: '1.5rem', color: '#CBD5E1'}}></i>
-                <p>Aucune activité récente</p>
-              </div>
+              <div className="db-skel-fill" />
+            ) : mapAssets.length === 0 ? (
+              <div className="db-empty"><i className="pi pi-map-marker"></i>Aucune position GPS</div>
             ) : (
-              analytics.activityFeed.map((item, i) => {
-                const isExit = item.etatenginname === 'exit'
-                const isEntry = item.etatenginname === 'reception'
-                const etatLabel = isExit ? 'Sortie' : isEntry ? 'Entrée' : (item.status || 'Actif')
-                const etatColor = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
-                const dateStr = item.locationDate || item.statusDate || ''
-                return (
-                  <div key={i} className="om-feed-item" data-testid={`feed-item-${i}`}>
-                    <div className="om-feed-dot" style={{background: etatColor}} />
-                    <div className="om-feed-content">
-                      <div className="om-feed-top">
-                        <span className="om-feed-name">{item.reference || item.label || item.name || `Asset #${i + 1}`}</span>
-                        <span className="om-feed-badge" style={{background: `${etatColor}15`, color: etatColor}}>
-                          {etatLabel}
-                        </span>
-                      </div>
-                      <div className="om-feed-bottom">
-                        <span className="om-feed-location">
-                          <i className="pi pi-map-marker"></i>
-                          {item.LocationObjectname || item.tagAddress || item.enginAddress || 'Localisation inconnue'}
-                        </span>
-                        <span className="om-feed-time">{dateStr}</span>
-                      </div>
-                    </div>
-                  </div>
-                )
-              })
+              <DashboardMap assets={mapAssets} />
             )}
           </div>
         </div>
 
-        {/* RIGHT: Charts */}
-        <div className="om-charts-col" data-testid="om-charts">
-          {/* Etat Pie Chart */}
-          <div className="om-panel" data-testid="om-etat-chart">
-            <div className="om-panel-head">
-              <h3 className="om-panel-title">
-                <i className="pi pi-chart-pie"></i>
-                Répartition État
-              </h3>
+        {/* RIGHT: Alert Center */}
+        <div className="db-card db-alert-card" data-testid="om-alert-center">
+          <div className="db-card-head">
+            <div className="db-alert-head-left">
+              <div className="db-bell">
+                <i className="pi pi-bell"></i>
+                {totalAlerts > 0 && <span className="db-bell-badge">{totalAlerts}</span>}
+              </div>
+              <h3 className="db-card-title">Centre d'Alertes</h3>
             </div>
-            <div className="om-chart-body">
-              {isAnalyticsLoading ? (
-                <div className="om-chart-skel"><div className="om-skel-circle" /></div>
-              ) : analytics.etatData.length > 0 ? (
-                <Chart
-                  options={etatChartOptions}
-                  series={analytics.etatData.map((d) => d.value)}
-                  type="donut"
-                  height={220}
-                />
-              ) : (
-                <div className="om-chart-empty">Aucune donnée</div>
-              )}
-            </div>
+            <button className="db-settings-btn" onClick={() => setShowAlertSettings(!showAlertSettings)} data-testid="alert-settings-btn">
+              <i className="pi pi-cog"></i>
+            </button>
           </div>
 
-          {/* Status Bar Chart */}
-          <div className="om-panel" data-testid="om-status-chart">
-            <div className="om-panel-head">
-              <h3 className="om-panel-title">
-                <i className="pi pi-chart-bar"></i>
-                Distribution Statuts
-              </h3>
+          {showAlertSettings && (
+            <div className="om-alert-settings" data-testid="alert-settings-panel">
+              <div className="om-alert-setting-row">
+                <label className="om-alert-setting-label"><i className="pi pi-clock" style={{color: '#EF4444'}}></i>Immobilisé (jours)</label>
+                <input type="number" className="om-alert-setting-input" value={alertThresholds.immobilized}
+                  onChange={e => setAlertThresholds(t => ({...t, immobilized: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-immobilized" />
+              </div>
+              <div className="om-alert-setting-row">
+                <label className="om-alert-setting-label"><i className="pi pi-bolt" style={{color: '#F59E0B'}}></i>Batterie critique (%)</label>
+                <input type="number" className="om-alert-setting-input" value={alertThresholds.battery}
+                  onChange={e => setAlertThresholds(t => ({...t, battery: parseInt(e.target.value) || 1}))} min="1" max="100" data-testid="threshold-battery" />
+              </div>
+              <div className="om-alert-setting-row">
+                <label className="om-alert-setting-label"><i className="pi pi-ban" style={{color: '#8B5CF6'}}></i>Sous-utilisé (jours)</label>
+                <input type="number" className="om-alert-setting-input" value={alertThresholds.inactive}
+                  onChange={e => setAlertThresholds(t => ({...t, inactive: parseInt(e.target.value) || 1}))} min="1" max="365" data-testid="threshold-inactive" />
+              </div>
+              <div style={{display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8}}>
+                <button className="om-alert-setting-cancel" onClick={() => setShowAlertSettings(false)}>Annuler</button>
+                <button className="om-alert-setting-save" onClick={() => saveThresholds(alertThresholds)} data-testid="save-thresholds">
+                  <i className="pi pi-check" style={{fontSize: '0.7rem'}}></i> OK
+                </button>
+              </div>
             </div>
-            <div className="om-chart-body">
-              {isAnalyticsLoading ? (
-                <div className="om-chart-skel"><div className="om-skel-circle" style={{borderRadius: 12, width: '100%', height: 150}} /></div>
-              ) : analytics.statusData.length > 0 ? (
-                <Chart
-                  options={statusBarOptions}
-                  series={[{name: 'Assets', data: analytics.statusData.map(d => d.value)}]}
-                  type="bar"
-                  height={Math.max(140, analytics.statusData.length * 38)}
-                  width="100%"
-                />
-              ) : (
-                <div className="om-chart-empty">Aucune donnée</div>
-              )}
-            </div>
-          </div>
-
-          {/* Famille Donut Chart */}
-          <div className="om-panel" data-testid="om-famille-chart">
-            <div className="om-panel-head">
-              <h3 className="om-panel-title">
-                <i className="pi pi-sitemap"></i>
-                Assets par Famille
-              </h3>
-            </div>
-            <div className="om-chart-body">
-              {isAnalyticsLoading ? (
-                <div className="om-chart-skel"><div className="om-skel-circle" /></div>
-              ) : analytics.familleData.length > 0 ? (
-                <Chart
-                  options={familleChartOptions}
-                  series={analytics.familleData.map((d) => d.value)}
-                  type="donut"
-                  height={220}
-                />
-              ) : (
-                <div className="om-chart-empty">Aucune donnée</div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ── GPS Map Widget ── */}
-      <div className="om-panel" style={{marginBottom: 24}} data-testid="om-gps-widget">
-        <div className="om-panel-head">
-          <h3 className="om-panel-title">
-            <i className="pi pi-map" style={{color: '#10B981'}}></i>
-            Carte des positions GPS
-          </h3>
-          <span className="om-panel-badge">{mapAssets.length} positionnés</span>
-        </div>
-        <div style={{height: 380, position: 'relative'}} data-testid="om-gps-map">
-          {isAnalyticsLoading ? (
-            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%'}}>
-              <div className="om-skel-circle" style={{borderRadius: 12, width: '100%', height: '100%'}} />
-            </div>
-          ) : mapAssets.length === 0 ? (
-            <div className="om-chart-empty" style={{height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
-              <i className="pi pi-map-marker" style={{fontSize: '2rem', color: '#CBD5E1', marginRight: 8}}></i>
-              Aucune position GPS disponible
-            </div>
-          ) : (
-            <DashboardMap assets={mapAssets} />
           )}
-        </div>
-      </div>
 
-      {/* ── Bottom Alert Panel ── */}
-      <div className="om-panel om-alert-panel" data-testid="om-alert-panel">
-        <div className="om-panel-head">
-          <h3 className="om-panel-title">
-            <i className="pi pi-exclamation-circle"></i>
-            Assets nécessitant attention
-          </h3>
-          <span className="om-panel-badge om-panel-badge--danger">
-            {analytics.batteryAlerts.length} alertes
-          </span>
-        </div>
-        <div className="om-alert-table">
-          {isAnalyticsLoading ? (
-            <div className="om-alert-skel">
-              {[...Array(3)].map((_, i) => <div key={i} className="om-detail-skel-row" style={{animationDelay: `${i * 0.1}s`}} />)}
+          <div className="db-alert-grid" data-testid="om-alert-cards">
+            {[
+              {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j`},
+              {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
+              {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j`},
+              {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags off', count: alerts.inactiveTags.length, desc: 'Inactifs'},
+            ].map(a => (
+              <div key={a.key}
+                className={`db-alert-item ${selectedAlert === a.key ? 'db-alert-item--on' : ''} ${a.count > 0 ? 'db-alert-item--warn' : ''}`}
+                style={{'--ac': a.color}}
+                onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)}
+                data-testid={`alert-card-${a.key}`}
+              >
+                <div className="db-alert-ico" style={{background: `${a.color}14`, color: a.color}}><i className={a.icon}></i></div>
+                <div className="db-alert-num" style={{color: a.count > 0 ? a.color : '#94A3B8'}}>{a.count}</div>
+                <div className="db-alert-lbl">{a.label}</div>
+                <div className="db-alert-desc">{a.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          {selectedAlert && (
+            <div className="db-alert-list" data-testid="om-alert-detail">
+              <div className="db-alert-list-head">
+                <strong>{selectedAlert === 'immobilized' ? 'Matériel immobilisé' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Sous-utilisés' : 'Tags inactifs'}</strong>
+                <button className="db-close-sm" onClick={() => setSelectedAlert(null)}><i className="pi pi-times"></i></button>
+              </div>
+              <div className="db-alert-list-body">
+                {(alerts[selectedAlert] || []).length === 0 ? (
+                  <div className="db-empty-sm"><i className="pi pi-check-circle" style={{color: '#22C55E'}}></i>Aucune alerte</div>
+                ) : (alerts[selectedAlert] || []).map((item, i) => (
+                  <div key={i} className="db-alert-row">
+                    <span className="db-alert-row-name">{item.reference || item.label || item.name || 'Asset'}</span>
+                    <span className="db-alert-row-val">
+                      {selectedAlert === 'immobilized' && `${item._daysSince}j`}
+                      {selectedAlert === 'lowBattery' && `${item._batteryLevel}%`}
+                      {selectedAlert === 'underUtilized' && `${item._daysSince}j`}
+                      {selectedAlert === 'inactiveTags' && 'Off'}
+                    </span>
+                    <span className="db-alert-row-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
+                  </div>
+                ))}
+              </div>
             </div>
-          ) : analytics.batteryAlerts.length === 0 ? (
-            <div className="om-alert-empty" data-testid="om-no-alerts">
-              <i className="pi pi-check-circle" style={{fontSize: '1.3rem', color: '#22C55E'}}></i>
-              <span>Tous les assets fonctionnent normalement</span>
-            </div>
-          ) : (
-            <table className="om-table" data-testid="om-alerts-table">
-              <thead>
-                <tr>
-                  <th>Asset</th>
-                  <th>Batterie</th>
-                  <th>État</th>
-                  <th>Dernière activité</th>
-                  <th>Localisation</th>
-                </tr>
-              </thead>
-              <tbody>
-                {analytics.batteryAlerts.map((item, i) => {
+          )}
+
+          {/* Battery Alerts Table (compact) */}
+          {!selectedAlert && analytics.batteryAlerts.length > 0 && (
+            <div className="db-bat-section" data-testid="om-alert-panel">
+              <div className="db-bat-head">
+                <span className="db-bat-label"><i className="pi pi-exclamation-triangle" style={{color: '#EF4444', fontSize: '0.7rem'}}></i> Attention requise</span>
+                <span className="db-badge db-badge--red">{analytics.batteryAlerts.length}</span>
+              </div>
+              <div className="db-bat-list" data-testid="om-alerts-table">
+                {analytics.batteryAlerts.slice(0, 5).map((item, i) => {
                   const bat = parseInt(item.batteries, 10) || 0
                   const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
-                  const isExit = item.etatenginname === 'exit'
-                  const etatLabel = isExit ? 'Sortie' : item.etatenginname === 'reception' ? 'Entrée' : 'Inactif'
-                  const etatColor = isExit ? '#EF4444' : item.etatenginname === 'reception' ? '#22C55E' : '#F59E0B'
                   return (
-                    <tr key={i} data-testid={`alert-row-${i}`}>
-                      <td>
-                        <div className="om-alert-asset">
-                          <span className="om-alert-name">{item.reference || item.label || item.name || '-'}</span>
-                          {item.vin && <span className="om-alert-vin">{item.vin}</span>}
-                        </div>
-                      </td>
-                      <td>
-                        <div className="om-alert-battery">
-                          <div className="om-alert-bat-bar">
-                            <div className="om-alert-bat-fill" style={{width: `${Math.min(bat, 100)}%`, background: batColor}} />
-                          </div>
-                          <span className="om-alert-bat-text" style={{color: batColor}}>
-                            {item.batteries != null && item.batteries !== '' ? `${bat}%` : 'N/A'}
-                          </span>
-                        </div>
-                      </td>
-                      <td>
-                        <span className="om-alert-etat" style={{background: `${etatColor}15`, color: etatColor}}>
-                          {etatLabel}
-                        </span>
-                      </td>
-                      <td className="om-alert-date">{item.locationDate || item.statusDate || '-'}</td>
-                      <td className="om-alert-loc">{item.LocationObjectname || item.enginAddress || '-'}</td>
-                    </tr>
+                    <div key={i} className="db-bat-row" data-testid={`alert-row-${i}`}>
+                      <span className="db-bat-name">{item.reference || item.label || '-'}</span>
+                      <div className="db-bat-bar-wrap">
+                        <div className="db-bat-bar"><div className="db-bat-fill" style={{width: `${Math.min(bat, 100)}%`, background: batColor}} /></div>
+                        <span style={{color: batColor, fontSize: '0.7rem', fontWeight: 700}}>{bat}%</span>
+                      </div>
+                    </div>
                   )
                 })}
-              </tbody>
-            </table>
+              </div>
+            </div>
           )}
+        </div>
+      </div>
+
+      {/* ── Bottom Charts Row (4 columns) ── */}
+      <div className="db-charts-row">
+        {/* Activity Feed */}
+        <div className="db-card" data-testid="om-activity-feed">
+          <div className="db-card-head">
+            <h3 className="db-card-title"><i className="pi pi-clock"></i>Activité</h3>
+            <span className="db-badge">{analytics.activityFeed.length}</span>
+          </div>
+          <div className="db-feed-body">
+            {isAnalyticsLoading ? (
+              [...Array(5)].map((_, i) => <div key={i} className="db-skel-row" style={{animationDelay: `${i * 0.08}s`}} />)
+            ) : analytics.activityFeed.length === 0 ? (
+              <div className="db-empty"><i className="pi pi-inbox"></i>Aucune activité</div>
+            ) : analytics.activityFeed.slice(0, 8).map((item, i) => {
+              const isExit = item.etatenginname === 'exit'
+              const isEntry = item.etatenginname === 'reception'
+              const etatColor = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
+              return (
+                <div key={i} className="db-feed-row" data-testid={`feed-item-${i}`}>
+                  <div className="db-feed-dot" style={{background: etatColor}} />
+                  <div className="db-feed-info">
+                    <span className="db-feed-name">{item.reference || item.label || item.name || `#${i+1}`}</span>
+                    <span className="db-feed-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+
+        {/* Etat Donut */}
+        <div className="db-card" data-testid="om-etat-chart">
+          <div className="db-card-head">
+            <h3 className="db-card-title"><i className="pi pi-chart-pie"></i>Répartition État</h3>
+          </div>
+          <div className="db-chart-body">
+            {isAnalyticsLoading ? <div className="db-skel-circle" /> : analytics.etatData.length > 0 ? (
+              <Chart options={etatChartOptions} series={analytics.etatData.map(d => d.value)} type="donut" height={200} />
+            ) : <div className="db-empty">Aucune donnée</div>}
+          </div>
+        </div>
+
+        {/* Status Bar */}
+        <div className="db-card" data-testid="om-status-chart">
+          <div className="db-card-head">
+            <h3 className="db-card-title"><i className="pi pi-chart-bar"></i>Statuts</h3>
+          </div>
+          <div className="db-chart-body">
+            {isAnalyticsLoading ? <div className="db-skel-circle" style={{borderRadius: 8, height: 140}} /> : analytics.statusData.length > 0 ? (
+              <Chart options={statusBarOptions} series={[{name: 'Assets', data: analytics.statusData.map(d => d.value)}]}
+                type="bar" height={Math.max(140, analytics.statusData.length * 34)} width="100%" />
+            ) : <div className="db-empty">Aucune donnée</div>}
+          </div>
+        </div>
+
+        {/* Famille Donut */}
+        <div className="db-card" data-testid="om-famille-chart">
+          <div className="db-card-head">
+            <h3 className="db-card-title"><i className="pi pi-sitemap"></i>Familles</h3>
+          </div>
+          <div className="db-chart-body">
+            {isAnalyticsLoading ? <div className="db-skel-circle" /> : analytics.familleData.length > 0 ? (
+              <Chart options={familleChartOptions} series={analytics.familleData.map(d => d.value)} type="donut" height={200} />
+            ) : <div className="db-empty">Aucune donnée</div>}
+          </div>
         </div>
       </div>
     </div>
@@ -890,303 +693,336 @@ const DashboardListCards = () => {
 const STYLES = `
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
 
-.om-container {
-  max-width: 1440px; margin: 0 auto; padding: 24px 28px;
+/* ── Dashboard Container ── */
+.db {
+  padding: 16px 20px;
   font-family: 'Inter', -apple-system, sans-serif;
-  min-height: 100vh; background: #F8FAFC;
+  background: #EEF1F5;
+  min-height: 100vh;
 }
 
-/* ── Header ── */
-.om-header {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 24px; flex-wrap: wrap; gap: 16px;
+/* ── Top Bar ── */
+.db-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 18px;
+  background: #FFF;
+  border-radius: 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+  gap: 12px;
+  flex-wrap: wrap;
 }
-.om-header-left { display: flex; align-items: center; gap: 14px; }
-.om-header-icon {
-  width: 48px; height: 48px; border-radius: 14px;
-  background: linear-gradient(135deg, #0F172A, #334155);
+.db-topbar-left { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.db-logo-mark {
+  width: 34px; height: 34px; border-radius: 10px;
+  background: linear-gradient(135deg, #3B82F6, #2563EB);
   display: flex; align-items: center; justify-content: center;
-  color: #FFF; font-size: 1.2rem;
-  box-shadow: 0 4px 12px rgba(15,23,42,0.2);
+  color: #FFF; font-size: 0.95rem;
 }
-.om-title {
-  font-family: 'Manrope', sans-serif; font-size: 1.6rem; font-weight: 800;
-  color: #0F172A; margin: 0; letter-spacing: -0.03em;
+.db-brand {
+  font-family: 'Manrope', sans-serif; font-size: 1.05rem; font-weight: 800;
+  color: #0F172A; letter-spacing: -0.02em;
 }
-.om-subtitle { font-size: 0.8rem; color: #64748B; margin: 2px 0 0; font-weight: 500; }
-.om-refresh-btn {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 10px 20px; border-radius: 10px;
-  border: 1.5px solid #E2E8F0; background: #FFF;
-  font-family: 'Inter', sans-serif; font-size: 0.82rem; font-weight: 600;
-  color: #475569; cursor: pointer; transition: all 0.15s;
-}
-.om-refresh-btn:hover { border-color: #3B82F6; color: #3B82F6; background: #EFF6FF; }
-
-/* ── KPI Grid ── */
-.om-kpi-grid {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 16px; margin-bottom: 24px;
-}
-@media (max-width: 1024px) { .om-kpi-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 600px) { .om-kpi-grid { grid-template-columns: 1fr; } }
-
-.om-kpi {
-  background: #FFF; border-radius: 16px; padding: 20px;
-  border: 1.5px solid #E2E8F0; cursor: pointer;
-  transition: all 0.2s; position: relative; overflow: hidden;
-}
-.om-kpi:hover { border-color: #CBD5E1; box-shadow: 0 8px 24px rgba(0,0,0,0.06); transform: translateY(-2px); }
-.om-kpi--active { border-color: var(--kpi-color); box-shadow: 0 8px 24px rgba(59,130,246,0.1); transform: translateY(-2px); }
-.om-kpi-active-line { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
-
-.om-kpi-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-.om-kpi-icon {
-  width: 40px; height: 40px; border-radius: 12px;
-  display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
-}
-.om-kpi-change {
-  display: inline-flex; align-items: center; gap: 3px;
-  padding: 3px 8px; border-radius: 6px;
-  font-size: 0.7rem; font-weight: 700;
-}
-.om-kpi-change--up { background: #F0FDF4; color: #166534; }
-.om-kpi-change--down { background: #FEF2F2; color: #991B1B; }
-
-.om-kpi-value {
-  font-family: 'Manrope', sans-serif; font-size: 1.8rem; font-weight: 800;
-  color: #0F172A; line-height: 1.1;
-}
-.om-kpi-label {
-  font-size: 0.75rem; color: #64748B; font-weight: 500;
-  margin: 4px 0 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.om-kpi-bar { height: 5px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
-.om-kpi-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
-
-.om-kpi-spinner { position: absolute; top: 14px; right: 14px; }
-.om-spinner {
-  width: 18px; height: 18px; border: 2.5px solid #E2E8F0;
-  border-top-color: #3B82F6; border-radius: 50%;
-  animation: omSpin 0.7s linear infinite;
-}
-@keyframes omSpin { to { transform: rotate(360deg); } }
-
-/* ── KPI Skeleton ── */
-.om-kpi-skeleton { display: flex; align-items: center; gap: 14px; }
-.om-skel-icon {
-  width: 40px; height: 40px; border-radius: 12px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: omShimmer 1.5s infinite; flex-shrink: 0;
-}
-.om-skel-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }
-.om-skel-line {
-  border-radius: 6px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: omShimmer 1.5s infinite;
-}
-.om-skel-line--lg { height: 24px; width: 50%; }
-.om-skel-line--sm { height: 12px; width: 80%; }
-.om-skel-dot {
-  width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: omShimmer 1.5s infinite;
-}
-@keyframes omShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-/* ── Detail Panel ── */
-.om-detail-panel {
-  background: #FFF; border-radius: 16px; border: 1.5px solid #E2E8F0;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;
-  animation: omSlide 0.3s ease; margin-bottom: 24px;
-}
-@keyframes omSlide { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
-.om-detail-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 22px; border-bottom: 1px solid #F1F5F9;
-}
-.om-detail-title {
-  font-family: 'Manrope', sans-serif; font-size: 1rem; font-weight: 800;
-  color: #0F172A; margin: 0; display: flex; align-items: center;
-}
-.om-detail-close {
-  width: 32px; height: 32px; border-radius: 8px;
-  border: 1.5px solid #E2E8F0; background: #FAFBFC;
-  display: flex; align-items: center; justify-content: center;
-  color: #64748B; cursor: pointer; transition: all 0.12s; font-size: 0.8rem;
-}
-.om-detail-close:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
-.om-detail-body { padding: 4px; }
-.om-detail-skel { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
-.om-detail-skel-row {
-  height: 36px; border-radius: 10px;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: omShimmer 1.5s infinite;
-}
-
-/* ── Analytics 2-col ── */
-.om-analytics {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 20px; margin-bottom: 24px;
-}
-@media (max-width: 900px) { .om-analytics { grid-template-columns: 1fr; } }
-
-.om-panel {
-  background: #FFF; border-radius: 16px; border: 1.5px solid #E2E8F0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03); overflow: hidden;
-}
-.om-panel-head {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 20px; border-bottom: 1px solid #F1F5F9;
-}
-.om-panel-title {
-  font-family: 'Manrope', sans-serif; font-size: 0.88rem; font-weight: 800;
-  color: #0F172A; margin: 0; display: flex; align-items: center; gap: 8px;
-}
-.om-panel-title i { color: #64748B; font-size: 0.9rem; }
-.om-panel-badge {
-  padding: 3px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;
-  background: #F1F5F9; color: #475569;
-}
-.om-panel-badge--danger { background: #FEF2F2; color: #991B1B; }
-
-/* ── Activity Feed ── */
-.om-feed-panel { display: flex; flex-direction: column; }
-.om-feed-list { padding: 8px 0; flex: 1; max-height: 480px; overflow-y: auto; }
-.om-feed-item {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 12px 20px; transition: background 0.12s; cursor: default;
-}
-.om-feed-item:hover { background: #F8FAFC; }
-.om-feed-dot {
-  width: 10px; height: 10px; border-radius: 50%; margin-top: 5px; flex-shrink: 0;
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
-}
-.om-feed-content { flex: 1; min-width: 0; }
-.om-feed-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
-.om-feed-name { font-weight: 700; font-size: 0.82rem; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.om-feed-badge {
-  padding: 2px 8px; border-radius: 5px; font-size: 0.68rem; font-weight: 700;
-  white-space: nowrap; flex-shrink: 0;
-}
-.om-feed-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
-.om-feed-location {
-  font-size: 0.72rem; color: #64748B; display: flex; align-items: center; gap: 4px;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.om-feed-location i { font-size: 0.68rem; }
-.om-feed-time { font-size: 0.68rem; color: #94A3B8; white-space: nowrap; flex-shrink: 0; }
-.om-feed-empty {
-  display: flex; flex-direction: column; align-items: center; gap: 8px;
-  padding: 40px 20px; color: #94A3B8; font-size: 0.82rem;
-}
-.om-feed-item-skel {
-  display: flex; align-items: center; gap: 12px; padding: 12px 20px;
-}
-
-/* ── Charts Column ── */
-.om-charts-col { display: flex; flex-direction: column; gap: 20px; }
-.om-chart-body { padding: 12px 16px; display: flex; align-items: center; justify-content: center; min-height: 220px; }
-.om-chart-skel { display: flex; align-items: center; justify-content: center; padding: 20px; }
-.om-skel-circle {
-  width: 160px; height: 160px; border-radius: 50%;
-  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
-  background-size: 200% 100%; animation: omShimmer 1.5s infinite;
-}
-.om-chart-empty { color: #94A3B8; font-size: 0.82rem; padding: 40px; }
-
-/* ── Alert Panel ── */
-.om-alert-panel { margin-bottom: 24px; }
-.om-alert-table { overflow-x: auto; }
-.om-alert-skel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.om-alert-empty {
-  display: flex; align-items: center; justify-content: center; gap: 10px;
-  padding: 32px 20px; font-size: 0.85rem; color: #475569; font-weight: 600;
-}
-
-.om-table {
-  width: 100%; border-collapse: collapse; font-size: 0.82rem;
-}
-.om-table thead th {
-  text-align: left; padding: 12px 16px;
-  font-size: 0.7rem; font-weight: 700; color: #94A3B8;
-  text-transform: uppercase; letter-spacing: 0.05em;
-  border-bottom: 1px solid #F1F5F9;
-}
-.om-table tbody tr { transition: background 0.12s; }
-.om-table tbody tr:hover { background: #F8FAFC; }
-.om-table tbody td { padding: 12px 16px; border-bottom: 1px solid #F8FAFC; }
-
-.om-alert-asset { display: flex; flex-direction: column; gap: 1px; }
-.om-alert-name { font-weight: 700; color: #0F172A; font-size: 0.82rem; }
-.om-alert-vin { font-size: 0.7rem; color: #94A3B8; }
-
-.om-alert-battery { display: flex; align-items: center; gap: 8px; }
-.om-alert-bat-bar {
-  width: 50px; height: 8px; border-radius: 4px; background: #F1F5F9; overflow: hidden;
-}
-.om-alert-bat-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
-.om-alert-bat-text { font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
-
-.om-alert-etat {
-  display: inline-flex; align-items: center; padding: 3px 10px;
-  border-radius: 6px; font-size: 0.72rem; font-weight: 700; white-space: nowrap;
-}
-.om-alert-date { font-size: 0.75rem; color: #64748B; white-space: nowrap; }
-.om-alert-loc { font-size: 0.75rem; color: #94A3B8; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-/* ── Responsive ── */
-@media (max-width: 768px) {
-  .om-container { padding: 16px; }
-  .om-title { font-size: 1.3rem; }
-  .om-kpi-grid { grid-template-columns: 1fr 1fr; }
-  .om-filter-bar { flex-direction: column; align-items: stretch; }
-}
-
-/* ── Period Filter Bar ── */
-.om-filter-bar {
-  display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-  padding: 14px 18px; margin-bottom: 20px;
-  background: #FFF; border-radius: 14px; border: 1.5px solid #E2E8F0;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-}
-.om-filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
-.om-filter-pill {
-  display: inline-flex; align-items: center; gap: 5px;
-  padding: 7px 16px; border-radius: 8px;
-  border: 1.5px solid #E2E8F0; background: #FAFBFC;
-  font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600;
-  color: #64748B; cursor: pointer; transition: all 0.15s;
+.db-topbar-center { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; flex: 1; justify-content: center; }
+.db-pill {
+  padding: 5px 14px; border-radius: 8px; border: 1.5px solid #E2E8F0;
+  background: #FFF; font-family: 'Inter', sans-serif; font-size: 0.74rem;
+  font-weight: 600; color: #64748B; cursor: pointer; transition: all 0.15s;
   white-space: nowrap;
 }
-.om-filter-pill:hover { border-color: #CBD5E1; background: #F1F5F9; color: #475569; }
-.om-filter-pill--active {
-  background: #0F172A; color: #FFF; border-color: #0F172A;
-  box-shadow: 0 2px 8px rgba(15,23,42,0.2);
+.db-pill:hover { border-color: #CBD5E1; color: #475569; }
+.db-pill--on { background: #0F172A; color: #FFF; border-color: #0F172A; }
+.db-dates { display: flex; align-items: center; gap: 4px; }
+.db-date-input {
+  padding: 4px 8px; border-radius: 6px; border: 1.5px solid #E2E8F0;
+  font-size: 0.72rem; font-family: 'Inter', sans-serif; color: #0F172A;
 }
-.om-filter-pill--active:hover { background: #1E293B; border-color: #1E293B; }
-.om-filter-custom {
-  display: flex; gap: 10px; align-items: center;
-  animation: omSlide 0.2s ease;
+.db-date-sep { color: #94A3B8; font-size: 0.7rem; }
+.db-count-badge {
+  font-size: 0.68rem; font-weight: 700; color: #475569;
+  background: #F1F5F9; padding: 3px 8px; border-radius: 6px;
 }
-.om-filter-date-group { display: flex; align-items: center; gap: 6px; }
-.om-filter-date-label {
-  font-size: 0.72rem; font-weight: 700; color: #94A3B8;
-  text-transform: uppercase; letter-spacing: 0.03em;
+.db-topbar-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.db-datetime { font-size: 0.72rem; color: #64748B; font-weight: 500; white-space: nowrap; }
+.db-refresh {
+  width: 34px; height: 34px; border-radius: 10px; border: 1.5px solid #E2E8F0;
+  background: #FFF; display: flex; align-items: center; justify-content: center;
+  color: #64748B; cursor: pointer; transition: all 0.15s; font-size: 0.85rem;
 }
-.om-filter-date-input {
-  padding: 6px 12px; border-radius: 8px;
-  border: 1.5px solid #E2E8F0; background: #FFF;
-  font-family: 'Inter', sans-serif; font-size: 0.78rem;
-  color: #0F172A; outline: none; transition: border-color 0.15s;
+.db-refresh:hover { border-color: #3B82F6; color: #3B82F6; background: #EFF6FF; }
+
+/* ── KPI Row ── */
+.db-kpi-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px; margin-bottom: 16px;
 }
-.om-filter-date-input:focus { border-color: #3B82F6; box-shadow: 0 0 0 2px rgba(59,130,246,0.1); }
-.om-filter-result {
-  margin-left: auto; font-size: 0.72rem; font-weight: 600;
-  color: #64748B; padding: 4px 12px; border-radius: 6px;
-  background: #F1F5F9; white-space: nowrap;
+.db-kpi {
+  background: #FFF; border-radius: 16px; padding: 18px 20px;
+  border: 1.5px solid transparent; cursor: pointer;
+  transition: all 0.2s; position: relative; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
 }
-.om-filter-result strong { color: #0F172A; }
+.db-kpi:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.07); transform: translateY(-1px); }
+.db-kpi--on { border-color: var(--kc); box-shadow: 0 6px 20px rgba(0,0,0,0.08); }
+.db-kpi--on::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0;
+  height: 3px; background: var(--kc);
+}
+.db-kpi-head { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px; }
+.db-kpi-title {
+  font-size: 0.72rem; font-weight: 600; color: #94A3B8;
+  text-transform: uppercase; letter-spacing: 0.04em;
+}
+.db-kpi-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+}
+.db-kpi-num {
+  font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800;
+  color: #0F172A; line-height: 1; margin-bottom: 4px;
+}
+.db-kpi-sub { font-size: 0.72rem; color: #94A3B8; font-weight: 500; margin-bottom: 12px; }
+.db-kpi-track { height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
+.db-kpi-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
+.db-kpi-pct {
+  position: absolute; top: 18px; right: 58px;
+  font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 5px;
+}
+.db-kpi-pct--up { background: #F0FDF4; color: #166534; }
+.db-kpi-pct--dn { background: #FEF2F2; color: #991B1B; }
+.db-kpi-spin { position: absolute; top: 14px; right: 14px; }
+.db-spin {
+  width: 16px; height: 16px; border: 2.5px solid #E2E8F0;
+  border-top-color: #3B82F6; border-radius: 50%;
+  animation: dbSpin 0.7s linear infinite;
+}
+@keyframes dbSpin { to { transform: rotate(360deg); } }
+
+/* ── KPI Skeleton ── */
+.db-kpi--skel { display: flex; flex-direction: column; gap: 10px; cursor: default; }
+.db-skel-block {
+  border-radius: 6px;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
+}
+.db-skel-block--title { height: 10px; width: 60%; }
+.db-skel-block--num { height: 28px; width: 45%; }
+.db-skel-block--label { height: 10px; width: 80%; }
+.db-skel-block--bar { height: 6px; width: 100%; border-radius: 3px; }
+@keyframes dbShimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+/* ── Detail Panel ── */
+.db-detail {
+  background: #FFF; border-radius: 16px; border: 1.5px solid #E2E8F0;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.04); overflow: hidden;
+  animation: dbSlide 0.25s ease; margin-bottom: 16px;
+}
+@keyframes dbSlide { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.db-detail-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid #F1F5F9;
+}
+.db-detail-title {
+  font-family: 'Manrope', sans-serif; font-size: 0.92rem; font-weight: 800;
+  color: #0F172A; margin: 0; display: flex; align-items: center; gap: 8px;
+}
+.db-detail-title i { opacity: 0.4; font-size: 0.85rem; }
+.db-detail-close {
+  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0;
+  background: #FAFBFC; display: flex; align-items: center; justify-content: center;
+  color: #64748B; cursor: pointer; font-size: 0.75rem; transition: all 0.12s;
+}
+.db-detail-close:hover { border-color: #EF4444; color: #EF4444; background: #FEF2F2; }
+.db-detail-body { padding: 4px; }
+.db-detail-skel { padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.db-skel-row {
+  height: 32px; border-radius: 8px;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
+}
+
+/* ── Main Split ── */
+.db-split {
+  display: grid; grid-template-columns: 55fr 45fr;
+  gap: 14px; margin-bottom: 16px;
+}
+
+/* ── Card (generic) ── */
+.db-card {
+  background: #FFF; border-radius: 16px; overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.db-card-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 18px; border-bottom: 1px solid #F1F5F9;
+}
+.db-card-title {
+  font-family: 'Manrope', sans-serif; font-size: 0.82rem; font-weight: 800;
+  color: #0F172A; margin: 0; display: flex; align-items: center; gap: 7px;
+}
+.db-card-title i { font-size: 0.85rem; color: #64748B; }
+.db-badge {
+  padding: 2px 9px; border-radius: 6px; font-size: 0.68rem; font-weight: 700;
+  background: #F1F5F9; color: #475569;
+}
+.db-badge--red { background: #FEF2F2; color: #DC2626; }
+
+/* ── Map Card ── */
+.db-map-body { height: 380px; position: relative; }
+.db-map-body .leaflet-container { border-radius: 0 0 16px 16px; }
+
+/* ── Alert Center Card ── */
+.db-alert-card { display: flex; flex-direction: column; }
+.db-alert-head-left { display: flex; align-items: center; gap: 10px; }
+.db-bell {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, #FEF3C7, #FDE68A);
+  display: flex; align-items: center; justify-content: center;
+  color: #D97706; font-size: 0.95rem; position: relative;
+}
+.db-bell-badge {
+  position: absolute; top: -4px; right: -4px; min-width: 16px; height: 16px;
+  border-radius: 8px; background: #EF4444; color: #FFF; font-size: 0.55rem;
+  font-weight: 800; display: flex; align-items: center; justify-content: center;
+  padding: 0 3px; border: 2px solid #FFF;
+}
+.db-settings-btn {
+  width: 30px; height: 30px; border-radius: 8px; border: 1.5px solid #E2E8F0;
+  background: #FFF; display: flex; align-items: center; justify-content: center;
+  color: #94A3B8; cursor: pointer; font-size: 0.8rem; transition: all 0.15s;
+}
+.db-settings-btn:hover { border-color: #CBD5E1; color: #475569; }
+
+.db-alert-grid {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 0;
+  border-bottom: 1px solid #F1F5F9;
+}
+.db-alert-item {
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  padding: 14px 8px; cursor: pointer; transition: all 0.15s;
+  border-right: 1px solid #F1F5F9; border-bottom: 1px solid #F1F5F9;
+  text-align: center;
+}
+.db-alert-item:nth-child(2n) { border-right: none; }
+.db-alert-item:nth-child(n+3) { border-bottom: none; }
+.db-alert-item:hover { background: #FAFBFC; }
+.db-alert-item--on { background: #F8FAFC; }
+.db-alert-item--on::after {
+  content: ''; display: block; width: 24px; height: 2.5px;
+  border-radius: 2px; background: var(--ac); margin-top: 2px;
+}
+.db-alert-ico {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center; font-size: 0.85rem;
+}
+.db-alert-num { font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
+.db-alert-lbl { font-size: 0.7rem; font-weight: 700; color: #0F172A; }
+.db-alert-desc { font-size: 0.6rem; color: #94A3B8; }
+.db-alert-item--warn .db-alert-ico { animation: dbPulse 2.5s infinite; }
+@keyframes dbPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+/* Alert Detail List */
+.db-alert-list { animation: dbSlide 0.2s ease; }
+.db-alert-list-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; background: #F8FAFC; border-bottom: 1px solid #F1F5F9;
+  font-size: 0.8rem; color: #0F172A;
+}
+.db-close-sm {
+  width: 24px; height: 24px; border-radius: 6px; border: 1px solid #E2E8F0;
+  background: #FFF; display: flex; align-items: center; justify-content: center;
+  cursor: pointer; font-size: 0.65rem; color: #94A3B8;
+}
+.db-alert-list-body { max-height: 200px; overflow-y: auto; }
+.db-alert-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 16px; border-bottom: 1px solid #FAFBFC; font-size: 0.75rem;
+  transition: background 0.1s;
+}
+.db-alert-row:hover { background: #FAFBFC; }
+.db-alert-row-name { font-weight: 700; color: #0F172A; min-width: 100px; }
+.db-alert-row-val {
+  font-weight: 700; color: #EF4444; padding: 2px 8px;
+  background: #FEF2F2; border-radius: 4px; font-size: 0.68rem;
+}
+.db-alert-row-loc { color: #94A3B8; font-size: 0.68rem; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.db-empty-sm {
+  display: flex; align-items: center; gap: 6px; justify-content: center;
+  padding: 20px; font-size: 0.8rem; color: #94A3B8;
+}
+
+/* Battery section */
+.db-bat-section { border-top: 1px solid #F1F5F9; }
+.db-bat-head {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 16px; font-size: 0.72rem;
+}
+.db-bat-label { display: flex; align-items: center; gap: 5px; font-weight: 700; color: #475569; }
+.db-bat-list { padding: 0 16px 10px; }
+.db-bat-row {
+  display: flex; align-items: center; gap: 10px; padding: 5px 0;
+  font-size: 0.75rem;
+}
+.db-bat-name { font-weight: 600; color: #0F172A; min-width: 80px; }
+.db-bat-bar-wrap { display: flex; align-items: center; gap: 6px; flex: 1; }
+.db-bat-bar { flex: 1; height: 6px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
+.db-bat-fill { height: 100%; border-radius: 3px; transition: width 0.5s; }
+
+/* ── Bottom Charts Row ── */
+.db-charts-row {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+}
+.db-chart-body { padding: 10px 14px; display: flex; align-items: center; justify-content: center; min-height: 200px; }
+.db-skel-circle {
+  width: 140px; height: 140px; border-radius: 50%;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
+}
+.db-skel-fill {
+  width: 100%; height: 100%;
+  background: linear-gradient(90deg, #F1F5F9 25%, #E2E8F0 50%, #F1F5F9 75%);
+  background-size: 200% 100%; animation: dbShimmer 1.5s infinite;
+}
+.db-empty {
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+  padding: 30px; color: #94A3B8; font-size: 0.78rem;
+}
+.db-empty i { font-size: 1.3rem; }
+
+/* ── Activity Feed ── */
+.db-feed-body { padding: 6px 0; max-height: 350px; overflow-y: auto; }
+.db-feed-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 18px; transition: background 0.1s; cursor: default;
+}
+.db-feed-row:hover { background: #F8FAFC; }
+.db-feed-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.04);
+}
+.db-feed-info { flex: 1; min-width: 0; }
+.db-feed-name { display: block; font-weight: 700; font-size: 0.76rem; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.db-feed-loc { display: block; font-size: 0.66rem; color: #94A3B8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* ── Responsive ── */
+@media (max-width: 1200px) {
+  .db-charts-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 900px) {
+  .db-split { grid-template-columns: 1fr; }
+  .db-kpi-row { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .db { padding: 10px 12px; }
+  .db-topbar { flex-direction: column; align-items: stretch; }
+  .db-topbar-center { justify-content: flex-start; }
+  .db-kpi-row { grid-template-columns: 1fr 1fr; }
+  .db-charts-row { grid-template-columns: 1fr; }
+}
 `
 
 export default DashboardListCards

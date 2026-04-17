@@ -2279,6 +2279,88 @@
   }
 }
 
+/* ══════ SIDEBAR MODERN OVERRIDES ══════ */
+#kt_app_sidebar.app-sidebar {
+  background: #FAFBFC !important;
+  border-right: 1px solid #E8ECF0 !important;
+  box-shadow: none !important;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+#kt_app_sidebar .app-sidebar-logo {
+  padding: 12px 14px !important;
+  border-bottom: 1px solid #E8ECF0;
+}
+
+#kt_app_sidebar .app-sidebar-logo img {
+  max-height: 38px !important;
+  transition: all 0.25s;
+}
+
+#kt_app_sidebar .menu-item .menu-link {
+  border-radius: 10px !important;
+  margin: 2px 8px !important;
+  padding: 8px 12px !important;
+  transition: all 0.15s !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 500 !important;
+  color: #475569 !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link:hover {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.active,
+#kt_app_sidebar .menu-item.here > .menu-link {
+  background: #EFF6FF !important;
+  color: #2563EB !important;
+  font-weight: 700 !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link .menu-icon {
+  color: #94A3B8 !important;
+  font-size: 1rem !important;
+  min-width: 24px !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link:hover .menu-icon,
+#kt_app_sidebar .menu-item.here > .menu-link .menu-icon {
+  color: #3B82F6 !important;
+}
+
+#kt_app_sidebar .menu-sub {
+  margin-left: 16px !important;
+  border-left: 2px solid #E8ECF0 !important;
+  padding-left: 0 !important;
+}
+
+#kt_app_sidebar .menu-sub .menu-item .menu-link {
+  font-size: 0.78rem !important;
+  padding: 6px 10px !important;
+  color: #64748B !important;
+}
+
+/* App header bar - make it minimal */
+#kt_app_header.app-header {
+  background: #FAFBFC !important;
+  border-bottom: 1px solid #E8ECF0 !important;
+  box-shadow: none !important;
+  min-height: 50px !important;
+  height: 50px !important;
+}
+
+/* Footer - subtle */
+.app-footer {
+  background: transparent !important;
+  border-top: 1px solid #E8ECF0 !important;
+  padding: 10px 20px !important;
+  font-size: 0.72rem !important;
+  color: #94A3B8 !important;
+}
+
 /* ══════ ALERT CENTER ══════ */
 .om-alert-center {
   background: var(--lt-surface);
