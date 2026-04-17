@@ -372,65 +372,9 @@ const DashboardListCards = () => {
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  /* Navigation items from sidebar links */
-  const navItems = [
-    {label: 'Dashboard', icon: 'pi pi-th-large', to: '/tagdashboard/index', active: true},
-    {label: 'Engins', icon: 'pi pi-box', to: '/view/engin/index'},
-    {label: 'Tags', icon: 'pi pi-tag', to: '/tag/index'},
-    {label: 'Map', icon: 'pi pi-map', to: '/tour/index'},
-    {label: 'Calendrier', icon: 'pi pi-calendar', to: '/timeline/index'},
-    {label: 'Rapports', icon: 'pi pi-chart-bar', to: '/rapports/index'},
-    {label: 'Utilisateurs', icon: 'pi pi-users', to: '/view/staff/index'},
-  ]
-
-  const navigateTo = (to) => {
-    window.location.href = to
-  }
-
   return (
     <div className="dbn" data-testid="operations-monitor">
       <style>{STYLES}</style>
-
-      {/* ══════ TOP NAVIGATION ══════ */}
-      <nav className="dbn-nav" data-testid="om-header">
-        <div className="dbn-nav-inner">
-          <div className="dbn-nav-left">
-            <img src={require('../../../../assets/images/Logitag Color.png')} alt="Logitag" className="dbn-logo" />
-            <div className="dbn-nav-links">
-              {navItems.map(n => (
-                <button key={n.to} className={`dbn-nav-link ${n.active ? 'dbn-nav-link--on' : ''}`}
-                  onClick={() => !n.active && navigateTo(n.to)} data-testid={`nav-${n.label.toLowerCase()}`}>
-                  <i className={n.icon}></i>{n.label}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div className="dbn-nav-right">
-            <div className="dbn-nav-search">
-              <i className="pi pi-search"></i>
-              <input type="text" placeholder="Rechercher..." className="dbn-search-input" />
-            </div>
-            <button className="dbn-nav-icon" title="Notifications"><i className="pi pi-bell"></i></button>
-            <button className="dbn-nav-icon" title="Paramètres" onClick={() => navigateTo('/setup/index')}><i className="pi pi-cog"></i></button>
-            <div className="dbn-avatar" title="Profil">
-              <i className="pi pi-user"></i>
-            </div>
-            <button className="dbn-hamburger" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
-              <i className={`pi ${mobileMenuOpen ? 'pi-times' : 'pi-bars'}`}></i>
-            </button>
-          </div>
-        </div>
-        {mobileMenuOpen && (
-          <div className="dbn-mobile-menu">
-            {navItems.map(n => (
-              <button key={n.to} className={`dbn-mobile-link ${n.active ? 'dbn-mobile-link--on' : ''}`}
-                onClick={() => { setMobileMenuOpen(false); if (!n.active) navigateTo(n.to); }}>
-                <i className={n.icon}></i>{n.label}
-              </button>
-            ))}
-          </div>
-        )}
-      </nav>
 
       {/* ══════ HERO SECTION ══════ */}
       <div className="dbn-content">
@@ -657,47 +601,8 @@ const STYLES = `
 /* ── Base ── */
 .dbn { font-family: 'Inter', -apple-system, sans-serif; background: #F1F5F9; min-height: 100vh; }
 
-/* ══════ TOP NAVIGATION ══════ */
-.dbn-nav { background: #FFF; border-bottom: 1px solid #E2E8F0; position: sticky; top: 0; z-index: 100; }
-.dbn-nav-inner { display: flex; align-items: center; justify-content: space-between; padding: 0 28px; height: 56px; max-width: 1600px; margin: 0 auto; }
-.dbn-nav-left { display: flex; align-items: center; gap: 28px; }
-.dbn-logo { height: 32px; object-fit: contain; }
-.dbn-nav-links { display: flex; align-items: center; gap: 2px; }
-.dbn-nav-link {
-  display: flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 8px;
-  border: none; background: transparent; font-family: 'Inter', sans-serif; font-size: 0.82rem;
-  font-weight: 500; color: #64748B; cursor: pointer; transition: all 0.15s; white-space: nowrap;
-}
-.dbn-nav-link i { font-size: 0.85rem; }
-.dbn-nav-link:hover { background: #F8FAFC; color: #0F172A; }
-.dbn-nav-link--on { background: #EFF6FF; color: #2563EB; font-weight: 700; }
-.dbn-nav-link--on i { color: #3B82F6; }
-.dbn-nav-right { display: flex; align-items: center; gap: 8px; }
-.dbn-nav-search {
-  display: flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 8px;
-  background: #F8FAFC; border: 1px solid #E2E8F0; color: #94A3B8;
-}
-.dbn-nav-search i { font-size: 0.8rem; }
-.dbn-search-input {
-  border: none; background: transparent; outline: none; font-family: 'Inter', sans-serif;
-  font-size: 0.8rem; color: #0F172A; width: 140px;
-}
-.dbn-search-input::placeholder { color: #94A3B8; }
-.dbn-nav-icon {
-  width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent;
-  color: #64748B; cursor: pointer; display: flex; align-items: center; justify-content: center;
-  font-size: 0.95rem; transition: all 0.12s;
-}
-.dbn-nav-icon:hover { background: #F1F5F9; color: #0F172A; }
-.dbn-avatar {
-  width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, #3B82F6, #2563EB);
-  display: flex; align-items: center; justify-content: center; color: #FFF; font-size: 0.82rem; cursor: pointer;
-}
-.dbn-hamburger { display: none; width: 36px; height: 36px; border-radius: 8px; border: none; background: transparent; color: #475569; cursor: pointer; font-size: 1.1rem; align-items: center; justify-content: center; }
-.dbn-mobile-menu { display: none; }
-
 /* ══════ CONTENT ══════ */
-.dbn-content { max-width: 1600px; margin: 0 auto; padding: 20px 28px 32px; }
+.dbn-content { max-width: 1440px; margin: 0 auto; padding: 20px 24px 32px; }
 
 /* ══════ HERO ══════ */
 .dbn-hero { display: flex; align-items: flex-end; justify-content: space-between; margin-bottom: 20px; gap: 16px; flex-wrap: wrap; }
@@ -848,19 +753,6 @@ const STYLES = `
 @media (max-width: 900px) {
   .dbn-grid-main { grid-template-columns: 1fr; }
   .dbn-kpi-row { grid-template-columns: repeat(2, 1fr); }
-  .dbn-nav-links { display: none; }
-  .dbn-hamburger { display: flex; }
-  .dbn-mobile-menu {
-    display: flex; flex-direction: column; padding: 8px 16px 12px; border-top: 1px solid #E2E8F0;
-    background: #FFF; gap: 2px;
-  }
-  .dbn-mobile-link {
-    display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 8px;
-    border: none; background: transparent; font-size: 0.85rem; font-weight: 500; color: #475569;
-    cursor: pointer; width: 100%; text-align: left;
-  }
-  .dbn-mobile-link:hover { background: #F8FAFC; }
-  .dbn-mobile-link--on { background: #EFF6FF; color: #2563EB; font-weight: 700; }
 }
 @media (max-width: 600px) {
   .dbn-content { padding: 12px 14px 24px; }
