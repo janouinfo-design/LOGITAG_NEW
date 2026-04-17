@@ -85,6 +85,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] Appliqué à toutes les entités via le composant partagé DataTableComponent
 - [x] **Tests** : 100% sur Engins et Tags (iteration_52.json)
 
+### Phase 13 - Refonte Layout Full-Width Premium (Completed - 17 Avril 2026)
+- [x] **Sidebar masquée** : CSS overrides pour cacher sidebar et header Metronic → layout full-width
+- [x] **Top Navigation horizontale** : Logo Logitag + liens Dashboard/Engins/Tags/Map/Calendrier/Rapports/Utilisateurs + recherche + notifications + paramètres + avatar
+  - Sticky au scroll, responsive avec menu hamburger mobile
+- [x] **Hero Section** : Titre "Tableau de bord" + date + filtres période + bouton Actualiser
+- [x] **Layout premium** : KPI 4 colonnes → Carte GPS (60%) + Centre d'alertes (40%) → 4 charts analytiques
+  - Plus d'espace vide en haut, contenu commence immédiatement
+  - Max-width 1600px, background #F1F5F9, cartes blanches border-radius 14px
+- [x] **Tests** : 100% (iteration_53.json)
+
 ## Backlog
 
 ### P2 (Moyenne priorité)
