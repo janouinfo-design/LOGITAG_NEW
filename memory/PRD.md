@@ -66,6 +66,14 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] Utilise jspdf v2.5.1 + jspdf-autotable v3.5.28 (déjà installés)
 - [x] **Tests** : Code review 100% correct (iteration_50.json). UI test bloqué par erreurs 500 API externe
 
+### Phase 11 - Boutons d'Action Inline (Completed - 17 Avril 2026)
+- [x] **Remplacement global du SplitButton dropdown** par des boutons d'action inline
+  - 3 boutons icônes : Oeil bleu (Détail), Bulle verte (Chat), Poubelle rouge (Supprimer)
+  - Changement dans le composant partagé `DataTableComponent.jsx` → appliqué à TOUTES les entités
+  - CSS : .lt-row-actions, .lt-row-action-btn avec hover scale et box-shadow
+  - Testé sur Engins, Tags, Utilisateurs
+- [x] **Tests** : 100% (iteration_51.json)
+
 ## Backlog
 
 ### P2 (Moyenne priorité)
