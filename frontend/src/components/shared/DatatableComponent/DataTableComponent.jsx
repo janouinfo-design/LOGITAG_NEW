@@ -1,4 +1,4 @@
-import {useMemo, useState} from 'react'
+import {useMemo, useState, useCallback} from 'react'
 import {DataTable} from 'primereact/datatable'
 import {OverlayPanel} from 'primereact/overlaypanel'
 import {InputSwitch} from 'primereact/inputswitch'
@@ -7,6 +7,7 @@ import {Column} from 'primereact/column'
 import {Dropdown, Ripple, InputText, Skeleton, MultiSelect} from 'primereact'
 import {classNames} from 'primereact/utils'
 import {ContextMenu} from 'primereact/contextmenu'
+import {Dialog} from 'primereact/dialog'
 import Button from '../ButtonComponent/ButtonComponent.js'
 import {FilterMatchMode} from 'primereact/api'
 import _ from 'lodash'
@@ -78,6 +79,8 @@ export const DatatableComponent = ({
   const [actions, setActions] = useState([])
   const [first, setFirst] = useState(0)
   const [rowsPerPage, setRowsPerPage] = useState(10)
+  const [modalData, setModalData] = useState(null)
+  const [modalTab, setModalTab] = useState(0)
 
   useEffect(() => {
     if (page !== undefined) {
@@ -523,6 +526,15 @@ export const DatatableComponent = ({
             </button>
           )
         })}
+        <button
+          className="lt-row-action-btn"
+          title="Consulter"
+          onClick={(e) => { e.stopPropagation(); setModalData(rowData); setModalTab(0); }}
+          style={{'--ra-color': '#F59E0B', '--ra-bg': '#FFFBEB'}}
+          data-testid="row-action-consulter"
+        >
+          <i className="pi pi-pencil"></i>
+        </button>
       </div>
     )
   }
@@ -890,6 +902,164 @@ export const DatatableComponent = ({
           />
         )}
       </DataTable>
+
+      {/* ── Entity Quick View Modal ── */}
+      <Dialog
+        visible={!!modalData}
+        onHide={() => setModalData(null)}
+        header={null}
+        closable={false}
+        className="lt-entity-dialog"
+        style={{width: '640px', maxWidth: '95vw'}}
+        modal
+        data-testid="entity-modal"
+      >
+        {modalData && <EntityQuickView data={modalData} columns={columns} tab={modalTab} setTab={setModalTab} onClose={() => setModalData(null)} />}
+      </Dialog>
+    </div>
+  )
+}
+
+
+/* ══════ Entity Quick View Modal Component ══════ */
+const FIELD_LABELS = {
+  reference: 'Référence', label: 'Libellé', name: 'Nom', vin: 'VIN', code: 'Code',
+  email: 'Email', telephone: 'Téléphone', phone: 'Téléphone', poste: 'Poste',
+  firstName: 'Prénom', lastName: 'Nom', prenom: 'Prénom', nom: 'Nom',
+  famille: 'Famille', familleTag: 'Famille Tag', status: 'Statut', statuslabel: 'Statut',
+  etatenginname: 'État', active: 'Actif', batteries: 'Batterie',
+  tagId: 'Tag ID', tag: 'Tag', tagAddress: 'Adresse Tag',
+  enginAddress: 'Adresse', address: 'Adresse', LocationObjectname: 'Site',
+  locationDate: 'Dernière localisation', statusDate: 'Date statut',
+  worksiteLabel: 'Chantier', site: 'Site', description: 'Description',
+  type: 'Type', role: 'Rôle', manager: 'Manager',
+  creaDate: 'Créé le', createdAt: 'Créé le', updatedAt: 'Modifié le',
+  immatriculation: 'Immatriculation', marque: 'Marque', modele: 'Modèle',
+  last_lat: 'Latitude', last_lng: 'Longitude',
+}
+
+const SKIP_FIELDS = ['id', 'ID', '_id', '_src', 'photo', 'image', 'img', 'photoUrl',
+  'familleIcon', 'familleBgcolor', 'familleTagIconBgcolor', 'statusbgColor', 'statusColor',
+  'bgColor', 'bgcolor', 'iconColor', 'icon', '__v', 'updatedBy', 'createdBy',
+  'password', 'hash', 'token', 'refreshToken', 'IDCustomer', 'displayMap']
+
+const IDENTITY_FIELDS = ['reference', 'label', 'name', 'firstName', 'lastName', 'prenom', 'nom',
+  'vin', 'code', 'email', 'telephone', 'phone', 'poste', 'description', 'type', 'role', 'manager',
+  'immatriculation', 'marque', 'modele']
+
+const STATUS_FIELDS = ['famille', 'familleTag', 'status', 'statuslabel', 'etatenginname',
+  'active', 'batteries', 'tagId', 'tag']
+
+const LOCATION_FIELDS = ['enginAddress', 'address', 'tagAddress', 'LocationObjectname',
+  'locationDate', 'statusDate', 'worksiteLabel', 'site', 'last_lat', 'last_lng',
+  'creaDate', 'createdAt', 'updatedAt']
+
+const EntityQuickView = ({data, columns, tab, setTab, onClose}) => {
+  if (!data) return null
+
+  const entries = Object.entries(data).filter(([key, val]) => {
+    if (SKIP_FIELDS.some(s => key.toLowerCase().includes(s.toLowerCase()) || key === s)) return false
+    if (val === null || val === undefined || val === '') return false
+    if (typeof val === 'object' && !Array.isArray(val)) return false
+    return true
+  })
+
+  const title = data.reference || data.label || data.name || data.firstName || data.title || 'Détails'
+
+  const identityEntries = entries.filter(([k]) => IDENTITY_FIELDS.includes(k))
+  const statusEntries = entries.filter(([k]) => STATUS_FIELDS.includes(k))
+  const locationEntries = entries.filter(([k]) => LOCATION_FIELDS.includes(k))
+  const otherEntries = entries.filter(([k]) =>
+    !IDENTITY_FIELDS.includes(k) && !STATUS_FIELDS.includes(k) && !LOCATION_FIELDS.includes(k)
+  )
+
+  const tabs = [
+    {label: 'Identité', icon: 'pi pi-user', entries: identityEntries},
+    {label: 'État & Tags', icon: 'pi pi-tag', entries: statusEntries},
+    {label: 'Localisation', icon: 'pi pi-map-marker', entries: [...locationEntries, ...otherEntries]},
+  ]
+
+  const activeTab = tabs[tab] || tabs[0]
+
+  const renderValue = (key, val) => {
+    if (key === 'batteries' && val !== '') {
+      const bat = parseInt(val, 10) || 0
+      const color = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
+      return (
+        <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
+          <div style={{width: 60, height: 7, borderRadius: 4, background: '#F1F5F9', overflow: 'hidden'}}>
+            <div style={{width: `${Math.min(bat, 100)}%`, height: '100%', borderRadius: 4, background: color}} />
+          </div>
+          <span style={{fontWeight: 700, fontSize: '0.82rem', color}}>{bat}%</span>
+        </div>
+      )
+    }
+    if (key === 'active') return <span className="lt-modal-badge" style={{background: val == 1 ? '#F0FDF4' : '#FEF2F2', color: val == 1 ? '#166534' : '#991B1B'}}>{val == 1 ? 'Actif' : 'Inactif'}</span>
+    if (key === 'etatenginname') {
+      const colors = {exit: '#EF4444', reception: '#22C55E', nonactive: '#F59E0B'}
+      const labels = {exit: 'Sortie', reception: 'Entrée', nonactive: 'Inactif'}
+      return <span className="lt-modal-badge" style={{background: `${colors[val] || '#94A3B8'}18`, color: colors[val] || '#94A3B8'}}>{labels[val] || val}</span>
+    }
+    if (key === 'statuslabel' || key === 'status') {
+      return <span className="lt-modal-badge" style={{background: '#EFF6FF', color: '#2563EB'}}>{val}</span>
+    }
+    if (typeof val === 'boolean') return val ? 'Oui' : 'Non'
+    return String(val)
+  }
+
+  return (
+    <div data-testid="entity-quickview">
+      {/* Custom Header */}
+      <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '18px 24px 14px', borderBottom: '1px solid #E8ECF0'}}>
+        <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+          <div style={{width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg, #F59E0B, #D97706)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#FFF', fontSize: '0.95rem'}}>
+            <i className="pi pi-file-edit"></i>
+          </div>
+          <div>
+            <h3 style={{margin: 0, fontFamily: "'Manrope', sans-serif", fontSize: '1.05rem', fontWeight: 800, color: '#0F172A'}}>{title}</h3>
+            <p style={{margin: 0, fontSize: '0.72rem', color: '#94A3B8'}}>Consultation rapide</p>
+          </div>
+        </div>
+        <button onClick={onClose} style={{width: 32, height: 32, borderRadius: 8, border: '1.5px solid #E2E8F0', background: '#FAFBFC', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#94A3B8', fontSize: '0.8rem', transition: 'all 0.12s'}} data-testid="entity-modal-close">
+          <i className="pi pi-times"></i>
+        </button>
+      </div>
+
+      {/* Tabs */}
+      <div className="lt-modal-tabs">
+        {tabs.map((t, i) => (
+          <div key={i} className={`lt-modal-tab ${tab === i ? 'lt-modal-tab--active' : ''}`} onClick={() => setTab(i)} data-testid={`modal-tab-${i}`}>
+            <i className={t.icon}></i>{t.label}
+            {t.entries.length > 0 && <span style={{fontSize: '0.6rem', background: tab === i ? '#EFF6FF' : '#F1F5F9', color: tab === i ? '#3B82F6' : '#94A3B8', padding: '1px 6px', borderRadius: 4, fontWeight: 700}}>{t.entries.length}</span>}
+          </div>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="lt-modal-form" style={{maxHeight: '50vh', overflowY: 'auto'}}>
+        {activeTab.entries.length === 0 ? (
+          <div style={{textAlign: 'center', padding: '32px 20px', color: '#94A3B8', fontSize: '0.85rem'}}>
+            <i className="pi pi-inbox" style={{fontSize: '1.5rem', display: 'block', marginBottom: 8}}></i>
+            Aucune information dans cet onglet
+          </div>
+        ) : (
+          <div className="lt-modal-row" style={{gridTemplateColumns: activeTab.entries.length === 1 ? '1fr' : '1fr 1fr'}}>
+            {activeTab.entries.map(([key, val], i) => (
+              <div key={i} className="lt-modal-field" data-testid={`field-${key}`}>
+                <label className="lt-modal-label">{FIELD_LABELS[key] || key}</label>
+                <div className="lt-modal-input" style={{background: '#F8FAFC', cursor: 'default', minHeight: 40, display: 'flex', alignItems: 'center'}}>
+                  {renderValue(key, val)}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Footer */}
+      <div style={{display: 'flex', justifyContent: 'flex-end', padding: '14px 24px', borderTop: '1px solid #E8ECF0'}}>
+        <button className="lt-modal-btn-cancel" onClick={onClose} data-testid="entity-modal-fermer">Fermer</button>
+      </div>
     </div>
   )
 }
