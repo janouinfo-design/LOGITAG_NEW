@@ -56,6 +56,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **Alertes intégrées** dans panel droit (grille 2x2, batterie section compacte)
 - [x] **Tests** : 17/17 tests passés (100%) - iteration_49.json
 
+### Phase 10 - Export PDF Rapports B2B (Completed - 17 Avril 2026)
+- [x] **Bouton "Export PDF"** ajouté dans le header de RapportDisplay
+  - Bouton sombre (#0F172A) avec icône pi-file-pdf, état disabled pendant l'export
+  - PDF professionnel : bandeau header Logitag, 3 cartes résumé (engins/sites, entrées, temps total)
+  - Tableau groupé par engin/site avec lignes de détail (période, adresse, durée)
+  - Barre de total en pied (#0F172A) avec temps total en bleu
+  - Footer paginé "LOGITAG - Rapport de présence B2B"
+- [x] Utilise jspdf v2.5.1 + jspdf-autotable v3.5.28 (déjà installés)
+- [x] **Tests** : Code review 100% correct (iteration_50.json). UI test bloqué par erreurs 500 API externe
+
 ## Backlog
 
 ### P2 (Moyenne priorité)
