@@ -33,9 +33,8 @@
 
 /* ── Page Container ── */
 .lt-page {
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 24px 28px;
+  margin: 0;
+  padding: 10px 14px;
   font-family: var(--lt-font);
   min-height: 100vh;
   background: var(--lt-bg);
@@ -46,9 +45,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  margin-bottom: 12px;
   flex-wrap: wrap;
-  gap: 16px;
+  gap: 12px;
 }
 
 .lt-page-header-left {
@@ -2433,6 +2432,8 @@
 
 #kt_app_content {
   padding-top: 0 !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
 }
 
 .app-content {
@@ -2441,6 +2442,11 @@
 
 .app-main {
   padding-top: 0 !important;
+}
+
+#kt_app_content_container {
+  padding: 0 !important;
+  max-width: none !important;
 }
 
 /* Footer minimal */
