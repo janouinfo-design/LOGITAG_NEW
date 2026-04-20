@@ -354,39 +354,39 @@ const EnginDetail = () => {
         onSubmitHandler={(e) => onSaveTag(e)}
       />
 
-      <div className='lt-page' data-testid="engin-detail-page">
-        {/* ── Premium Header Summary ── */}
-        <div className='lt-detail-header' data-testid="engin-detail-header">
-          <div className='lt-detail-header-left'>
-            <button className='lt-back-btn' onClick={() => dispatch(setShow(true))} data-testid="engin-back-btn">
+      <div data-testid="engin-detail-page" style={{padding: '10px 14px', fontFamily: "'Inter', -apple-system, sans-serif"}}>
+        {/* ── Header ── */}
+        <div data-testid="engin-detail-header" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', marginBottom: 14, gap: 12, flexWrap: 'wrap'}}>
+          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
+            <button onClick={() => dispatch(setShow(true))} data-testid="engin-back-btn" style={{width: 34, height: 34, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', fontSize: '0.85rem'}}>
               <i className='pi pi-arrow-left'></i>
             </button>
-            <div className='lt-detail-avatar'>
+            <div style={{width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0}}>
               {selectedEngin?.image ? (
                 <Image src={`${API_BASE_URL_IMAGE}${selectedEngin.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
               ) : (
-                <div className='lt-detail-avatar-ph'><i className='pi pi-box'></i></div>
+                <div style={{width: 52, height: 52, borderRadius: 12, background: '#F1F5F9', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem'}}><i className='pi pi-box'></i></div>
               )}
             </div>
-            <div className='lt-detail-info'>
-              <h2 className='lt-detail-name'>{selectedEngin?.reference || '-'}</h2>
-              <div className='lt-detail-meta'>
+            <div>
+              <h2 style={{fontFamily: "'Manrope', sans-serif", fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0}}>{selectedEngin?.reference || '-'}</h2>
+              <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4}}>
                 {selectedEngin?.etatenginname && (
-                  <span className='lt-badge' style={{background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : selectedEngin.etatenginname === 'reception' ? '#F0FDF4' : '#FFFBEB', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : selectedEngin.etatenginname === 'reception' ? '#16A34A' : '#D97706'}}>
-                    <span className='lt-badge-dot' style={{background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : selectedEngin.etatenginname === 'reception' ? '#16A34A' : '#D97706'}}></span>
-                    {selectedEngin.etatenginname === 'exit' ? 'Sortie' : selectedEngin.etatenginname === 'reception' ? 'Entrée' : selectedEngin.etatenginname}
+                  <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : '#F0FDF4', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}>
+                    <span style={{width: 6, height: 6, borderRadius: '50%', background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}></span>
+                    {selectedEngin.etatenginname === 'exit' ? 'Sortie' : 'Entrée'}
                   </span>
                 )}
                 {selectedEngin?.statuslabel && (
-                  <span className='lt-badge lt-badge-info'><i className='pi pi-circle-fill' style={{fontSize: '0.4rem'}}></i>{selectedEngin.statuslabel}</span>
+                  <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, background: '#EFF6FF', color: '#2563EB'}}>{selectedEngin.statuslabel}</span>
                 )}
                 {selectedEngin?.famille && (
-                  <span className='lt-badge' style={{background: selectedEngin.familleBgcolor || '#64748B', color: '#FFF', fontSize: '0.68rem'}}>{selectedEngin.famille}</span>
+                  <span style={{display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, background: selectedEngin.familleBgcolor || '#64748B', color: '#FFF'}}>{selectedEngin.famille}</span>
                 )}
               </div>
             </div>
           </div>
-          <div className='lt-detail-actions-group'>
+          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
             <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
             <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
             <PrimaryActionButton type="edit" onClick={onSave} />
@@ -394,15 +394,15 @@ const EnginDetail = () => {
         </div>
 
         {/* ── Tabs ── */}
-        <div className='lt-detail-tabs'>
-          <TabView className='lt-tabview'>
-            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Général</span>}>
-              <div style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: 16, width: '100%'}}>
+        <div style={{background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', overflow: 'hidden'}}>
+          <TabView>
+            <TabPanel header={<span style={{display: 'flex', alignItems: 'center', gap: 6}}><i className='pi pi-cog' style={{fontSize: '0.82rem'}}></i>Général</span>}>
+              <div style={{display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 20, padding: 16}}>
                 {/* LEFT: Form */}
-                <div className='lt-detail-form'>
-                  <div className='lt-form-section'>
-                    <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12}}>
+                <div>
+                  <div style={{marginBottom: 20}}>
+                    <h4 style={{fontFamily: "'Manrope', sans-serif", fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 10, borderBottom: '1px solid #F1F5F9'}}><i className='pi pi-id-card' style={{color: '#64748B'}}></i>Identité</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12}}>
                       <div className='lt-form-field' style={{gridColumn: '1 / -1'}}>
                         {imageChange ? (
                           <div>
@@ -427,70 +427,64 @@ const EnginDetail = () => {
                     </div>
                   </div>
 
-                  <div className='lt-form-section'>
-                    <h4 className='lt-form-section-title'><i className='pi pi-car'></i>Véhicule</h4>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12}}>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>Marque{_brandValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
-                        <InputText name='brand' value={selectedEngin?.brand} onChange={onInputChange} className={`lt-form-input ${inputValidity['brand'] === false ? 'p-invalid' : ''}`} />
+                  <div style={{marginBottom: 20}}>
+                    <h4 style={{fontFamily: "'Manrope', sans-serif", fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 10, borderBottom: '1px solid #F1F5F9'}}><i className='pi pi-car' style={{color: '#64748B'}}></i>Véhicule</h4>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12}}>
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Marque{_brandValidator?.isRequired == 1 && <span style={{color: '#EF4444', marginLeft: 2}}>*</span>}</label>
+                        <InputText name='brand' value={selectedEngin?.brand} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
                       </div>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>Modèle{_modelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
-                        <InputText name='model' value={selectedEngin?.model} onChange={onInputChange} className={`lt-form-input ${inputValidity['model'] === false ? 'p-invalid' : ''}`} />
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Modèle{_modelValidator?.isRequired == 1 && <span style={{color: '#EF4444', marginLeft: 2}}>*</span>}</label>
+                        <InputText name='model' value={selectedEngin?.model} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
                       </div>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>Immatriculation{_immatriculationValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
-                        <InputText name='immatriculation' value={selectedEngin?.immatriculation} onChange={onInputChange} className={`lt-form-input ${inputValidity['immatriculation'] === false ? 'p-invalid' : ''}`} />
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Immatriculation{_immatriculationValidator?.isRequired == 1 && <span style={{color: '#EF4444', marginLeft: 2}}>*</span>}</label>
+                        <InputText name='immatriculation' value={selectedEngin?.immatriculation} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
                       </div>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>VIN{_vinValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
-                        <InputText name='vin' value={selectedEngin?.vin} onChange={onInputChange} className={`lt-form-input ${inputValidity['vin'] === false ? 'p-invalid' : ''}`} />
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>VIN{_vinValidator?.isRequired == 1 && <span style={{color: '#EF4444', marginLeft: 2}}>*</span>}</label>
+                        <InputText name='vin' value={selectedEngin?.vin} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
                       </div>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>Infos additionnelles</label>
-                        <InputText name='infosAdditionnelles' value={selectedEngin?.infosAdditionnelles} onChange={onInputChange} className='lt-form-input' />
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Infos additionnelles</label>
+                        <InputText name='infosAdditionnelles' value={selectedEngin?.infosAdditionnelles} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
                       </div>
-                      <div className='lt-form-field'>
-                        <label className='lt-form-label'>Famille</label>
-                        <Dropdown name='familleId' options={familles} onChange={onInputChange} placeholder='Famille' value={selectedEngin?.familleId} className='lt-form-input' optionLabel='label' optionValue='id' />
+                      <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
+                        <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Famille</label>
+                        <Dropdown name='familleId' options={familles} onChange={onInputChange} placeholder='Famille' value={selectedEngin?.familleId} optionLabel='label' optionValue='id' style={{borderRadius: 8}} />
                       </div>
                     </div>
                   </div>
                 </div>
 
                 {/* RIGHT: Sidebar */}
-                <div className='lt-detail-side'>
-                  {/* Résumé Card */}
-                  <div className='lt-sidebar-card'>
-                    <div className='lt-sidebar-card-head'>Résumé</div>
-                    <div className='lt-sidebar-card-body'>
-                      <div className='lt-sidebar-row'>
-                        <span className='lt-sidebar-row-label'>État</span>
-                        <span className='lt-sidebar-row-val'>
-                          {selectedEngin?.etatenginname && <span className='lt-badge' style={{background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : '#F0FDF4', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A', fontSize: '0.7rem'}}>
-                            <span className='lt-badge-dot' style={{background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}></span>
-                            {selectedEngin.etatenginname === 'exit' ? 'Sortie' : 'Entrée'}
-                          </span>}
-                        </span>
-                      </div>
-                      <div className='lt-sidebar-row'>
-                        <span className='lt-sidebar-row-label'>Batterie</span>
-                        <span className='lt-sidebar-row-val' style={{color: (parseInt(selectedEngin?.batteries) || 0) >= 50 ? '#22C55E' : (parseInt(selectedEngin?.batteries) || 0) >= 20 ? '#F59E0B' : '#EF4444'}}>
-                          {selectedEngin?.batteries != null ? `${selectedEngin.batteries}%` : 'N/A'}
-                        </span>
-                      </div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Statut</span><span className='lt-sidebar-row-val'>{selectedEngin?.statuslabel || '-'}</span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Famille</span><span className='lt-sidebar-row-val'>{selectedEngin?.famille || '-'}</span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Tag</span><span className='lt-sidebar-row-val' style={{color: '#3B82F6'}}>{selectedEngin?.tagname || 'Non assigné'}</span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Position</span><span className='lt-sidebar-row-val' style={{fontSize: '0.72rem', maxWidth: 140, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{selectedEngin?.enginAddress || selectedEngin?.LocationObjectname || '-'}</span></div>
+                <div style={{display: 'flex', flexDirection: 'column', gap: 14}}>
+                  {/* Résumé */}
+                  <div style={{background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', overflow: 'hidden'}}>
+                    <div style={{padding: '12px 16px', fontFamily: "'Manrope', sans-serif", fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', borderBottom: '1px solid #F1F5F9'}}>Résumé</div>
+                    <div style={{padding: '12px 16px'}}>
+                      {[
+                        {l: 'État', v: selectedEngin?.etatenginname === 'exit' ? 'Sortie' : selectedEngin?.etatenginname === 'reception' ? 'Entrée' : (selectedEngin?.etatenginname || '-'), c: selectedEngin?.etatenginname === 'exit' ? '#DC2626' : '#16A34A'},
+                        {l: 'Batterie', v: selectedEngin?.batteries != null ? `${selectedEngin.batteries}%` : 'N/A', c: (parseInt(selectedEngin?.batteries) || 0) >= 50 ? '#22C55E' : '#EF4444'},
+                        {l: 'Statut', v: selectedEngin?.statuslabel || '-'},
+                        {l: 'Famille', v: selectedEngin?.famille || '-'},
+                        {l: 'Tag', v: selectedEngin?.tagname || 'Non assigné', c: '#3B82F6'},
+                        {l: 'Position', v: selectedEngin?.enginAddress || selectedEngin?.LocationObjectname || '-'},
+                      ].map((r, i) => (
+                        <div key={i} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < 5 ? '1px solid #F8FAFC' : 'none'}}>
+                          <span style={{color: '#94A3B8', fontSize: '0.8rem', fontWeight: 500}}>{r.l}</span>
+                          <span style={{color: r.c || '#0F172A', fontSize: '0.82rem', fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right'}}>{r.v}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Map Card */}
+                  {/* Map */}
                   {selectedEngin?.last_lat != 0 && selectedEngin?.last_lng != 0 && (
-                    <div className='lt-detail-map-card'>
-                      <div className='lt-detail-map-head'><i className='pi pi-map' style={{color: '#10B981'}}></i>Position GPS</div>
-                      <div className='lt-detail-map-body'>
+                    <div style={{background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', overflow: 'hidden'}}>
+                      <div style={{padding: '10px 14px', borderBottom: '1px solid #F1F5F9', fontSize: '0.82rem', fontWeight: 800, color: '#0F172A', display: 'flex', alignItems: 'center', gap: 6, fontFamily: "'Manrope', sans-serif"}}><i className='pi pi-map' style={{color: '#10B981'}}></i>Position GPS</div>
+                      <div style={{height: 280}}>
                         <MapComponent position={{last_lat: selectedEngin?.last_lat, last_lng: selectedEngin?.last_lng}} icon={customIcon} popupTitle={selectedEngin?.labeltag || selectedEngin?.tagname} locationHistory={enginesHistory} />
                       </div>
                     </div>
