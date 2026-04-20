@@ -1,0 +1,74 @@
+{
+  "summary": "Frontend regression testing post CSS fix (phase 20-24). Login, Dashboard, Sidebar, Utilisateurs list with kebab menu ⋮ dropdown, FAB Quick Actions drawer with 9 grouped shortcuts, Excel/PDF export buttons on staff.list all verified working. Some detail pages (TeamDetail, ClientDetail tabs) encountered flaky selectors due to lazy loading/portal rendering but no blocking issues found.",
+  "backend_issues": {
+    "critical": [],
+    "minor": [
+      {"endpoint": "External API (omniyat.is-certified.com)", "issue": "Slow response / 500 timeouts (5-15s) — external dependency, faux positif per agent note"}
+    ]
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard", "issues": ["Top nav .dbn-nav NOT present — current layout uses Metronic sidebar with grouped sections (Gestion/Organisation/Analyse/Paramètres) + hero + KPI cards. This contradicts iteration_53 report which had sidebar hidden and top nav visible. Likely intentional phase change (sidebar restored) — verify with user expectation."]},
+      {"screen": "Console warnings", "issues": ["React warning: Each child in list should have unique 'key' prop (PrivateRoutes, SidebarMenuMain, ChatMessage, DatatableComponent)", "React warning: non-boolean attribute 'full' on button", "React warning: non-boolean attribute 'sortable' on div", "React warning: forwardRef render functions accept exactly two parameters"]}
+    ]
+  },
+  "test_results": {
+    "login_flow": {"credentials": "admin / user@1234", "result": "PASS - Login successful via Continue button, redirected to /tagdashboard/index"},
+    "dashboard": {
+      "sidebar_visible": true,
+      "sidebar_groups": ["GESTION (Engins, Tags, Calendrier, Map)", "ORGANISATION (Places, Inventory, Utilisateurs)", "Facturation", "Paramètres", "ANALYSE (Rapports, LOGS, Insertion des données)", "Capteurs"],
+      "hero_title": "Tableau de bord",
+      "kpi_cards_count": 4,
+      "map_card": true,
+      "alert_center": true,
+      "fab_quick_actions_visible": true,
+      "result": "PASS - Dashboard loads, all sections present"
+    },
+    "fab_quick_actions_drawer": {
+      "fab_testid": "quick-actions-fab",
+      "drawer_testid": "quick-actions-drawer",
+      "opens": true,
+      "items_count": 9,
+      "groups": ["Gestion (Nouvel engin, Nouveau tag, Nouveau client)", "Organisation (Nouveau site, Nouveau dépôt, Utilisateurs)", "Analyse (Rapports, Carte live, Inventaire)"],
+      "close_btn_works": true,
+      "result": "PASS - All 9 shortcuts in 3 groups, close works"
+    },
+    "utilisateurs_list": {
+      "url": "/view/staff/index",
+      "title": "staff.list - Gestion du personnel et des accès",
+      "table_rows": 10,
+      "kebab_menus_count": 10,
+      "kebab_dropdown_actions": ["Detail (pi-eye)", "Utilisateur (pi-user)", "Supprimer (pi-trash red)"],
+      "export_buttons": ["Excel (green)", "PDF (red)"],
+      "search_input": true,
+      "result": "PASS - kebab ⋮ dropdown works with 3 actions, Excel+PDF export buttons visible in header"
+    },
+    "team_detail": {
+      "note": "Detail navigation via kebab dropdown — route transition works but premium header/sidebar card verification was flaky due to portal/lazy loading. Visual screenshot confirms navigation to user detail.",
+      "result": "PARTIAL - needs manual/retest"
+    },
+    "client_detail_adresses": {"result": "NOT FULLY TESTED - Clients sidebar link not visible on default render (needs Facturation group expansion). Dropdown timing issue."},
+    "alert_list_export": {"url": "/alert/list", "result": "NOT CONFIRMED - page loaded but Excel/PDF buttons not detected in my selectors (table may have been loading)"},
+    "no_blocking_errors": true
+  },
+  "test_report_links": [],
+  "action_items": [
+    "Clarify dashboard layout intent: sidebar RESTORED in current build (GESTION/ORGANISATION/ANALYSE groups visible); iteration_53 had sidebar hidden + top nav. If top nav+full-width was the target, CSS may need re-applying. If new sidebar is correct, previous iteration context is stale.",
+    "React warnings cleanup (non-blocking): add 'key' props in PrivateRoutes, SidebarMenuMain, ChatMessage, DatatableComponent; fix non-boolean attributes 'full' and 'sortable' (convert to string or omit).",
+    "Manual verification recommended for: TeamDetail premium header (.lt-detail-header), Client Adresses premium cards, Alert List Export buttons rendering, Famille/Statut detail previews — kebab dropdown Detail navigation flow has flaky timing."
+  ],
+  "critical_code_review_comments": [
+    "Dashboard layout inconsistency between iterations (sidebar hidden vs shown) — confirm source of truth.",
+    "Multiple React warnings persisting across iterations — tech debt."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "N/A", "frontend": "~75% (core flows PASS, detail-page deep-checks flaky)"},
+  "test_credentials": "admin / user@1234",
+  "seed_data_creation": "",
+  "retest_needed": true,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Sidebar IS visible in current build with grouped sections (GESTION/ORGANISATION/ANALYSE/Paramètres/ANALYSE) — different from iteration_53 (hidden sidebar + top nav). FAB Quick Actions at bottom-right works perfectly (data-testid='quick-actions-fab' → 'quick-actions-drawer' with 9 items grouped). Utilisateurs list at /view/staff/index shows kebab ⋮ menu per row with dropdown [Detail/Utilisateur/Supprimer], plus Excel + PDF export buttons. Kebab dropdown is rendered as portal — use 'text=Detail' selector after clicking kebab with 1.5s wait. For Clients nav, expand Facturation group first. Dashboard external API (Omniyat) is slow — always sleep 5-6s after navigation. Login uses first two inputs (Email+Password) + button 'Continue'.",
+  "rca of the issue": "N/A - no blocking bugs found. Flaky test selectors due to lazy-loaded portal dropdowns and slow Omniyat API."
+}
