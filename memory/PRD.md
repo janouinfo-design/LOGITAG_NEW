@@ -3,6 +3,17 @@
 ## Problem Statement
 Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade. **CONTRAINTE** : Frontend UI/UX uniquement. Aucune modification API/Redux.
 
+### Phase 27 — Modernisation Filtres Dashboard (20 Avril 2026)
+- [x] **Refonte de la barre de filtres** (Proposition A — Pills Segmenté Violet) sur `DashboardListCards.jsx` :
+  - Segmented control `#F1F5F9` (slate) pour Tout/Aujourd'hui/7j/30j/Dates
+  - Pill actif : fond blanc + bordure violette 1.5px + ombre violette
+  - Inputs dates (custom) restylisés : container unifié, focus violet
+  - Bouton "Actualiser" transformé en bouton primaire violet (#6D28D9) avec ombre
+- [x] **Refonte secondaire** `DashboardContent.js` (routes `/newdashboard/index`, `/situationtags/index`) :
+  - filterTemplate remplacé : segmented period + 4 dropdowns compacts (Etat/Famille/Modèle/Client) + bouton Filtrer violet
+  - Ajout de chips filtres actifs supprimables
+- [x] Logique métier (periodFilter, filters.periodType, onChange, data-testid) 100% préservée
+
 ## Architecture
 - **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Leaflet
 - **Backend**: API Externe Omniyat - NON modifiable

@@ -3817,3 +3817,252 @@ input.lt-form-input,
   background: #FEF2F2 !important;
   margin-bottom: 14px !important;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MODERN FILTER BAR — Dashboard Status (Proposition A)
+   Pills segmented + compact dropdowns + premium apply button
+   ═══════════════════════════════════════════════════════════ */
+.lt-filter-bar-wrap {
+  margin: 4px 0 18px !important;
+}
+.lt-filter-bar {
+  display: flex !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 10px !important;
+  padding: 12px 14px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif !important;
+}
+
+/* Segmented period control */
+.lt-seg {
+  display: inline-flex !important;
+  background: #F1F5F9 !important;
+  border-radius: 10px !important;
+  padding: 4px !important;
+  gap: 2px !important;
+}
+.lt-seg-btn {
+  padding: 7px 14px !important;
+  border: 0 !important;
+  background: transparent !important;
+  font-family: inherit !important;
+  font-weight: 600 !important;
+  font-size: 0.82rem !important;
+  color: #475569 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease !important;
+  letter-spacing: -0.005em !important;
+}
+.lt-seg-btn:hover:not(.is-active) {
+  color: #0F172A !important;
+  background: rgba(255,255,255,0.6) !important;
+}
+.lt-seg-btn.is-active {
+  background: #FFFFFF !important;
+  color: #6D28D9 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 0 0 1px rgba(109, 40, 217, 0.14) !important;
+}
+
+.lt-filter-divider {
+  width: 1px !important;
+  height: 24px !important;
+  background: #E2E8F0 !important;
+  margin: 0 2px !important;
+}
+
+/* Compact dropdown wrapper */
+.lt-filter-dd {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 0 4px 0 10px !important;
+  background: #FFFFFF !important;
+  border: 1px solid #E2E8F0 !important;
+  border-radius: 10px !important;
+  height: 38px !important;
+  transition: border-color .15s ease, background .15s ease !important;
+  position: relative !important;
+}
+.lt-filter-dd:hover {
+  border-color: #CBD5E1 !important;
+  background: #F8FAFC !important;
+}
+.lt-filter-dd-ic {
+  font-size: 0.78rem !important;
+  color: #94A3B8 !important;
+}
+.lt-filter-dd-label {
+  font-size: 0.78rem !important;
+  color: #94A3B8 !important;
+  font-weight: 500 !important;
+}
+
+/* Override PrimeReact Dropdown inside wrapper */
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  min-width: 90px !important;
+  height: 100% !important;
+  display: inline-flex !important;
+  align-items: center !important;
+}
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner .p-dropdown-label {
+  padding: 0 6px !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  color: #0F172A !important;
+  background: transparent !important;
+  border: 0 !important;
+  font-family: 'Inter', sans-serif !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  line-height: 1 !important;
+}
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner .p-dropdown-label.p-placeholder {
+  color: #0F172A !important;
+  font-weight: 600 !important;
+}
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner .p-dropdown-trigger {
+  width: 24px !important;
+  color: #94A3B8 !important;
+}
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner .p-dropdown-trigger .p-dropdown-trigger-icon {
+  font-size: 0.7rem !important;
+}
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner:not(.p-disabled):hover,
+.lt-filter-dd .p-dropdown.lt-filter-dd-inner:not(.p-disabled).p-focus {
+  border: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* Dropdown panel — premium look */
+.lt-filter-dd-panel.p-dropdown-panel {
+  border-radius: 12px !important;
+  border: 1px solid #E2E8F0 !important;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
+  margin-top: 4px !important;
+}
+.lt-filter-dd-panel .p-dropdown-items {
+  padding: 6px !important;
+}
+.lt-filter-dd-panel .p-dropdown-item {
+  padding: 8px 12px !important;
+  font-size: 0.85rem !important;
+  color: #334155 !important;
+  border-radius: 8px !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.lt-filter-dd-panel .p-dropdown-item:hover {
+  background: #F1F5F9 !important;
+  color: #0F172A !important;
+}
+.lt-filter-dd-panel .p-dropdown-item.p-highlight {
+  background: #F5F3FF !important;
+  color: #6D28D9 !important;
+  font-weight: 600 !important;
+}
+.lt-filter-dd-panel .p-dropdown-filter-container {
+  padding: 8px !important;
+}
+.lt-filter-dd-panel .p-dropdown-filter {
+  border-radius: 8px !important;
+  border: 1px solid #E2E8F0 !important;
+  padding: 8px 10px 8px 32px !important;
+  font-size: 0.85rem !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.lt-filter-dd-panel .p-dropdown-filter:focus {
+  border-color: #7C3AED !important;
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.12) !important;
+}
+
+.lt-filter-spacer {
+  flex: 1 1 auto !important;
+  min-width: 12px !important;
+}
+
+/* Primary Apply button */
+.lt-filter-apply {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 7px !important;
+  padding: 9px 16px !important;
+  background: #6D28D9 !important;
+  color: #FFFFFF !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.82rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  height: 38px !important;
+  box-shadow: 0 1px 3px rgba(109, 40, 217, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+  transition: background .15s ease, transform .15s ease, box-shadow .15s ease !important;
+}
+.lt-filter-apply:hover:not(:disabled) {
+  background: #5B21B6 !important;
+  transform: translateY(-1px) !important;
+  box-shadow: 0 4px 10px rgba(109, 40, 217, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06) !important;
+}
+.lt-filter-apply:active:not(:disabled) { transform: translateY(0) !important; }
+.lt-filter-apply:disabled { opacity: 0.7 !important; cursor: not-allowed !important; }
+.lt-filter-apply i { font-size: 0.78rem !important; }
+
+/* Active filter chips */
+.lt-filter-chips {
+  display: flex !important;
+  gap: 8px !important;
+  margin-top: 10px !important;
+  flex-wrap: wrap !important;
+  padding: 0 4px !important;
+}
+.lt-filter-chip {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 6px 4px 12px !important;
+  background: #F5F3FF !important;
+  color: #6D28D9 !important;
+  border: 1px solid #E9E1FF !important;
+  border-radius: 999px !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.lt-filter-chip-x {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 18px !important;
+  height: 18px !important;
+  border: 0 !important;
+  background: transparent !important;
+  color: #6D28D9 !important;
+  border-radius: 999px !important;
+  cursor: pointer !important;
+  font-size: 14px !important;
+  line-height: 1 !important;
+  opacity: 0.65 !important;
+  transition: opacity .15s ease, background .15s ease !important;
+}
+.lt-filter-chip-x:hover {
+  opacity: 1 !important;
+  background: #EDE9FE !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .lt-filter-bar { padding: 10px !important; }
+  .lt-filter-divider { display: none !important; }
+  .lt-filter-spacer { display: none !important; }
+  .lt-filter-apply { width: 100% !important; justify-content: center !important; }
+}

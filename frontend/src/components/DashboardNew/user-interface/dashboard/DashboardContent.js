@@ -168,71 +168,153 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
     dispatch(fetchStatisticDash(_filters))
   }
 
-  const filterTemplate = () => (
-    <Card>
-      <div className='flex flex-wrap gap-3'>
-        <SelectButton
-          value={filters.periodType}
-          options={periods}
-          optionValue='value'
-          onChange={(e) => setFilters({...filters, periodType: e.value})}
-        />
-        <Dropdown
-          value={filters.enginStatus}
-          optionLabel='label'
-          optionValue='code'
-          options={etatData}
-          onChange={(e) => setFilters({...filters, enginStatus: e.value})}
-          placeholder='Etat Engin'
-          itemTemplate={etatItemTemplate}
-        />
-        <Dropdown
-          value={filters.enginFamily}
-          optionLabel='label'
-          optionValue='value'
-          options={[
-            {label: 'Tout', value: ''},
-            ...(models || [])
-              .filter(({type}) => type == 'family')
-              .map((o) => ({label: o.model, value: o.model})),
-          ].filter((o) => o.label)}
-          onChange={(e) => setFilters({...filters, enginFamily: e.value})}
-          placeholder='Famille'
-        />
-        <Dropdown
-          value={filters.enginModel}
-          // optionLabel='model'
-          // optionValue='model'
-          options={[
-            {label: 'Tout', value: ''},
-            ...(models || []).map((o) => ({label: o.model, value: o.model})),
-          ].filter((o) => o.label)}
-          onChange={(e) => setFilters({...filters, enginModel: e.value})}
-          placeholder='Model'
-        />
-        <Dropdown
-          value={filters.customerId}
-          optionLabel='label'
-          optionValue='id'
-          options={[
-            {label: 'Tout', id: 0},
-            ...(sites || []).map((o) => ({label: o.name, id: o.id})),
-          ].filter((o) => o.label)}
-          onChange={(e) => setFilters({...filters, customerId: e.value})}
-          placeholder='Client'
-          filter
-        />
+  // ─── Active filter chips (Proposition A) ───
+  const activeChips = useMemo(() => {
+    const chips = []
+    if (filters.enginStatus) {
+      const found = etatData.find((o) => o.code === filters.enginStatus)
+      if (found && found.code) chips.push({key: 'enginStatus', label: `Etat : ${found.label}`})
+    }
+    if (filters.enginFamily) chips.push({key: 'enginFamily', label: `Famille : ${filters.enginFamily}`})
+    if (filters.enginModel) chips.push({key: 'enginModel', label: `Modèle : ${filters.enginModel}`})
+    if (filters.customerId) {
+      const site = (sites || []).find((s) => s.id === filters.customerId)
+      if (site) chips.push({key: 'customerId', label: `Client : ${site.name}`})
+    }
+    return chips
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters, sites])
 
-        <Button
-          loading={loading}
+  const clearChip = (key) => {
+    setFilters({...filters, [key]: key === 'customerId' ? '' : ''})
+  }
+
+  const filterTemplate = () => (
+    <div className='lt-filter-bar-wrap' data-testid='dashboard-filter-bar'>
+      <div className='lt-filter-bar'>
+        {/* Segmented period */}
+        <div className='lt-seg' role='tablist' aria-label='Période'>
+          {periods.map((p) => (
+            <button
+              key={p.value}
+              type='button'
+              role='tab'
+              aria-selected={filters.periodType === p.value}
+              className={`lt-seg-btn ${filters.periodType === p.value ? 'is-active' : ''}`}
+              onClick={() => setFilters({...filters, periodType: p.value})}
+              data-testid={`period-${p.value}`}
+            >
+              {p.label.charAt(0).toUpperCase() + p.label.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <span className='lt-filter-divider' aria-hidden='true' />
+
+        {/* Compact dropdowns */}
+        <div className='lt-filter-dd'>
+          <i className='pi pi-bolt lt-filter-dd-ic' />
+          <span className='lt-filter-dd-label'>Etat</span>
+          <Dropdown
+            value={filters.enginStatus}
+            optionLabel='label'
+            optionValue='code'
+            options={etatData}
+            onChange={(e) => setFilters({...filters, enginStatus: e.value})}
+            placeholder='Tous'
+            itemTemplate={etatItemTemplate}
+            className='lt-filter-dd-inner'
+            panelClassName='lt-filter-dd-panel'
+          />
+        </div>
+
+        <div className='lt-filter-dd'>
+          <i className='pi pi-sitemap lt-filter-dd-ic' />
+          <span className='lt-filter-dd-label'>Famille</span>
+          <Dropdown
+            value={filters.enginFamily}
+            optionLabel='label'
+            optionValue='value'
+            options={[
+              {label: 'Tous', value: ''},
+              ...(models || [])
+                .filter(({type}) => type == 'family')
+                .map((o) => ({label: o.model, value: o.model})),
+            ].filter((o) => o.label)}
+            onChange={(e) => setFilters({...filters, enginFamily: e.value})}
+            placeholder='Tous'
+            className='lt-filter-dd-inner'
+            panelClassName='lt-filter-dd-panel'
+          />
+        </div>
+
+        <div className='lt-filter-dd'>
+          <i className='pi pi-box lt-filter-dd-ic' />
+          <span className='lt-filter-dd-label'>Modèle</span>
+          <Dropdown
+            value={filters.enginModel}
+            options={[
+              {label: 'Tous', value: ''},
+              ...(models || []).map((o) => ({label: o.model, value: o.model})),
+            ].filter((o) => o.label)}
+            onChange={(e) => setFilters({...filters, enginModel: e.value})}
+            placeholder='Tous'
+            className='lt-filter-dd-inner'
+            panelClassName='lt-filter-dd-panel'
+          />
+        </div>
+
+        <div className='lt-filter-dd'>
+          <i className='pi pi-users lt-filter-dd-ic' />
+          <span className='lt-filter-dd-label'>Client</span>
+          <Dropdown
+            value={filters.customerId}
+            optionLabel='label'
+            optionValue='id'
+            options={[
+              {label: 'Tous', id: 0},
+              ...(sites || []).map((o) => ({label: o.name, id: o.id})),
+            ].filter((o) => o.label)}
+            onChange={(e) => setFilters({...filters, customerId: e.value})}
+            placeholder='Tous'
+            filter
+            className='lt-filter-dd-inner'
+            panelClassName='lt-filter-dd-panel'
+          />
+        </div>
+
+        <div className='lt-filter-spacer' />
+
+        <button
+          type='button'
+          className='lt-filter-apply'
           onClick={getData}
-          size='small'
-          severity='warning'
-          icon='pi pi-filter'
-          label='Filtrer'
-        />
+          disabled={loading}
+          data-testid='dashboard-filter-apply'
+        >
+          <i className={loading ? 'pi pi-spin pi-spinner' : 'pi pi-filter'} />
+          Filtrer
+        </button>
       </div>
-    </Card>
+
+      {activeChips.length > 0 && (
+        <div className='lt-filter-chips' data-testid='dashboard-filter-chips'>
+          {activeChips.map((c) => (
+            <span key={c.key} className='lt-filter-chip'>
+              {c.label}
+              <button
+                type='button'
+                className='lt-filter-chip-x'
+                onClick={() => clearChip(c.key)}
+                aria-label={`Retirer ${c.label}`}
+              >
+                ×
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
   )
 
   // Build Hero + Insights from cardsData (Proposition A - Executive Dashboard)
