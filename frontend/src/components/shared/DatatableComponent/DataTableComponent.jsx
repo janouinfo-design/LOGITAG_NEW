@@ -101,8 +101,16 @@ export const DatatableComponent = ({
   let conf = localStorage.getItem(customSession) || null
   conf = JSON.parse(conf)
 
+  const DEFAULT_HIDDEN = ['vin', 'label', 'tagname', 'brand', 'model']
+
   const [configs, setConfigs] = useState(conf)
-  const [visibility, setVisibility] = useState(conf?.visibility)
+  const [visibility, setVisibility] = useState(() => {
+    if (conf?.visibility) return conf.visibility
+    // Default: hide technical columns for cleaner initial view
+    const defaults = {}
+    DEFAULT_HIDDEN.forEach(f => { defaults[f] = false })
+    return defaults
+  })
   const [exportableColumns, setExportableColumns] = useState(conf?.exportableColumns || {})
   const [rowGroupOptions, setRowGroupOptions] = useState(conf?.rowGroup)
 
@@ -411,7 +419,7 @@ export const DatatableComponent = ({
                     {tblColumns.map((c) => (
                       <div className='px-1 py-2 flex align-items-center '>
                         <InputSwitch
-                          checked={!visibility || visibility?.[c.field]}
+                          checked={visibility?.[c.field] !== false}
                           onChange={(e) => toggleColumnVisibility(c?.field, e.value)}
                         />
                         <strong className='ml-2'>{c.header}</strong>
@@ -897,7 +905,7 @@ export const DatatableComponent = ({
           />
         ) : null}
         {(tblColumns || []).map((column, index) =>
-          !visibility || visibility?.[column.field] ? (
+          visibility?.[column.field] !== false ? (
             <Column
               key={index}
               {...column}
