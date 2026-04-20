@@ -1,0 +1,29 @@
+{
+  "summary": "Tested ClusterInsightsPanel feature on /tour/index (Map page). After login with admin/user@1234, navigation to Map via sidebar works and renders premium violet clusters (.my-custom-cluster.lt-cluster-icon) with numeric counters (6 and 25). Clicking the cluster of 6 engins (LOGITRAK @ Renens, Vaud) opens the rich drawer panel (data-testid='cluster-insights-panel') with the required header (violet badge + count '6' + title 'LOGITRAK' + address), the 4 stats (Sur site, Arrivés 1h, Sortis récents, Durée moy.), the 4 segmented filters (all/present/exited/battery) that change the visible list (clicking 'exited' correctly reduced 6 → 4 items), the list (data-testid='cluster-items-list' with 6 cluster-item-{id} cards each showing reference/famille/statut/time/battery), the sort dropdown (data-testid='cluster-sort' with all 4 options selectable), and the close X button + backdrop. The panel design uses the purple/violet premium styling. Feature is working as designed.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Dashboard (/tagdashboard/index) — pre-existing, unrelated to this feature", "issues": ["Uncaught runtime error 'Cannot read properties of null (reading fitBounds)' triggers a red error overlay on dashboard load. It does NOT prevent navigation to /tour/index but is disruptive. Likely a ref being accessed before the map instance exists."]}
+    ]
+  },
+  "test_report_links": [],
+  "action_items": [
+    "(Optional / pre-existing) Investigate and fix the runtime TypeError 'Cannot read properties of null (reading fitBounds)' shown on dashboard mount — not in the new Map feature but same bundle",
+    "React console warnings (duplicate 'key' props in PrivateRoutes / SidebarMenuMain / ChatMessage; non-boolean attribute 'full' on <button>) should be cleaned up — cosmetic, not blocking"
+  ],
+  "critical_code_review_comments": [
+    "ClusterInsightsPanel.jsx (275 lines) is well-structured, pure frontend, no API changes. Good use of useMemo for enriched/visible/zoneInfo. All critical interactive elements have data-testid attributes.",
+    "Trigger logic in MapComponent.handleClusterClick (lines 601-635) is correct: opens the panel when markers are perfectly stacked (distances.length === 0) OR when max distance between cluster center and markers is <50m. Otherwise defaults to cluster.spiderfy(). With the seeded data, the 6-engin cluster at LOGITRAK Renens meets the <50m condition → panel opens. The 25-engin cluster in Morocco is too spread out → spiderfies (expected).",
+    "MapComponent.js is very large (>2000 lines) — recommended to extract cluster logic and marker icon factories into separate modules."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a", "frontend": "100% (10/10 tested checkpoints verified)"},
+  "test_credentials": "admin / user@1234",
+  "seed_data_creation": "None",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "To trigger the ClusterInsightsPanel reliably: login admin/user@1234, click 'Map' sidebar (a[href='/tour/index']). Two premium violet clusters render: '6' near Lyon/Renens and '25' in Morocco. Clicking the '6' cluster opens the panel (markers are stacked within 50m at LOGITRAK Renens). The '25' cluster only spiderfies/zooms because markers are spread across Morocco — this is by design. Pre-existing React error overlay on /tagdashboard/index can be neutralised via page.evaluate removing body>iframe. The 25-cluster will trigger the panel only if zoomed to a subcluster whose markers are <50m apart; with current data this does not occur naturally at rabat-wide level.",
+  "rca of the issue": "No bug in the tested feature. All 10 features listed in the review_request verified. The previously observed runtime error 'fitBounds null' on dashboard is pre-existing and unrelated."
+}

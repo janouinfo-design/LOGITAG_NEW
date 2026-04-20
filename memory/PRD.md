@@ -3,7 +3,16 @@
 ## Problem Statement
 Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade. **CONTRAINTE** : Frontend UI/UX uniquement. Aucune modification API/Redux.
 
-### Phase 27 — Modernisation Filtres Dashboard (20 Avril 2026)
+### Phase 28 — Cluster Insights Panel pour la Map (20 Avril 2026)
+- [x] **Nouveau composant** `ClusterInsightsPanel.jsx` : drawer latéral premium ouvert au clic sur un cluster
+  - **Header** : badge violet compteur, nom de la zone (LocationObjectname), adresse, 4 stats (Sur site / Arrivés <1h / Sortis / Durée moyenne)
+  - **Filtres segmentés** : Tous / Sur site / Sortis / Batterie faible + dropdown Famille + tri (Récent, Nom, Durée, Statut)
+  - **Cards engins** cliquables avec dot de couleur (vert=sur site, orange=arrivé, rouge=sorti, violet=zone), chip famille, statut, temps depuis dernier signal, % batterie
+  - **Expansion** : timeline verticale (Dernière activité, Durée, Position) + méta (adresse, device/RSSI, utilisateur, état) + bouton "Centrer sur la carte"
+- [x] **Cluster icon upgradé** : divIcon violet premium adaptatif (sm/md/lg/xl selon le count), halo blanc + ombre violette, rouge pour >100 engins, hover scale 1.08
+- [x] **handleClusterClick amélioré** : ouvre le panneau pour empilements parfaits ET clusters de très courte distance (<50m) — spiderfy uniquement si séparation lisible
+- [x] **Intégration** dans `MapComponent.js` (route `/tour/index`) — remplace l'ancien Popup basique par le drawer
+- [x] **Aucune modif API/backend** — utilise uniquement les champs déjà chargés (lastSeenAt, batteries, LocationObjectname, etatenginname, statuslabel, etc.)
 - [x] **Refonte de la barre de filtres** (Proposition A — Pills Segmenté Violet) sur `DashboardListCards.jsx` :
   - Segmented control `#F1F5F9` (slate) pour Tout/Aujourd'hui/7j/30j/Dates
   - Pill actif : fond blanc + bordure violette 1.5px + ombre violette
@@ -16,6 +25,8 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
   - `.lt-sort-pill--active` (Engins List grid view — Défaut/Nom/Batterie/Statut) : violet
   - `.lt-timeline-filter-pill--active` (Journal/Historique — Tout/Entrées/Sorties) : violet
 - [x] Logique métier (periodFilter, filters.periodType, onChange, data-testid) 100% préservée
+
+### Phase 27 — Modernisation Filtres Dashboard (20 Avril 2026)
 
 ## Architecture
 - **Frontend**: React 18, Redux Toolkit, PrimeReact, ApexCharts, Leaflet

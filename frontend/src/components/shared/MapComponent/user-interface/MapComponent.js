@@ -79,6 +79,7 @@ import {Divider} from 'primereact/divider'
 import {Calendar} from 'primereact/calendar'
 import LastSeenComponent from '../../../Engin/EnginDetail/LastSeenComponent'
 import {Badge} from 'primereact/badge'
+import ClusterInsightsPanel from './ClusterInsightsPanel'
 
 const layers = [
   'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
@@ -138,10 +139,13 @@ let dvIcon = (options) => {
 }
 
 const createClusterCustomIcon = (cluster) => {
+  const n = cluster.getChildCount()
+  const size = n < 10 ? 42 : n < 50 ? 50 : n < 100 ? 58 : 66
+  const sizeClass = n < 10 ? 'lt-cluster-icon--sm' : n < 50 ? 'lt-cluster-icon--md' : n < 100 ? 'lt-cluster-icon--lg' : 'lt-cluster-icon--xl'
   return L.divIcon({
-    html: `<span>${cluster.getChildCount()}</span>`,
-    className: 'my-custom-cluster', // Apply custom CSS styles
-    iconSize: L.point(50, 50, true), // Set the size of the cluster icon
+    html: `<span>${n}</span>`,
+    className: `my-custom-cluster lt-cluster-icon ${sizeClass}`,
+    iconSize: L.point(size, size, true),
   })
 }
 
@@ -610,14 +614,18 @@ const MapComponent = ({
     // Check if all positions equal
     const allSame = positions.every((p) => p === positions[0])
 
+    // Open the rich Cluster Insights panel whenever multiple markers are clustered
+    const ids = markers.map((m) => m.options?.id)
+    const marker_pios = engMap.filter((o) => ids.includes(o.id))
+
     if (distances.length === 0) {
-      console.log('markers:', markers)
-      let ids = markers.map((m) => m.options?.id)
-      console.log('markers ids:', ids)
-      let marker_pios = engMap.filter((o) => ids.includes(o.id))
-      console.log('markers pios:', marker_pios)
-      console.log('markers filtredTrackers:', pios, engMap)
-      let items = markers.map((m) => m.options?.data)
+      // Perfectly stacked — always open the panel
+      setClusterPopup({
+        position: {...cluster.getLatLng()},
+        items: marker_pios,
+      })
+    } else if (markers.length >= 2 && distances.length && Math.max(...distances) < 50) {
+      // Very close (<50m) — spiderfy is hard to read, show enriched panel instead
       setClusterPopup({
         position: {...cluster.getLatLng()},
         items: marker_pios,
@@ -1929,29 +1937,7 @@ const MapComponent = ({
               )}
             </MarkerClusterGroup>
 
-            {clusterPopup && (
-              <Popup position={clusterPopup.position} onClose={() => setClusterPopup(null)}>
-                <div class='flex justify-content-start flex-column'>
-                  <div>
-                    <h1
-                      style={{margin: '0', color: '#007bff'}}
-                      className='flex align-items-center gap-2 mb-2'
-                    >
-                      <div
-                        className='bg-blue-500 text-white flex justify-content-center align-items-center'
-                        style={{width: '50px', height: '50px', borderRadius: '50%'}}
-                      >
-                        {clusterPopup.items.length}
-                      </div>
-                      <span>Bouteilles</span>
-                    </h1>
-                  </div>
-                  <div style={{maxHeight: '300px', overflowY: 'auto'}}>
-                    {clusterPopup.items.map(clusterPopupItemTemplate)}
-                  </div>
-                </div>
-              </Popup>
-            )}
+            {/* Cluster insights opens via side panel (ClusterInsightsPanel), see below */}
             <MarkerClusterGroup
               ref={trackerRef}
               maxClusterRadius={150}
@@ -2070,6 +2056,22 @@ const MapComponent = ({
           </MapContainer>
         </div>
       </div>
+      <ClusterInsightsPanel
+        open={!!clusterPopup}
+        items={clusterPopup?.items || []}
+        onClose={() => setClusterPopup(null)}
+        onSelectItem={(item) => {
+          try {
+            const lat = parseFloat(item.last_lat ?? item.lat)
+            const lng = parseFloat(item.last_lng ?? item.lng)
+            if (!isNaN(lat) && !isNaN(lng) && mapRef.current && mapRef.current.flyTo) {
+              mapRef.current.flyTo([lat, lng], Math.max(mapRef.current.getZoom() || 13, 16), {duration: 0.6})
+            }
+            dispatch(setSelectedEnginMap(item))
+            setClusterPopup(null)
+          } catch (e) {}
+        }}
+      />
     </div>
   )
 }
