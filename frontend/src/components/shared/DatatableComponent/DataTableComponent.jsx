@@ -539,9 +539,6 @@ export const DatatableComponent = ({
           <>
             <div className="lt-dots-overlay" onClick={() => setMenuOpen(null)} />
             <div className="lt-dots-menu" style={{position: 'fixed', top: menuPos.top, left: menuPos.left}} data-testid="row-action-dropdown">
-              <button className="lt-dots-item" onClick={(e) => { e.stopPropagation(); setMenuOpen(null); setModalData(rowData); setModalTab(0); }} data-testid="row-action-consulter">
-                <i className="pi pi-file-edit" style={{color: '#F59E0B'}}></i>Consulter
-              </button>
               {_actions.map((action, idx) => {
                 const mapped = iconMap[action.label] || {icon: 'pi pi-cog', color: '#64748B'}
                 return (

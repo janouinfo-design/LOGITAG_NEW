@@ -1605,7 +1605,7 @@ const EnginList = () => {
               const statusColor = item.statusbgColor || '#94A3B8'
               return (
                 <div key={item.id || i} className="lt-vcard" data-testid={`engin-vcard-${i}`}
-                  onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setDetailChat(true)); }}>
+                  onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setShow(false)); }}>
                   <div className="lt-vcard-dots" onClick={(e) => e.stopPropagation()}>
                     <button className="lt-vcard-dots-btn" onClick={(e) => {
                       e.stopPropagation()
@@ -1615,7 +1615,7 @@ const EnginList = () => {
                       <i className="pi pi-ellipsis-v"></i>
                     </button>
                     <div className="lt-vcard-dots-menu" style={{display: 'none'}}>
-                      <button className="lt-dots-item" onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setDetailChat(true)); }}>
+                      <button className="lt-dots-item" onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setShow(false)); }}>
                         <i className="pi pi-eye" style={{color: '#3B82F6'}}></i>Détail
                       </button>
                       <button className="lt-dots-item" onClick={() => handleShowMap(item, null)}>

@@ -474,7 +474,7 @@ const EnginDetail = () => {
                       ].map((r, i) => (
                         <div key={i} style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '7px 0', borderBottom: i < 5 ? '1px solid #F8FAFC' : 'none'}}>
                           <span style={{color: '#94A3B8', fontSize: '0.8rem', fontWeight: 500}}>{r.l}</span>
-                          <span style={{color: r.c || '#0F172A', fontSize: '0.82rem', fontWeight: 700, maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', textAlign: 'right'}}>{r.v}</span>
+                          <span style={{color: r.c || '#0F172A', fontSize: '0.82rem', fontWeight: 700, textAlign: 'right'}}>{r.v}</span>
                         </div>
                       ))}
                     </div>
