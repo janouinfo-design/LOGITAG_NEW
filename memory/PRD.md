@@ -132,6 +132,19 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 24 - Refonte Section Adresses Client (Premium Cards) (Completed - 20 Avril 2026)
+- [x] **`AddressesComponent` refactorisé** (Stripe-like premium cards) :
+  - Icône circulaire colorée à gauche (violet = facturation/dépôt, vert = chargement/livraison, orange = siège)
+  - Titre "Adresse de [type]" + badge contextuel ("Par défaut" vert, "Adresse principale" violet)
+  - Lignes Adresse/Email/Téléphone avec icônes (masquées si vide)
+  - Statut "Active/Inactive" en pilule top-right (dot vert)
+  - 3 actions bottom-right : Voir (œil), Modifier (crayon), Supprimer (poubelle rouge) — hover states élégants
+- [x] **ClientDetail onglet Adresses** :
+  - Header "Gestion des adresses" + sous-titre + bouton violet gradient "Ajouter une adresse"
+  - Empty state stylisé (icône + message) si aucune adresse
+  - Banner d'info bleu "Bon à savoir" en bas expliquant l'usage de l'adresse principale
+- [x] Validation visuelle screenshot : rend identique au design de référence fourni par l'utilisateur ✅
+
 ### Phase 23 - Hotfix UX Page Utilisateurs + CSS Global (Completed - 20 Avril 2026)
 - [x] **Bug CSS critique résolu** : bloc `.lt-detail-header {` non fermé (ligne ~3146) cassait tous les styles après. Également un bloc orphelin (`box-shadow` sans sélecteur) à la fin du fichier. Correction propre + ajout de propriétés complètes pour `.lt-detail-header` (flex, padding, border, shadow, margin).
 - [x] **TeamDetail `.js` polish** :

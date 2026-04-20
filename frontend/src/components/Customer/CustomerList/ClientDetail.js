@@ -384,11 +384,56 @@ const ClientDetail = () => {
                 {editAddress == true ? (
                   <AddressDetail client={true} handleSaveAddress={(e) => saveAddress(e)} />
                 ) : (
-                  <div className='flex flex-wrap w-full' style={{gap: 12}}>
-                    {customerAddress && customerAddress?.map((address) => (
-                      <AddressesComponent client={true} key={address.id} className='w-full lg:w-6 mt-2' id={address.id} type={address.type} {...address} />
-                    ))}
-                  </div>
+                  <>
+                    <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap', marginBottom: 20}}>
+                      <div>
+                        <h3 style={{margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A', fontFamily: "'Manrope', sans-serif"}}>Gestion des adresses</h3>
+                        <p style={{margin: '4px 0 0 0', fontSize: '0.82rem', color: '#64748B'}}>Consultez et gérez toutes les adresses associées à ce client.</p>
+                      </div>
+                      <button
+                        data-testid='client-address-add-btn'
+                        onClick={() => { dispatch(setSelectedAddress({customerID: selectedCustomer?.id, id: 0, type: '', active: 1})); dispatch(setAddressDetail(true)) }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 8,
+                          padding: '10px 18px', borderRadius: 10, border: 'none',
+                          background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                          color: '#FFF', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem',
+                          boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)', transition: 'all 0.18s',
+                        }}
+                        onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(99, 102, 241, 0.4)'}}
+                        onMouseLeave={(e) => {e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'}}
+                      >
+                        <i className='pi pi-plus' style={{fontSize: '0.8rem'}}></i>
+                        Ajouter une adresse
+                      </button>
+                    </div>
+                    <div style={{display: 'flex', flexDirection: 'column', gap: 12}}>
+                      {customerAddress && customerAddress?.map((address) => (
+                        <AddressesComponent client={true} key={address.id} id={address.id} type={address.type} {...address} />
+                      ))}
+                      {(!customerAddress || customerAddress.length === 0) && (
+                        <div style={{padding: 40, textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem', border: '1px dashed #E2E8F0', borderRadius: 12}}>
+                          <i className='pi pi-map-marker' style={{fontSize: '1.6rem', color: '#CBD5E1', display: 'block', marginBottom: 8}}></i>
+                          Aucune adresse enregistrée pour ce client.
+                        </div>
+                      )}
+                    </div>
+                    {customerAddress && customerAddress.length > 0 && (
+                      <div style={{
+                        marginTop: 20, padding: '14px 18px', background: '#EFF6FF',
+                        border: '1px solid #DBEAFE', borderRadius: 12,
+                        display: 'flex', alignItems: 'flex-start', gap: 12,
+                      }}>
+                        <div style={{width: 32, height: 32, borderRadius: '50%', background: '#3B82F6', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0}}>
+                          <i className='pi pi-info-circle' style={{color: '#FFF', fontSize: '0.85rem'}}></i>
+                        </div>
+                        <div style={{flex: 1}}>
+                          <div style={{fontWeight: 700, fontSize: '0.85rem', color: '#1E3A8A', marginBottom: 2}}>Bon à savoir</div>
+                          <div style={{fontSize: '0.78rem', color: '#1E40AF'}}>L'adresse principale est utilisée pour la facturation et les documents officiels.</div>
+                        </div>
+                      </div>
+                    )}
+                  </>
                 )}
               </div>
             </TabPanel>
