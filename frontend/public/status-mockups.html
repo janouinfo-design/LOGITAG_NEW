@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Propositions page Status</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, sans-serif; }
+body { background: #F5F7FA; padding: 30px; color: #0F172A; }
+.title-big { font-size: 2rem; font-weight: 800; margin-bottom: 20px; color: #0F172A; }
+.prop-wrap { max-width: 1400px; margin: 0 auto 60px auto; background: #FFF; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+.prop-header { padding: 18px 28px; background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: #FFF; font-weight: 800; font-size: 1.15rem; display: flex; align-items: center; gap: 12px; }
+.prop-sub { font-weight: 400; opacity: 0.9; font-size: 0.9rem; margin-left: 10px; }
+.prop-body { padding: 28px; }
+
+/* === PROP A — STRIPE STYLE === */
+.pa-hero { display: flex; justify-content: space-between; align-items: center; margin-bottom: 22px; }
+.pa-year { font-size: 1.8rem; font-weight: 800; color: #0F172A; }
+.pa-yearsub { color: #64748B; font-size: 0.85rem; }
+.pa-delta-hero { display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; background: #DCFCE7; color: #16A34A; font-weight: 700; font-size: 0.9rem; }
+.pa-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.pa-kpi { background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 18px; position: relative; overflow: hidden; }
+.pa-kpi-label { font-size: 0.78rem; color: #64748B; font-weight: 600; margin-bottom: 8px; }
+.pa-kpi-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.pa-kpi-val { font-size: 1.8rem; font-weight: 800; color: #0F172A; line-height: 1; }
+.pa-kpi-spark { height: 32px; width: 80px; }
+.pa-kpi-delta { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 6px; font-size: 0.72rem; font-weight: 700; margin-top: 8px; }
+.delta-up { background: #DCFCE7; color: #16A34A; }
+.delta-down { background: #FEE2E2; color: #DC2626; }
+.pa-kpi-icon { position: absolute; top: 16px; right: 16px; width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+.pa-chart-card { background: #FFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 22px; margin-bottom: 16px; }
+.pa-chart-title { font-weight: 800; color: #0F172A; margin-bottom: 4px; }
+.pa-chart-sub { font-size: 0.78rem; color: #64748B; margin-bottom: 18px; }
+.pa-chart-body { position: relative; height: 220px; display: flex; align-items: flex-end; gap: 10px; padding: 0 20px 30px 40px; border-left: 1px solid #E2E8F0; border-bottom: 1px solid #E2E8F0; }
+.pa-bar { flex: 1; border-radius: 6px 6px 0 0; position: relative; transition: all 0.2s; }
+.pa-bar-top { background: linear-gradient(180deg, #7C3AED, #4F46E5); }
+.pa-bar-mid { background: #93C5FD; }
+.pa-bar-low { background: #CBD5E1; }
+.pa-avg-line { position: absolute; left: 40px; right: 20px; border-top: 1px dashed #EF4444; top: 40%; }
+.pa-avg-label { position: absolute; right: 25px; top: calc(40% - 18px); background: #EF4444; color: #FFF; padding: 2px 8px; border-radius: 6px; font-size: 0.68rem; font-weight: 700; }
+.pa-insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.pa-insight { background: #FAFBFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
+.pa-insight-ic { width: 30px; height: 30px; border-radius: 8px; background: #EEF2FF; color: #6366F1; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; font-size: 0.85rem; }
+.pa-insight-text { font-size: 0.82rem; color: #334155; line-height: 1.45; }
+
+/* === PROP B — NOTION STYLE === */
+.pb-wrap { max-width: 1000px; margin: 0 auto; }
+.pb-hero { padding: 28px 32px; background: linear-gradient(135deg, #FDF4FF 0%, #FCE7F3 100%); border-radius: 18px; margin-bottom: 20px; }
+.pb-hero-title { font-size: 1.4rem; font-weight: 800; color: #0F172A; margin-bottom: 8px; }
+.pb-hero-sub { font-size: 0.95rem; color: #475569; line-height: 1.5; max-width: 720px; }
+.pb-hero-sub b { color: #6D28D9; }
+.pb-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+.pb-kpi { background: #FFF; border-radius: 16px; padding: 22px; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.04); border: 1px solid #F1F5F9; }
+.pb-kpi-emoji { font-size: 1.8rem; margin-bottom: 10px; }
+.pb-kpi-num { font-size: 2.4rem; font-weight: 800; color: #0F172A; line-height: 1; }
+.pb-kpi-suffix { font-size: 0.85rem; color: #64748B; font-weight: 600; margin-top: 6px; }
+.pb-row-charts { display: grid; grid-template-columns: 1.6fr 1fr; gap: 14px; margin-bottom: 22px; }
+.pb-card { background: #FFF; border-radius: 16px; padding: 22px; border: 1px solid #F1F5F9; }
+.pb-chart-title { font-weight: 800; color: #0F172A; margin-bottom: 16px; }
+.pb-bars { display: flex; align-items: flex-end; gap: 8px; height: 200px; }
+.pb-bar { flex: 1; background: linear-gradient(180deg, #C4B5FD, #7C3AED); border-radius: 6px 6px 0 0; position: relative; }
+.pb-donut-wrap { display: flex; align-items: center; justify-content: center; height: 200px; }
+.pb-donut { width: 170px; height: 170px; border-radius: 50%; background: conic-gradient(#6366F1 0% 38%, #A78BFA 38% 62%, #C4B5FD 62% 80%, #EDE9FE 80% 100%); position: relative; display: flex; align-items: center; justify-content: center; }
+.pb-donut::after { content: ''; width: 110px; height: 110px; border-radius: 50%; background: #FFF; position: absolute; }
+.pb-donut-center { position: relative; z-index: 1; text-align: center; }
+.pb-donut-num { font-size: 1.4rem; font-weight: 800; color: #0F172A; }
+.pb-donut-sub { font-size: 0.72rem; color: #64748B; }
+.pb-cta { text-align: center; }
+.pb-cta-btn { display: inline-flex; align-items: center; gap: 8px; padding: 14px 32px; border-radius: 14px; background: linear-gradient(135deg, #7C3AED 0%, #4F46E5 100%); color: #FFF; font-weight: 700; font-size: 0.95rem; border: none; box-shadow: 0 8px 20px rgba(124, 58, 237, 0.35); cursor: pointer; }
+
+/* === PROP C — LINEAR STYLE === */
+.pc-container { display: grid; grid-template-columns: 240px 1fr; gap: 18px; }
+.pc-sidebar { background: #FAFBFC; border: 1px solid #E2E8F0; border-radius: 12px; padding: 18px; height: fit-content; }
+.pc-sidebar-title { font-size: 0.72rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.08em; color: #64748B; margin-bottom: 12px; }
+.pc-filter-group { margin-bottom: 18px; }
+.pc-pill-col { display: flex; flex-direction: column; gap: 6px; }
+.pc-pill-row { padding: 7px 12px; border-radius: 8px; font-size: 0.78rem; cursor: pointer; display: flex; align-items: center; gap: 8px; color: #475569; }
+.pc-pill-row.on { background: #EEF2FF; color: #6366F1; font-weight: 700; }
+.pc-pill-row:not(.on):hover { background: #F1F5F9; }
+.pc-dot { width: 8px; height: 8px; border-radius: 50%; background: #6366F1; }
+.pc-main { display: flex; flex-direction: column; gap: 14px; }
+.pc-kpis6 { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; }
+.pc-kpi { background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 14px; }
+.pc-kpi-lbl { font-size: 0.7rem; color: #64748B; font-weight: 600; margin-bottom: 6px; }
+.pc-kpi-v { font-size: 1.3rem; font-weight: 800; color: #0F172A; line-height: 1; }
+.pc-kpi-d { font-size: 0.68rem; margin-top: 4px; font-weight: 700; }
+.pc-kpi-d.up { color: #16A34A; }
+.pc-kpi-d.dw { color: #DC2626; }
+.pc-charts-row { display: grid; grid-template-columns: 1.3fr 1fr; gap: 12px; }
+.pc-chart-card { background: #FFF; border: 1px solid #E2E8F0; border-radius: 10px; padding: 18px; }
+.pc-chart-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+.pc-chart-t { font-weight: 800; font-size: 0.88rem; color: #0F172A; }
+.pc-chart-switch { display: flex; gap: 4px; }
+.pc-switch { padding: 4px 8px; border-radius: 6px; font-size: 0.7rem; background: #F1F5F9; color: #64748B; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+.pc-switch.active { background: #EEF2FF; color: #6366F1; }
+.pc-lines { position: relative; height: 180px; }
+.pc-lines svg { width: 100%; height: 100%; }
+.pc-heatmap { display: grid; grid-template-columns: repeat(53, 1fr); gap: 2px; height: 140px; }
+.pc-cell { border-radius: 2px; background: #EEF2FF; }
+.pc-cell.l1 { background: #C7D2FE; } .pc-cell.l2 { background: #A5B4FC; }
+.pc-cell.l3 { background: #818CF8; } .pc-cell.l4 { background: #6366F1; }
+.pc-heatmap-legend { display: flex; gap: 4px; align-items: center; margin-top: 8px; font-size: 0.7rem; color: #64748B; }
+.pc-legend-sq { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<h1 class="title-big">💡 3 propositions pour la page Status</h1>
+
+<!-- === PROPOSITION A === -->
+<div class="prop-wrap">
+  <div class="prop-header">🔷 Proposition A — Executive Dashboard (style Stripe) <span class="prop-sub">KPI enrichis avec sparklines + insights auto</span></div>
+  <div class="prop-body">
+    <div class="pa-hero">
+      <div>
+        <div class="pa-year">Performance 2026</div>
+        <div class="pa-yearsub">du 1er janvier au 20 février 2026 · comparé à 2025</div>
+      </div>
+      <div class="pa-delta-hero">↗️ +12.4% vs année précédente</div>
+    </div>
+
+    <div class="pa-kpis">
+      <div class="pa-kpi">
+        <div class="pa-kpi-icon" style="background:#FEE2E2;color:#DC2626;">🔄</div>
+        <div class="pa-kpi-label">Taux de rotation</div>
+        <div class="pa-kpi-row">
+          <div class="pa-kpi-val">3.42</div>
+          <svg class="pa-kpi-spark" viewBox="0 0 80 32"><path d="M0,22 L10,18 L20,24 L30,16 L40,20 L50,12 L60,14 L70,8 L80,10" stroke="#DC2626" fill="none" stroke-width="2"/></svg>
+        </div>
+        <div class="pa-kpi-delta delta-up">↗ +8.2% vs 2025</div>
+      </div>
+      <div class="pa-kpi">
+        <div class="pa-kpi-icon" style="background:#DBEAFE;color:#2563EB;">📦</div>
+        <div class="pa-kpi-label">Livraisons totales</div>
+        <div class="pa-kpi-row">
+          <div class="pa-kpi-val">1 247</div>
+          <svg class="pa-kpi-spark" viewBox="0 0 80 32"><path d="M0,26 L10,24 L20,20 L30,22 L40,16 L50,18 L60,12 L70,10 L80,6" stroke="#2563EB" fill="none" stroke-width="2"/></svg>
+        </div>
+        <div class="pa-kpi-delta delta-up">↗ +24.7% vs 2025</div>
+      </div>
+      <div class="pa-kpi">
+        <div class="pa-kpi-icon" style="background:#DCFCE7;color:#16A34A;">👥</div>
+        <div class="pa-kpi-label">Fréq. visite client</div>
+        <div class="pa-kpi-row">
+          <div class="pa-kpi-val">14.2 <span style="font-size:0.8rem;color:#64748B;font-weight:600;">j</span></div>
+          <svg class="pa-kpi-spark" viewBox="0 0 80 32"><path d="M0,10 L10,14 L20,12 L30,18 L40,16 L50,20 L60,18 L70,22 L80,24" stroke="#16A34A" fill="none" stroke-width="2"/></svg>
+        </div>
+        <div class="pa-kpi-delta delta-down">↘ -3.1% vs 2025</div>
+      </div>
+      <div class="pa-kpi">
+        <div class="pa-kpi-icon" style="background:#F5F3FF;color:#7C3AED;">⏱</div>
+        <div class="pa-kpi-label">Résidence moyenne</div>
+        <div class="pa-kpi-row">
+          <div class="pa-kpi-val">28.7 <span style="font-size:0.8rem;color:#64748B;font-weight:600;">j</span></div>
+          <svg class="pa-kpi-spark" viewBox="0 0 80 32"><path d="M0,20 L10,22 L20,18 L30,20 L40,14 L50,16 L60,10 L70,12 L80,8" stroke="#7C3AED" fill="none" stroke-width="2"/></svg>
+        </div>
+        <div class="pa-kpi-delta delta-up">↗ +5.8% vs 2025</div>
+      </div>
+    </div>
+
+    <div class="pa-chart-card">
+      <div class="pa-chart-title">Durée moyenne de résidence par site</div>
+      <div class="pa-chart-sub">Top 3 en violet · ligne rouge = moyenne globale (28.7j)</div>
+      <div class="pa-chart-body">
+        <div class="pa-avg-line"></div>
+        <div class="pa-avg-label">Moy. 28.7j</div>
+        <div class="pa-bar pa-bar-top" style="height:100%;"></div>
+        <div class="pa-bar pa-bar-top" style="height:64%;"></div>
+        <div class="pa-bar pa-bar-top" style="height:48%;"></div>
+        <div class="pa-bar pa-bar-mid" style="height:32%;"></div>
+        <div class="pa-bar pa-bar-mid" style="height:28%;"></div>
+        <div class="pa-bar pa-bar-mid" style="height:22%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:18%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:14%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:10%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:8%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:6%;"></div>
+        <div class="pa-bar pa-bar-low" style="height:4%;"></div>
+      </div>
+    </div>
+
+    <div class="pa-insights">
+      <div class="pa-insight">
+        <div class="pa-insight-ic">🎯</div>
+        <div class="pa-insight-text"><b>STEEL</b> affiche 336j de résidence — soit <b>11.7× la moyenne</b> globale. Envisagez une rotation.</div>
+      </div>
+      <div class="pa-insight">
+        <div class="pa-insight-ic">⚡</div>
+        <div class="pa-insight-text">Le taux de rotation est en hausse de <b>+8.2%</b> — votre flotte tourne plus vite qu'en 2025.</div>
+      </div>
+      <div class="pa-insight">
+        <div class="pa-insight-ic">⚠️</div>
+        <div class="pa-insight-text">La fréquence de visite client a baissé de <b>-3.1%</b>. Pensez à planifier des passages supplémentaires.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PROPOSITION B === -->
+<div class="prop-wrap">
+  <div class="prop-header">🔷 Proposition B — Data Storytelling (style Notion) <span class="prop-sub">Narrative + emojis + layout éditorial</span></div>
+  <div class="prop-body">
+    <div class="pb-wrap">
+      <div class="pb-hero">
+        <div class="pb-hero-title">📊 Performance de votre flotte · Année 2026</div>
+        <div class="pb-hero-sub">Votre parc a effectué <b>1 247 livraisons</b> cette année, avec un taux de rotation moyen de <b>3.42</b>. Les équipements restent en moyenne <b>28.7 jours</b> sur site, soit <b>5.8% de plus</b> qu'en 2025.</div>
+      </div>
+
+      <div class="pb-kpis">
+        <div class="pb-kpi"><div class="pb-kpi-emoji">🔄</div><div class="pb-kpi-num">3.42</div><div class="pb-kpi-suffix">Taux de rotation</div></div>
+        <div class="pb-kpi"><div class="pb-kpi-emoji">📦</div><div class="pb-kpi-num">1 247</div><div class="pb-kpi-suffix">Livraisons</div></div>
+        <div class="pb-kpi"><div class="pb-kpi-emoji">👥</div><div class="pb-kpi-num">14.2<span style="font-size:1rem;">j</span></div><div class="pb-kpi-suffix">Visite client moy.</div></div>
+        <div class="pb-kpi"><div class="pb-kpi-emoji">⏱</div><div class="pb-kpi-num">28.7<span style="font-size:1rem;">j</span></div><div class="pb-kpi-suffix">Résidence moy.</div></div>
+      </div>
+
+      <div class="pb-row-charts">
+        <div class="pb-card">
+          <div class="pb-chart-title">📈 Résidence par site (top 10)</div>
+          <div class="pb-bars">
+            <div class="pb-bar" style="height:95%"></div><div class="pb-bar" style="height:64%"></div><div class="pb-bar" style="height:48%"></div>
+            <div class="pb-bar" style="height:38%"></div><div class="pb-bar" style="height:32%"></div><div class="pb-bar" style="height:26%"></div>
+            <div class="pb-bar" style="height:22%"></div><div class="pb-bar" style="height:18%"></div><div class="pb-bar" style="height:14%"></div>
+            <div class="pb-bar" style="height:10%"></div>
+          </div>
+        </div>
+        <div class="pb-card">
+          <div class="pb-chart-title">🎨 Répartition familles</div>
+          <div class="pb-donut-wrap">
+            <div class="pb-donut">
+              <div class="pb-donut-center">
+                <div class="pb-donut-num">4 935</div>
+                <div class="pb-donut-sub">assets</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pb-cta">
+        <button class="pb-cta-btn">📄 Exporter le rapport complet PDF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- === PROPOSITION C === -->
+<div class="prop-wrap">
+  <div class="prop-header">🔷 Proposition C — Power User Dense (style Linear) <span class="prop-sub">Sidebar filtres + 6 KPI + heatmap + multi-séries</span></div>
+  <div class="prop-body">
+    <div class="pc-container">
+      <div class="pc-sidebar">
+        <div class="pc-filter-group">
+          <div class="pc-sidebar-title">Période</div>
+          <div class="pc-pill-col">
+            <div class="pc-pill-row">Jour</div>
+            <div class="pc-pill-row">Semaine</div>
+            <div class="pc-pill-row">Mois</div>
+            <div class="pc-pill-row on"><div class="pc-dot"></div>Année 2026</div>
+          </div>
+        </div>
+        <div class="pc-filter-group">
+          <div class="pc-sidebar-title">Type</div>
+          <div class="pc-pill-col">
+            <div class="pc-pill-row on">Tous</div>
+            <div class="pc-pill-row">Engins</div>
+            <div class="pc-pill-row">Tags</div>
+          </div>
+        </div>
+        <div class="pc-filter-group">
+          <div class="pc-sidebar-title">Famille</div>
+          <div class="pc-pill-col">
+            <div class="pc-pill-row on">Toutes</div>
+            <div class="pc-pill-row">Camions</div>
+            <div class="pc-pill-row">Pelles</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pc-main">
+        <div class="pc-kpis6">
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Rotation</div><div class="pc-kpi-v">3.42</div><div class="pc-kpi-d up">↗ +8.2%</div></div>
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Livraisons</div><div class="pc-kpi-v">1.2k</div><div class="pc-kpi-d up">↗ +24.7%</div></div>
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Visite client</div><div class="pc-kpi-v">14.2j</div><div class="pc-kpi-d dw">↘ -3.1%</div></div>
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Résidence</div><div class="pc-kpi-v">28.7j</div><div class="pc-kpi-d up">↗ +5.8%</div></div>
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Tags actifs</div><div class="pc-kpi-v">4.9k</div><div class="pc-kpi-d up">↗ +2.1%</div></div>
+          <div class="pc-kpi"><div class="pc-kpi-lbl">Utilisation</div><div class="pc-kpi-v">87%</div><div class="pc-kpi-d up">↗ +4.3%</div></div>
+        </div>
+
+        <div class="pc-charts-row">
+          <div class="pc-chart-card">
+            <div class="pc-chart-head">
+              <div class="pc-chart-t">Évolution — 3 séries comparées</div>
+              <div class="pc-chart-switch">
+                <span class="pc-switch active"><div class="pc-dot" style="background:#6366F1;"></div>2026</span>
+                <span class="pc-switch"><div class="pc-dot" style="background:#94A3B8;"></div>2025</span>
+                <span class="pc-switch"><div class="pc-dot" style="background:#CBD5E1;"></div>Moyenne</span>
+              </div>
+            </div>
+            <div class="pc-lines">
+              <svg viewBox="0 0 400 180">
+                <path d="M0,140 Q50,120 100,110 T200,80 T300,50 T400,30" stroke="#6366F1" stroke-width="2.5" fill="none"/>
+                <path d="M0,150 Q50,140 100,130 T200,110 T300,90 T400,70" stroke="#94A3B8" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+                <path d="M0,155 Q50,150 100,140 T200,130 T300,115 T400,100" stroke="#CBD5E1" stroke-width="1.5" fill="none"/>
+              </svg>
+            </div>
+          </div>
+          <div class="pc-chart-card">
+            <div class="pc-chart-head">
+              <div class="pc-chart-t">Heatmap activité 12 mois</div>
+            </div>
+            <div class="pc-heatmap">
+              <script>for(let i=0;i<53*2;i++)document.write('')</script>
+            </div>
+            <div class="pc-heatmap-legend">
+              <span>Moins</span>
+              <span class="pc-legend-sq" style="background:#EEF2FF;"></span>
+              <span class="pc-legend-sq" style="background:#C7D2FE;"></span>
+              <span class="pc-legend-sq" style="background:#818CF8;"></span>
+              <span class="pc-legend-sq" style="background:#6366F1;"></span>
+              <span>Plus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Generate heatmap cells
+const hm = document.querySelector('.pc-heatmap');
+if (hm) {
+  hm.innerHTML = '';
+  for (let i = 0; i < 53 * 7; i++) {
+    const d = document.createElement('div');
+    d.className = 'pc-cell';
+    const r = Math.random();
+    if (r > 0.9) d.classList.add('l4');
+    else if (r > 0.75) d.classList.add('l3');
+    else if (r > 0.55) d.classList.add('l2');
+    else if (r > 0.35) d.classList.add('l1');
+    hm.appendChild(d);
+  }
+}
+</script>
+</body>
+</html>
