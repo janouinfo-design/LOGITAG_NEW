@@ -12,6 +12,9 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **Refonte secondaire** `DashboardContent.js` (routes `/newdashboard/index`, `/situationtags/index`) :
   - filterTemplate remplacé : segmented period + 4 dropdowns compacts (Etat/Famille/Modèle/Client) + bouton Filtrer violet
   - Ajout de chips filtres actifs supprimables
+- [x] **Propagation violet cohérent** aux autres barres de filtres :
+  - `.lt-sort-pill--active` (Engins List grid view — Défaut/Nom/Batterie/Statut) : violet
+  - `.lt-timeline-filter-pill--active` (Journal/Historique — Tout/Entrées/Sorties) : violet
 - [x] Logique métier (periodFilter, filters.periodType, onChange, data-testid) 100% préservée
 
 ## Architecture
