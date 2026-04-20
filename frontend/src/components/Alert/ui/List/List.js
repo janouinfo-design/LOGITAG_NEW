@@ -45,6 +45,15 @@ function AlertList() {
     
   ], [])
 
+  const exportFields = useMemo(() => [
+    {label: "Nom de l'alerte", column: 'Code'},
+    {label: "Type d'entité", column: 'srcObject'},
+    {label: 'Entité', column: 'macAddr'},
+    {label: 'Description', column: 'description'},
+    {label: 'Message', column: 'Message'},
+    {label: 'Condition', column: 'condition'},
+  ], [])
+
   let actions = useMemo(() => [
     {
       label: 'Editer',
@@ -77,8 +86,8 @@ function AlertList() {
     dispatch(fetchAlerts())
   }, [])
   return (
-    <div>
-        <DatatableComponent rowActions={actions} onNew={create} data={list} columns={columns} />
+    <div data-testid="alert-list-container">
+        <DatatableComponent tableId="alert-list" exportFields={exportFields} rowActions={actions} onNew={create} data={list} columns={columns} />
     </div>
   )
 }

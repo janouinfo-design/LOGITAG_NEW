@@ -1,6 +1,5 @@
 import {TabPanel, TabView} from 'primereact/tabview'
 import DepotAndGeo from './DepotAndGeo'
-import ButtonComponent from '../../../shared/ButtonComponent/ButtonComponent'
 import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
 import {
   getSelectedDepot,
@@ -27,45 +26,11 @@ const DepotDetailWithLinks = () => {
   const editAddress = useAppSelector(getAddressDetail)
   const addresses = useAppSelector(getAddresses)
   const selectedDepot = useAppSelector(getSelectedDepot)
-  const _addresses = [
-    {
-      id: 31017,
-      type: 'Adresse de depot',
-      contact: '',
-      name: 'depot',
-      Address: 'Casablanca, Morocco',
-      zipCode: '',
-      city: '',
-      Country: 'Morocco',
-      CellPhone: '',
-      Phone: '',
-      Email: '',
-      Fax: '',
-      lat: '33.5777804',
-      lng: '-7.630010799999999',
-      isDefault: 0,
-      active: 1,
-      town: 'Casablanca',
-      lat1: '33.5777804',
-      lng1: '-7.630010799999999',
-      addressNumber: '',
-      route: '',
-    },
-  ]
 
   let showMapSite = false
-
-  if (
-    (Array.isArray(addresses) && addresses?.length == 0) ||
-    addresses == null ||
-    addresses == undefined
-  ) {
+  if ((Array.isArray(addresses) && addresses?.length == 0) || addresses == null || addresses == undefined) {
     showMapSite = false
-  } else if (
-    (addresses.length > 0 && addresses[0]?.lat == '') ||
-    addresses[0]?.lng == '' ||
-    addresses[0]?.Address == ''
-  ) {
+  } else if ((addresses.length > 0 && addresses[0]?.lat == '') || addresses[0]?.lng == '' || addresses[0]?.Address == '') {
     showMapSite = false
   } else {
     showMapSite = true
@@ -76,6 +41,7 @@ const DepotDetailWithLinks = () => {
     dispatch(setGeoDepotSelectedDepot([]))
     dispatch(setDetailDepot(false))
   }
+
   const saveAddress = (e) => {
     dispatch(setSelectedAddress)
     dispatch(createOrUpdateAddress(e)).then((res) => {
@@ -86,52 +52,66 @@ const DepotDetailWithLinks = () => {
       }
     })
   }
+
   useEffect(() => {
     dispatch(fetchAddresses(selectedDepot?.id))
   }, [selectedDepot?.id])
+
   return (
-    <>
-      <ButtonComponent onClick={onHide}>
-        <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-        <div className='ml-2 text-base font-semibold'>
-          <OlangItem olang='btn.back' />
+    <div className='lt-page' data-testid="depot-detail-page">
+      {/* ── Premium Header ── */}
+      <div className='lt-detail-header'>
+        <div className='lt-detail-header-left'>
+          <button className='lt-back-btn' onClick={onHide}><i className='pi pi-arrow-left'></i><span style={{fontSize: '0.78rem', fontWeight: 600, color: '#475569'}}>Retour</span></button>
+          <div className='lt-detail-avatar'>
+            <div className='lt-detail-avatar-ph' style={{background: '#FEF3C7', color: '#D97706'}}><i className='pi pi-box'></i></div>
+          </div>
+          <div className='lt-detail-info'>
+            <h2 className='lt-detail-name'>{selectedDepot?.label || 'Dépôt'}</h2>
+            <div className='lt-detail-meta'>
+              <span className={`lt-badge ${selectedDepot?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`}>
+                <span className={`lt-badge-dot ${selectedDepot?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>
+                {selectedDepot?.active ? 'Actif' : 'Inactif'}
+              </span>
+              {selectedDepot?.code && <span className='lt-badge lt-badge-info'><i className='pi pi-hashtag' style={{fontSize: '0.5rem'}}></i>{selectedDepot.code}</span>}
+              {Array.isArray(addresses) && <span className='lt-badge lt-badge-neutral'><i className='pi pi-map-marker' style={{fontSize: '0.55rem'}}></i>{addresses.length} adresse{addresses.length > 1 ? 's' : ''}</span>}
+            </div>
+          </div>
         </div>
-      </ButtonComponent>
-      <div className='w-full mt-4 flex align-items-center'>
-        <TabView className='w-full'>
-          <TabPanel header='Depot.info' leftIcon='pi pi-user mr-2'>
+      </div>
+
+      {/* ── Tabs ── */}
+      <div className='lt-detail-tabs'>
+        <TabView className='lt-tabview'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-box'></i><OlangItem olang='Depot.info' /></span>}>
             <DepotAndGeo />
           </TabPanel>
-          <TabPanel header={<OlangItem olang='Depot.address' />} leftIcon='pi pi-map-marker mr-2'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i><OlangItem olang='Depot.address' /></span>}>
             {editAddress ? (
               <AddressDetail client={true} handleSaveAddress={saveAddress} />
             ) : (
-              <div className='flex flex-wrap lg:ml-5 w-full'>
-                {addresses &&
-                  addresses.map((address) => (
-                    <AddressesDepotComponent
-                      client={true}
-                      key={address.id}
-                      className='w-full lg:w-6 mt-4'
-                      id={address.id}
-                      type={address.type}
-                      {...address}
-                    />
-                  ))}
+              <div style={{display: 'flex', flexWrap: 'wrap', gap: 12}}>
+                {addresses && addresses.map((address) => (
+                  <AddressesDepotComponent
+                    client={true}
+                    key={address.id}
+                    className='w-full lg:w-6 mt-4'
+                    id={address.id}
+                    type={address.type}
+                    {...address}
+                  />
+                ))}
               </div>
             )}
           </TabPanel>
           {showMapSite && (
-            <TabPanel
-              header={<OlangItem olang='Depot.geofencing' />}
-              leftIcon='pi pi-map-marker mr-2'
-            >
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map'></i><OlangItem olang='Depot.geofencing' /></span>}>
               <MapComponentSelectedDepot addresses={addresses} />
             </TabPanel>
           )}
         </TabView>
       </div>
-    </>
+    </div>
   )
 }
 

@@ -15,6 +15,7 @@ import {
 } from '../partials'
 import {PageDataProvider} from './core'
 import {reInitMenu} from '../helpers'
+import QuickActionsDrawer from '../../components/shared/QuickActionsDrawer/QuickActionsDrawer'
 
 const MasterLayout = () => {
   const location = useLocation()
@@ -46,6 +47,7 @@ const MasterLayout = () => {
         {/* <ActivityDrawer /> */}
         {/* <RightToolbar /> */}
         <DrawerMessenger />
+        <QuickActionsDrawer />
         {/* end:: Drawers */}
 
         {/* begin:: Modals */}

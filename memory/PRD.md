@@ -132,6 +132,17 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 21 - Refonte SaaS Premium Complète & Actions Rapides (Completed - 20 Avril 2026)
+- [x] **4 pages détails refactorisées** au format SaaS Premium (header + 65/35 grid + sidebar + PrimaryActionButton) :
+  - `DepotDetail.js` + `DepotDetailWithLinks.js` (Dépôts, avec onglets Info/Adresse/Géofencing unifiés)
+  - `FamilleDetail.js` (Familles, avec preview live de la couleur/icône)
+  - `StatutDetail.js` (Statuts module Statut)
+  - `StatusDetail.js` (Statuts module Status, avec onglet Transitions)
+- [x] **Sidebar cards stylées** : CSS `!important` + styles inline JSX (contournement définitif de PrimeReact/Tailwind reset). Les cartes "Résumé / Relations / Aperçu" affichent maintenant fond blanc, bordure, padding, rows flex space-between.
+- [x] **Composant partagé `SidebarCard`** (`/components/shared/SidebarCard/`) : briques réutilisables `<SidebarCard>`, `<SidebarRow>`, `<SidebarLink>` pour les futures refontes.
+- [x] **QuickActionsDrawer** (`/components/shared/QuickActionsDrawer/`) : FAB violet flottant (bouton ⚡ bottom-right) ouvrant un Drawer latéral droit (440px) avec 9 raccourcis groupés (Gestion / Organisation / Analyse). Injecté dans `MasterLayout.tsx`.
+- [x] **Export CSV/Excel des alertes** : `AlertList` reçoit désormais `exportFields` + `tableId` → les boutons "Excel" et "PDF" apparaissent automatiquement dans le header du DataTable (colonnes exportables : Code, Type, Entité, Description, Message, Condition).
+
 ### Phase 20 - Fix Layout Détails (Inline Grid Forcing) (Completed - 20 Avril 2026)
 - [x] **Bug résolu** : PrimeReact écrasait les classes CSS `lt-detail-grid` et `lt-form-grid` → les pages Détails affichaient le formulaire en 1 seule colonne au lieu de 2.
 - [x] **Solution** : Injection de `style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px'}}` directement sur les balises React (pour contourner la priorité CSS de PrimeReact).
@@ -156,7 +167,7 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 ## Backlog
 
 ### P1 (Haute priorité)
-- [ ] **Refonte SaaS Premium** des pages `DepotDetail`, `FamilleDetail`, `StatusDetail`, `StatutDetail` — actuellement en PrimeReact Card standard (pas de lt-detail-header / lt-detail-grid). Nécessite un refactor complet (pas seulement des styles inline) : header premium, 65/35 grid + sidebar, form-grid 2 cols, PrimaryActionButton. Scope ~4 fichiers, ~200-300 lignes à refactorer chacun.
+- [ ] Appliquer le même traitement SaaS Premium sur les autres pages secondaires (si détectées) : pages d'édition, pop-ups d'adresse, etc.
 
 ### P2 (Moyenne priorité)
 - [ ] Export PDF des rapports de présence B2B

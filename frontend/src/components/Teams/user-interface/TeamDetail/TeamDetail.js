@@ -298,19 +298,19 @@ const TeamDetail = () => {
 
                 {/* RIGHT: Sidebar */}
                 <div className='lt-detail-side'>
-                  <div className='lt-sidebar-card'>
-                    <div className='lt-sidebar-card-head'>Résumé</div>
-                    <div className='lt-sidebar-card-body'>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Statut</span><span className='lt-sidebar-row-val'><span className={`lt-badge ${selectedTeam?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`} style={{fontSize: '0.7rem'}}><span className={`lt-badge-dot ${selectedTeam?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>{selectedTeam?.active ? 'Actif' : 'Inactif'}</span></span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Fonction</span><span className='lt-sidebar-row-val'>{selectedTeam?.typeName || '-'}</span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Date de naissance</span><span className='lt-sidebar-row-val'>{selectedTeam?.birthday || '-'}</span></div>
-                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Membre depuis</span><span className='lt-sidebar-row-val'>{selectedTeam?.hireday || '-'}</span></div>
+                  <div className='lt-sidebar-card' style={{background: '#FFF', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 12, boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'}}>
+                    <div className='lt-sidebar-card-head' style={{padding: '12px 16px', fontFamily: 'Manrope, sans-serif', fontSize: '0.76rem', fontWeight: 800, color: '#0F172A', borderBottom: '1px solid #F1F5F9', background: 'linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%)', textTransform: 'uppercase', letterSpacing: '0.08em'}}>Résumé</div>
+                    <div className='lt-sidebar-card-body' style={{padding: '8px 16px 12px 16px', display: 'flex', flexDirection: 'column'}}>
+                      <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Statut</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}><span className={`lt-badge ${selectedTeam?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`} style={{fontSize: '0.7rem'}}><span className={`lt-badge-dot ${selectedTeam?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>{selectedTeam?.active ? 'Actif' : 'Inactif'}</span></span></div>
+                      <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Fonction</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}>{selectedTeam?.typeName || '-'}</span></div>
+                      <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Date de naissance</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}>{selectedTeam?.birthday || '-'}</span></div>
+                      <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Membre depuis</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}>{selectedTeam?.hireday || '-'}</span></div>
                     </div>
                   </div>
-                  <div className='lt-sidebar-card'>
-                    <div className='lt-sidebar-card-head'>Relations</div>
-                    <div className='lt-sidebar-card-body'>
-                      <div className='lt-sidebar-link'><span className='lt-sidebar-link-label'>Tags assignés</span><span className='lt-sidebar-link-count'>{tagStaff?.length || 0}</span></div>
+                  <div className='lt-sidebar-card' style={{background: '#FFF', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 12, boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'}}>
+                    <div className='lt-sidebar-card-head' style={{padding: '12px 16px', fontFamily: 'Manrope, sans-serif', fontSize: '0.76rem', fontWeight: 800, color: '#0F172A', borderBottom: '1px solid #F1F5F9', background: 'linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%)', textTransform: 'uppercase', letterSpacing: '0.08em'}}>Relations</div>
+                    <div className='lt-sidebar-card-body' style={{padding: '8px 16px 12px 16px', display: 'flex', flexDirection: 'column'}}>
+                      <div className='lt-sidebar-link' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', borderBottom: '1px solid #F8FAFC', fontSize: '0.82rem'}}><span className='lt-sidebar-link-label' style={{color: '#475569', fontWeight: 500}}>Tags assignés</span><span className='lt-sidebar-link-count' style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: 24, height: 24, padding: '0 8px', borderRadius: 6, background: '#EFF6FF', color: '#3B82F6', fontSize: '0.72rem', fontWeight: 800}}>{tagStaff?.length || 0}</span></div>
                     </div>
                   </div>
                 </div>

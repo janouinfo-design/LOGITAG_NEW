@@ -1,15 +1,11 @@
 import {InputText} from 'primereact/inputtext'
 import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangItem'
-import {Card} from 'primereact/card'
 import {TabPanel, TabView} from 'primereact/tabview'
-import ButtonComponent from '../../../shared/ButtonComponent/ButtonComponent'
-import FamilleEditor from '../StatutEditor/StatutEditor'
 import {
   createOrUpdateFamille,
   fetchIcons,
   getEditFamille,
   getExistItem,
-  getFamilles,
   getIcons,
   getSelectedFamille,
   setEditFamille,
@@ -26,25 +22,15 @@ import {useSelector} from 'react-redux'
 import {ColorPicker} from 'primereact/colorpicker'
 import IconDropdown from '../../../shared/IconDropdown/IconDropdown'
 import {Message} from 'primereact/message'
+import PrimaryActionButton from '../../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const StatutDetail = () => {
   const dispatch = useDispatch()
   const [isValid, setIsValid] = useState(true)
   const selectedFamille = useAppSelector(getSelectedFamille)
-  const editFamille = useAppSelector(getEditFamille)
   const _validators = useSelector(getValidator)
   const validators = [
-    {
-      id: 'label',
-      label: 'label',
-      isRequired: 1,
-      active: 1,
-      isEdit: 1,
-      min: 0,
-      max: 100,
-      regExp: '^(?!\\s*$).+',
-      messageError: 'required',
-    },
+    {id: 'label', label: 'label', isRequired: 1, active: 1, isEdit: 1, min: 0, max: 100, regExp: '^(?!\\s*$).+', messageError: 'required'},
   ]
   const [color, setColor] = useState(selectedFamille?.bgColor)
   const icons = useAppSelector(getIcons)
@@ -53,39 +39,20 @@ const StatutDetail = () => {
 
   const onInputChange = (e) => {
     let old = _.cloneDeep(selectedFamille)
-    old = {
-      ...old,
-      color: color,
-      bgColor: color,
-      [e.target.name]: e.target.value,
-    }
+    old = {...old, color, bgColor: color, [e.target.name]: e.target.value}
     dispatch(setSelectedFamille(old))
-    const areAllRequiredFieldsFilled = validators
-      .filter((validator) => validator.isRequired)
-      .every((validator) => !!old[validator.id])
-
-    setIsValid(!areAllRequiredFieldsFilled)
+    const allFilled = validators.filter((v) => v.isRequired).every((v) => !!old[v.id])
+    setIsValid(!allFilled)
   }
 
   useEffect(() => {
-    if (existItem) {
-      setTimeout(() => {
-        dispatch(setExistItem(false))
-      }, 3000)
-    }
+    if (existItem) setTimeout(() => dispatch(setExistItem(false)), 3000)
   }, [existItem])
 
-  const onHide = () => {
-    dispatch(setShow(true))
-  }
+  const onHide = () => dispatch(setShow(true))
 
   const save = () => {
-    let obj = {
-      ...selectedFamille,
-      color: color,
-      bgColor: color,
-      icon: selectedIcon,
-    }
+    const obj = {...selectedFamille, color, bgColor: color, icon: selectedIcon}
     dispatch(createOrUpdateFamille(obj)).then((res) => {
       if (res.payload) {
         dispatch(setShow(true))
@@ -95,116 +62,119 @@ const StatutDetail = () => {
   }
 
   const checkValidators = () => {
-    const areAllRequiredFieldsFilled = validators
-      .filter((validator) => validator.isRequired)
-      .every((validator) => !!selectedFamille[validator.id])
-    setIsValid(!areAllRequiredFieldsFilled)
+    const allFilled = validators.filter((v) => v.isRequired).every((v) => !!selectedFamille[v.id])
+    setIsValid(!allFilled)
   }
 
-  const footer = (
-    <div className='flex justify-content-end'>
-      <ButtonComponent label='Annuler' className='p-button-danger' onClick={onHide} />
-      <ButtonComponent label='Enregistrer' onClick={save} disabled={isValid} />
-    </div>
-  )
-  const title = (
-    <>
-      <i className='pi pi-cog mr-1'></i>
-      <span className='ml-1'>Famille {selectedFamille?.label}</span>
-    </>
-  )
-  const _labelValidator = validators?.find((field) => field.id === 'label')
+  const _labelValidator = validators?.find((f) => f.id === 'label')
 
-  useEffect(() => {
-    dispatch(fetchIcons())
-  }, [])
+  useEffect(() => { dispatch(fetchIcons()) }, [])
+
+  const effectiveColor = color || selectedFamille?.bgColor || ''
+  const bg = effectiveColor ? (effectiveColor.startsWith('#') ? effectiveColor : `#${effectiveColor}`) : '#E0E7FF'
+  const effectiveIcon = selectedIcon || selectedFamille?.icon
 
   return (
-    <>
-      <div className='mt-3 flex align-items-center justify-content-between'>
-        <div className='flex'>
-          <div>
-            <ButtonComponent onClick={() => dispatch(setShow(true))}>
-              <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-              <div className='ml-2 text-base font-semibold'>
-                <OlangItem olang='btn.back' />
-              </div>
-            </ButtonComponent>
+    <div className='lt-page' data-testid="statut-detail-page">
+      {/* ── Premium Header ── */}
+      <div className='lt-detail-header'>
+        <div className='lt-detail-header-left'>
+          <button className='lt-back-btn' onClick={onHide}><i className='pi pi-arrow-left'></i><span style={{fontSize: '0.78rem', fontWeight: 600, color: '#475569'}}>Retour</span></button>
+          <div className='lt-detail-avatar'>
+            <div className='lt-detail-avatar-ph' style={{background: bg, color: '#fff'}}>
+              <i className={effectiveIcon || 'pi pi-circle'}></i>
+            </div>
+          </div>
+          <div className='lt-detail-info'>
+            <h2 className='lt-detail-name'>{selectedFamille?.label || 'Statut'}</h2>
+            <div className='lt-detail-meta'>
+              <span className='lt-badge lt-badge-info'><i className='pi pi-circle' style={{fontSize: '0.5rem'}}></i>Statut engin</span>
+              {bg && <span className='lt-badge lt-badge-neutral'><span className='lt-badge-dot' style={{background: bg}}></span>{bg.toUpperCase()}</span>}
+            </div>
           </div>
         </div>
-        <div className=' w-2 flex align-items-center justify-content-center text-xl'>
-          <strong className='p-3'>
-            {selectedFamille?.label ?? <OlangItem olang='current.Famille' />}
-          </strong>
+        <div className='lt-detail-actions-group'>
+          <PrimaryActionButton type="edit" onClick={save} />
         </div>
       </div>
-      <div className='w-full mt-2 flex align-items-center flex-column'>
-        <TabView className='w-full'>
-          <TabPanel header={<OlangItem olang='Famille.Info' />} leftIcon='pi pi-user mr-2'>
-            <Card
-              className='w-full md:w-10 lg:w-full xl:w-6 mt-3 p-2 ml-4'
-              title={title}
-              footer={footer}
-              style={{
-                boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                borderRadius: '15px',
-              }}
-            >
-              <div className='flex justify-content-center'>
-                {existItem && (
-                  <Message severity='error' text='The Family is Already Exist' className='w-6' />
-                )}
-              </div>
-              <div className='flex flex-column justify-content-center'>
-                <div className='my-4 mt-5'>
-                  <label htmlFor='label'>
-                    <OlangItem olang='famille.label' />{' '}
-                    {_labelValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-                  </label>
-                  <InputText
-                    name='label'
-                    id='label'
-                    onChange={onInputChange}
-                    value={selectedFamille?.label}
-                    className={`w-full `}
-                  />
-                </div>
-              </div>
-              <div className='flex flex-column justify-content-center'>
-                <div className='my-4 mt-5'>
-                  <IconDropdown
-                    filter={true}
-                    filterBy={'name'}
-                    data={icons}
-                    selectedIcon={selectedIcon != '' ? selectedIcon : selectedFamille?.icon}
-                    setSelectedIcon={(e) => {
-                      setSelectedIcon(e)
-                      checkValidators()
-                    }}
-                  />
-                </div>
-              </div>
-              <div className='flex flex-column justify-content-center'>
-                <div className='my-4 mt-5'>
-                  <label htmlFor='color'>
-                    <OlangItem olang='famille.color' />{' '}
-                  </label>
-                  <div>
-                    <ColorPicker
-                      value={selectedFamille?.bgColor.replace('#', '')}
-                      onChange={(e) => {
-                        setColor(e.value)
-                        checkValidators()
-                      }}
-                    />
+
+      {/* ── Tabs ── */}
+      <div className='lt-detail-tabs'>
+        <TabView className='lt-tabview'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-info-circle'></i><OlangItem olang='Famille.Info' /></span>}>
+            {existItem && <div style={{marginBottom: 12}}><Message severity='error' text='Exist' /></div>}
+            <div className='lt-detail-grid' style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px', alignItems: 'start'}}>
+              <div className='lt-detail-form'>
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
+                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
+                    <div className='lt-form-field lt-form-field--full'>
+                      <label className='lt-form-label' htmlFor='label'>
+                        <OlangItem olang='famille.label' /> {_labelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}
+                      </label>
+                      <InputText
+                        name='label'
+                        id='label'
+                        onChange={onInputChange}
+                        value={selectedFamille?.label || ''}
+                        className='lt-form-input'
+                      />
+                    </div>
+                    <div className='lt-form-field lt-form-field--full'>
+                      <label className='lt-form-label'>Icône</label>
+                      <IconDropdown
+                        filter={true}
+                        filterBy={'name'}
+                        data={icons}
+                        selectedIcon={selectedIcon != '' ? selectedIcon : selectedFamille?.icon}
+                        setSelectedIcon={(e) => {
+                          setSelectedIcon(e)
+                          checkValidators()
+                        }}
+                      />
+                    </div>
+                    <div className='lt-form-field lt-form-field--full'>
+                      <label className='lt-form-label' htmlFor='color'><OlangItem olang='famille.color' /></label>
+                      <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                        <ColorPicker
+                          value={(selectedFamille?.bgColor || '').replace('#', '')}
+                          onChange={(e) => {
+                            setColor(e.value)
+                            checkValidators()
+                          }}
+                        />
+                        <span style={{fontSize: '0.8rem', fontWeight: 600, color: '#64748B'}}>{bg.toUpperCase()}</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
+
+              {/* RIGHT: Sidebar */}
+              <div className='lt-detail-side'>
+                <div className='lt-sidebar-card' style={{background: '#FFF', borderRadius: 12, border: '1px solid #E2E8F0', overflow: 'hidden', marginBottom: 12, boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'}}>
+                  <div className='lt-sidebar-card-head' style={{padding: '12px 16px', fontFamily: 'Manrope, sans-serif', fontSize: '0.76rem', fontWeight: 800, color: '#0F172A', borderBottom: '1px solid #F1F5F9', background: 'linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%)', textTransform: 'uppercase', letterSpacing: '0.08em'}}>Aperçu</div>
+                  <div className='lt-sidebar-card-body' style={{padding: '8px 16px 12px 16px', display: 'flex', flexDirection: 'column'}}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0'}}>
+                      <div style={{width: 48, height: 48, borderRadius: 12, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '1.4rem'}}>
+                        <i className={effectiveIcon || 'pi pi-circle'}></i>
+                      </div>
+                      <div>
+                        <div style={{fontWeight: 700, color: '#0F172A'}}>{selectedFamille?.label || '—'}</div>
+                        <div style={{fontSize: '0.75rem', color: '#64748B'}}>Statut engin</div>
+                      </div>
+                    </div>
+                    <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Couleur</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}>{bg.toUpperCase()}</span></div>
+                    <div className='lt-sidebar-row' style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '9px 0', fontSize: '0.8rem', borderBottom: '1px solid #F8FAFC', gap: 12}}><span className='lt-sidebar-row-label' style={{color: '#64748B', fontWeight: 500, fontSize: '0.76rem'}}>Icône</span><span className='lt-sidebar-row-val' style={{color: '#0F172A', fontWeight: 700, fontSize: '0.82rem', textAlign: 'right'}}>{effectiveIcon || '—'}</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </TabPanel>
         </TabView>
       </div>
-    </>
+    </div>
   )
 }
+
 export default StatutDetail
