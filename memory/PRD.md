@@ -132,6 +132,19 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 31 - Unification "Ajouter un site" en page unique (Completed - 20 Avril 2026)
+- [x] **`SiteFullEditor.js` créé** (nouvelle page unifiée) regroupant en 1 seul flow :
+  - Section 1: Informations (Label*, Nom*, Code, Référence, Description, toggle Site actif)
+  - Section 2: Adresse (Adresse, Route, N°, Code postal, Ville, Pays)
+  - Section 3: Contact (Téléphone, Fax, Email)
+  - Carte Localisation sticky à droite (centrée Lausanne par défaut) + banner d'info
+- [x] **Un seul bouton "Enregistrer"** qui effectue 2 appels API séquentiels : `createOrUpdateSite` puis `createOrUpdateAddress` avec le `worksiteID` du site créé. Retour automatique après succès.
+- [x] Feedback UX : bouton devient vert "Enregistré !" avec spinner pendant la sauvegarde.
+- [x] **`SiteClientComponent.jsx` re-orchestré** : affiche `SiteFullEditor` quand `editSite===true`, sinon `SiteDetailWithLinks` si `detailSiteClient===true`, sinon la liste.
+- [x] **Dialog SiteEditor retiré** de `ClientDetail.js` (plus d'ouverture du popup quand on clique Ajouter un site).
+- [x] Fix bug Leaflet "Invalid LatLng undefined" : position par défaut Lausanne (46.5197, 6.6323).
+- [x] Validation screenshot : page unifiée rend parfaitement, carte affichée, tous les champs présents ✅
+
 ### Phase 30 - Refonte Pages Config Restantes (StatutList + EnginInactive) (Completed - 20 Avril 2026)
 - [x] **StatutList.js** (module Statut séparé) refait avec le même pattern que Familles/Status : header + breadcrumb + bouton "+ Nouveau statut" violet gradient, tabs par objet, toolbar Filtres/Recherche/Cog, table 7 colonnes (Actions, Couleur, Icône, Nom, Type, Statut, chevron), paginator local.
 - [x] **EnginInactive.jsx** (`Analyse > Objets inactifs`) refait avec adaptation contextuelle :

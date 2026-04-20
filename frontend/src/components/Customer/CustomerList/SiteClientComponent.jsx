@@ -1,76 +1,61 @@
 import React from 'react'
 import {useAppDispatch, useAppSelector} from '../../../hooks'
 import {
-  fetchSitesClient,
   getDetailSiteClient,
-  getSelectedSiteClient,
   setDetailSiteClient,
-  setSelectedSiteClient,
 } from '../../../store/slices/customer.slice'
 import SiteList from '../../Site/user-interface/SiteList/SiteList'
-// import SiteDetail from '../../Site/user-interface/SiteDetail/SiteDetail'
-// import SiteAndGeo from '../../Site/user-interface/SiteDetail/SiteAndGeo'
 import SiteDetailWithLinks from '../../Site/user-interface/SiteEditor/SiteDetailWithLinks'
-import ButtonComponent from '../../shared/ButtonComponent/ButtonComponent'
-import {OlangItem} from '../../shared/Olang/user-interface/OlangItem/OlangItem'
+import SiteFullEditor from '../../Site/user-interface/SiteEditor/SiteFullEditor'
 import {
+  getEditSite,
   getSelectedSite,
-  setDetailSite,
+  setEditSite,
   setGeoSite,
   setGeoSiteSelectedSite,
   setSelectedSite,
 } from '../../Site/slice/site.slice'
-import {Divider} from 'primereact/divider'
 
 const SiteClientComponent = () => {
   const dispatch = useAppDispatch()
-  let showDetail = useAppSelector(getDetailSiteClient)
+  const showDetail = useAppSelector(getDetailSiteClient)
+  const editSite = useAppSelector(getEditSite)
   const selectedSiteClient = useAppSelector(getSelectedSite)
 
-  // const onHide = () => {
-  //   dispatch(setDetailSiteClient(false))
-  //   dispatch(setSelectedSiteClient(null))
-  // }
-
-  const onHide = () => {
+  const onHideDetail = () => {
     dispatch(setGeoSite([]))
-    dispatch(setGeoSiteSelectedSite([]))
     dispatch(setGeoSiteSelectedSite([]))
     dispatch(setDetailSiteClient(false))
     dispatch(setSelectedSite(null))
-    //dispatch(fetchSitesClient())
   }
 
-  return (
-    <>
-      {showDetail ? (
-        <>
-          <div className='flex flex-row justify-content-between align-items-center'>
-            <ButtonComponent className='bg-red-600' onClick={onHide}>
-              <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-              <div className='ml-2 text-base font-semibold'>
-                <OlangItem olang='btn.back' />
-              </div>
-            </ButtonComponent>
-            <div className='text-xl px-3 bg-blue-50 h-[40px] flex flex-row items-center justify-center text-800 font-semibold border-2 border-blue-800 rounded-xl'>
-              <i className='fa-solid fa-location-dot text-blue-500 text-2xl mr-1'></i>
-              <span className='ml-1 text-3xl text-blue-500  font-bold'>
-                {selectedSiteClient?.label}
-              </span>
-            </div>
+  const onHideEditor = () => {
+    dispatch(setEditSite(false))
+    dispatch(setSelectedSite(null))
+  }
+
+  if (editSite) {
+    return <SiteFullEditor onBack={onHideEditor} />
+  }
+
+  if (showDetail) {
+    return (
+      <div>
+        <div style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, gap: 12}}>
+          <button onClick={onHideDetail} data-testid='site-detail-back' style={{display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, border: '1px solid #E2E8F0', background: '#FFF', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '0.8rem'}}>
+            <i className='pi pi-arrow-left' style={{fontSize: '0.75rem'}}></i>Retour
+          </button>
+          <div style={{display: 'inline-flex', alignItems: 'center', gap: 8, padding: '8px 14px', borderRadius: 10, background: '#EFF6FF', color: '#3B82F6', fontWeight: 700, fontSize: '0.9rem'}}>
+            <i className='pi pi-map-marker'></i>
+            {selectedSiteClient?.label}
           </div>
-          <Divider />
-          <SiteDetailWithLinks />
-        </>
-      ) : (
-        <SiteList filter={true} detailView='Detail' client={true} />
-      )}
-    </>
-  )
+        </div>
+        <SiteDetailWithLinks />
+      </div>
+    )
+  }
+
+  return <SiteList filter={true} detailView='Detail' client={true} />
 }
 
 export default SiteClientComponent
-
-{
-  /* <SiteDetail selectedSite={selectedSiteClient} client={true} onShow={onHide} /> */
-}

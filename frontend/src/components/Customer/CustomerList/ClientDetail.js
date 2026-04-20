@@ -284,7 +284,6 @@ const ClientDetail = () => {
     <>
       <TagEditor visible={tagEdit} selectedTag={selectedTagClient} onHide={onHideTag} client={true} onSubmitHandler={(e) => saveTag(e)} />
       <EditeTagClient />
-      <SiteEditor selectedCLient={selectedCustomer} save={onSaveSite} />
 
       <div className='lt-page' data-testid="client-detail-page">
         {/* ── Premium Header ── */}
