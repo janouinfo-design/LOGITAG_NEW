@@ -748,7 +748,7 @@ const MapComponent = ({
       if (Array.isArray(payload) && payload?.[0]?.geometry?.geometry) {
         const geometry = payload?.[0]?.geometry?.geometry
         const centerOfGeo = turf.centerOfMass(geometry).geometry.coordinates
-        if (mapRef.current) mapRef.current.setView(centerOfGeo.reverse(), 13)
+        if (mapRef.current) mapRef.current.setView(centerOfGeo.reverse(), 11)
         if (geometry) {
           setSelectedGeo(item?.uid)
           let _layer = L.geoJSON(geometry, {color: 'red', weight: 0.7, id: item?.LocationID})
