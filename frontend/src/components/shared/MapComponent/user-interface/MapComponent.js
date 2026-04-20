@@ -994,7 +994,7 @@ const MapComponent = ({
       setEnginMarker([o.lat, o.lng])
       // const getZomm = mapRef.current.getZoom()
       mapRef.current.closePopup()
-      mapRef.current.flyTo({lat: o.lat, lng: o.lng}, 13)
+      mapRef.current.flyTo({lat: o.lat, lng: o.lng}, 17, {duration: 0.8})
     }
   }
 
@@ -2080,11 +2080,12 @@ const MapComponent = ({
           try {
             const lat = parseFloat(item.last_lat ?? item.lat)
             const lng = parseFloat(item.last_lng ?? item.lng)
-            if (!isNaN(lat) && !isNaN(lng) && mapRef.current && mapRef.current.flyTo) {
-              mapRef.current.flyTo([lat, lng], Math.max(mapRef.current.getZoom() || 13, 16), {duration: 0.6})
+            if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0 && mapRef.current && mapRef.current.flyTo) {
+              // Street-level zoom for precise address visibility
+              mapRef.current.flyTo([lat, lng], 18, {duration: 0.8})
             }
             dispatch(setSelectedEnginMap(item))
-            setClusterPopup(null)
+            // Keep the panel open so the user can cross-check the info
           } catch (e) {}
         }}
       />
