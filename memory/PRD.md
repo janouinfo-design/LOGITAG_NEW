@@ -132,6 +132,15 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 32 - UX Refactor : Supprimer séparée du kebab (Completed - 20 Avril 2026)
+- [x] **Problème UX identifié** : avoir "Supprimer" juste à côté de "Détail" dans le kebab ⋮ créait un risque de clic accidentel → perte de données.
+- [x] **DataTableComponent.jsx** modifié globalement :
+  - Filtrage du menu kebab pour exclure automatiquement les actions `label === 'Supprimer' || 'Delete'`
+  - Nouvelle colonne dédiée ajoutée à droite de chaque ligne avec un **icône trash rouge** dans un carré bordé (34x34) rouge doux (`#FECACA` → hover `#F87171`)
+  - Colonne `hasDeleteAction` conditionnelle : apparaît uniquement si l'action Supprimer existe dans `rowActions`
+- [x] **Impact global** : toutes les tables de l'app (Clients, Engins, Tags, Sites, Dépôts, Alertes, Rapports, etc.) bénéficient automatiquement de cette séparation visuelle.
+- [x] Validation screenshot : icône poubelle à droite + kebab avec seulement "Detail" ✅
+
 ### Phase 31 - Unification "Ajouter un site" en page unique (Completed - 20 Avril 2026)
 - [x] **`SiteFullEditor.js` créé** (nouvelle page unifiée) regroupant en 1 seul flow :
   - Section 1: Informations (Label*, Nom*, Code, Référence, Description, toggle Site actif)

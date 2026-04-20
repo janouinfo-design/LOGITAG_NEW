@@ -504,12 +504,14 @@ export const DatatableComponent = ({
 
   const actionTemplate = (rowData) => {
     if (!Array.isArray(actions)) return
+    // Exclude "Supprimer" from the kebab menu — it's now a dedicated trailing icon
     let _actions = actions
       ?.map((_i) => ({..._i, data: rowData}))
       ?.filter(
         (a) =>
-          typeof a.visible != 'function' ||
-          (typeof a.visible == 'function' && a.visible(rowData, a) === true)
+          (a.label !== 'Supprimer' && a.label !== 'Delete') &&
+          (typeof a.visible != 'function' ||
+          (typeof a.visible == 'function' && a.visible(rowData, a) === true))
       )
 
     const iconMap = {
@@ -556,6 +558,36 @@ export const DatatableComponent = ({
       </div>
     )
   }
+
+  const deleteTemplate = (rowData) => {
+    if (!Array.isArray(actions)) return null
+    const deleteAction = actions.find((a) => (a.label === 'Supprimer' || a.label === 'Delete'))
+    if (!deleteAction) return null
+    const visible = typeof deleteAction.visible === 'function' ? deleteAction.visible(rowData, deleteAction) !== false : true
+    if (!visible) return null
+    return (
+      <button
+        data-testid={`row-delete-btn-${rowData?.id || rowData?.code || ''}`}
+        title='Supprimer'
+        onClick={(e) => {
+          e.stopPropagation()
+          if (deleteAction.command) deleteAction.command({item: {...deleteAction, data: rowData}, originalEvent: e})
+        }}
+        style={{
+          width: 32, height: 32, borderRadius: 8,
+          border: '1px solid #FECACA', background: '#FEF2F2', color: '#EF4444',
+          cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          margin: '0 auto', transition: 'all 0.15s',
+        }}
+        onMouseEnter={(e) => {e.currentTarget.style.background = '#FEE2E2'; e.currentTarget.style.borderColor = '#F87171'}}
+        onMouseLeave={(e) => {e.currentTarget.style.background = '#FEF2F2'; e.currentTarget.style.borderColor = '#FECACA'}}
+      >
+        <i className='pi pi-trash' style={{fontSize: '0.82rem'}}></i>
+      </button>
+    )
+  }
+
+  const hasDeleteAction = Array.isArray(actions) && actions.some((a) => a.label === 'Supprimer' || a.label === 'Delete')
 
   let selectBody = (_data, field) => {
     return (options) => {
@@ -912,6 +944,15 @@ export const DatatableComponent = ({
             />
           ) : null
         )}
+        {hasDeleteAction && !enableContextMenu ? (
+          <Column
+            key='delete-col'
+            header=''
+            body={deleteTemplate}
+            style={{width: '4rem', textAlign: 'center'}}
+            bodyStyle={{textAlign: 'center'}}
+          />
+        ) : null}
         {props?.editMode === 'row' && (
           <Column
             rowEditor
