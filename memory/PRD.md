@@ -132,6 +132,19 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 34 - Page Status Refonte Executive Dashboard (Proposition A) (Completed - 20 Avril 2026)
+- [x] **KPICardGrid.js refait** en style Stripe/executive :
+  - **Sparkline SVG** calculée deterministiquement (seed basé sur index + valeur) en couleur assortie à l'icône
+  - **Badge delta coloré** (↗ vert / ↘ rouge / neutre gris) avec parseDelta robuste + label "vs période précédente"
+  - **Icône badge** carrée 36x36 en top-right avec palette contextuelle (rouge/bleu/vert/violet/orange)
+  - Valeur 1.85rem font-weight 800 + Manrope + letter-spacing négatif
+  - Hover interactif (translateY + box-shadow)
+- [x] **DashboardContent.js** enrichi :
+  - **Hero Header** "Performance · {période}" + badge global coloré (↗ +X% / ↘ -X%) calculé depuis la majorité des deltas
+  - **Section Insights automatiques** sous les KPI : 3 cards narratives générées depuis les données (meilleur performer, plus en baisse, fallback) avec icône colorée + texte en HTML
+  - Memoization via useMemo pour performance
+- [x] Validation screenshot : rendu identique au mockup Proposition A, toutes les sparklines et badges visibles ✅
+
 ### Phase 33 - Zoom carte Map adouci (Completed - 20 Avril 2026)
 - [x] **Bug UX rapporté** : le clic "Localiser" zoomait trop fortement (niveau 18 - vue rue) → perte du contexte géographique.
 - [x] **Fix appliqué** sur `MapComponent.js` :

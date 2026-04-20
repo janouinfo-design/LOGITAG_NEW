@@ -235,6 +235,45 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
     </Card>
   )
 
+  // Build Hero + Insights from cardsData (Proposition A - Executive Dashboard)
+  const heroInsights = useMemo(() => {
+    if (!cardsData || !Array.isArray(cardsData) || cardsData.length === 0) return null
+    const now = moment()
+    const periodLabel = filters?.periodType
+      ? ({day: "Aujourd'hui", week: 'Cette semaine', month: 'Ce mois', year: `Année ${now.format('YYYY')}`})[filters.periodType]
+      : `Période analysée`
+
+    let up = 0, down = 0
+    cardsData.forEach((c) => {
+      const s = String(c.change || '').trim()
+      if (s.startsWith('-')) down++
+      else if (/^\+?\d/.test(s)) up++
+    })
+    const globalTrend = up >= down ? 'up' : 'down'
+    const globalPct = up + down > 0 ? Math.round(((Math.max(up, down) / (up + down)) - 0.5) * 200) : 0
+
+    const insights = []
+    const sortedDown = cardsData.filter((c) => String(c.change || '').startsWith('-'))
+      .sort((a, b) => parseFloat(String(b.change).replace(/[+\-%]/g, '')) - parseFloat(String(a.change).replace(/[+\-%]/g, '')))
+    const sortedUp = cardsData.filter((c) => /^\+?\d/.test(String(c.change || '')) && !String(c.change || '').startsWith('-'))
+      .sort((a, b) => parseFloat(String(b.change).replace(/[+\-%]/g, '')) - parseFloat(String(a.change).replace(/[+\-%]/g, '')))
+
+    if (sortedUp[0]) insights.push({
+      icon: 'pi pi-arrow-up-right', bg: '#DCFCE7', color: '#16A34A',
+      text: <><b>{sortedUp[0].title}</b> progresse de <b>{sortedUp[0].change}</b> — excellente performance.</>,
+    })
+    if (sortedDown[0]) insights.push({
+      icon: 'pi pi-exclamation-triangle', bg: '#FEE2E2', color: '#DC2626',
+      text: <><b>{sortedDown[0].title}</b> en baisse de <b>{sortedDown[0].change}</b>. À surveiller.</>,
+    })
+    if (insights.length < 3 && cardsData[0]) insights.push({
+      icon: 'pi pi-lightbulb', bg: '#EEF2FF', color: '#6366F1',
+      text: <><b>{cardsData[0].title}</b> affiche <b>{cardsData[0].value}</b> sur la période sélectionnée.</>,
+    })
+
+    return {periodLabel, globalTrend, globalPct, insights: insights.slice(0, 3)}
+  }, [cardsData, filters])
+
   useEffect(() => {
     getData()
     dispatch(fetchEnginsModels())
@@ -264,6 +303,25 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
       className='dashboard-tabs'
     >
       <TabPanel header='Principal'>
+        {/* ── Executive Hero Header ── */}
+        {heroInsights && (
+          <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 16, marginBottom: 20, padding: '18px 20px', background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 14, boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'}} data-testid='status-hero'>
+            <div>
+              <div style={{fontSize: '1.45rem', fontWeight: 800, color: '#0F172A', fontFamily: "'Manrope', sans-serif", letterSpacing: '-0.02em'}}>
+                Performance · {heroInsights.periodLabel}
+              </div>
+              <div style={{fontSize: '0.82rem', color: '#64748B', marginTop: 4}}>
+                Comparé à la période précédente
+              </div>
+            </div>
+            {heroInsights.globalPct > 0 && (
+              <div style={{display: 'inline-flex', alignItems: 'center', gap: 6, padding: '8px 16px', borderRadius: 10, background: heroInsights.globalTrend === 'up' ? '#DCFCE7' : '#FEE2E2', color: heroInsights.globalTrend === 'up' ? '#16A34A' : '#DC2626', fontWeight: 700, fontSize: '0.85rem'}}>
+                <i className={heroInsights.globalTrend === 'up' ? 'pi pi-arrow-up-right' : 'pi pi-arrow-down-right'} style={{fontSize: '0.8rem'}}></i>
+                {heroInsights.globalTrend === 'up' ? '+' : '-'}{heroInsights.globalPct}% vs précédent
+              </div>
+            )}
+          </div>
+        )}
         {filterTemplate()}
         {dataDisplay && (
           <div className='flex flex-col gap-4 mt-3'>
@@ -273,6 +331,25 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
                 (chart) => chart.code == 'rotation' || chart.code == 'residency'
               )}
             />
+            {/* ── Insights Section ── */}
+            {heroInsights?.insights && heroInsights.insights.length > 0 && (
+              <div data-testid='status-insights' style={{marginTop: 8}}>
+                <div style={{fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6}}>
+                  <i className='pi pi-sparkles' style={{color: '#7C3AED'}}></i>
+                  Insights automatiques
+                </div>
+                <div style={{display: 'grid', gridTemplateColumns: `repeat(${heroInsights.insights.length}, 1fr)`, gap: 12}}>
+                  {heroInsights.insights.map((ins, i) => (
+                    <div key={i} style={{background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 12, padding: 14, display: 'flex', alignItems: 'flex-start', gap: 10}}>
+                      <div style={{width: 34, height: 34, borderRadius: 9, background: ins.bg, color: ins.color, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '0.85rem'}}>
+                        <i className={ins.icon}></i>
+                      </div>
+                      <div style={{fontSize: '0.82rem', color: '#334155', lineHeight: 1.45}}>{ins.text}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </TabPanel>
