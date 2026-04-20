@@ -132,6 +132,18 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 28 - Refonte Page Familles (Match design fourni) (Completed - 20 Avril 2026)
+- [x] **FamilleList.js entièrement refait** pour matcher le mockup fourni :
+  - Header avec titre "Familles" + breadcrumb "Configuration > Familles" + bouton "+ Nouvelle famille" (gradient violet #7C3AED → #6D28D9)
+  - Segmented control Tag / Engin / Utilisateur (actif en violet clair)
+  - Toolbar : Filtres + input recherche + bouton cog settings violet
+  - Table custom avec colonnes exactes : Actions (kebab portal ⋮ avec Modifier/Supprimer), Couleur (swatch 28x28), Icône (boîte bordée 36x36), Nom, Type (pill Tag), Nombre d'éléments, Créé le, Statut (pill Actif vert), chevron droit
+  - Empty state stylé si aucune famille dans la catégorie
+  - Pagination interne : Éléments par page (select 10/25/50), numéros de page violet gradient, range "X à Y de Z éléments"
+  - Recherche locale instantanée sur le label
+- [x] Logique métier préservée : `fetchFamilles`, `setSelectedFamille`, `removeFamille`, `setEditFamille`, `fetchValidator`. Aucune modification backend.
+- [x] Validation visuelle : screenshot confirme rendu identique au mockup ✅
+
 ### Phase 27 - Bouton "Ajouter un site" + Form premium (Completed - 20 Avril 2026)
 - [x] **Bouton "+ Ajouter un site"** (violet gradient) ajouté en haut à droite de l'onglet Sites dans ClientDetail (via SiteList.js). Clic → pré-remplit `selectedSite` avec `customerID` + ouvre le Dialog SiteEditor.
 - [x] **SiteEditor refondu** en form premium :
