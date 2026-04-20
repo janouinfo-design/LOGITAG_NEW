@@ -132,6 +132,19 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 35 - Chart Premium avec couleurs Top3/Moyen/Bas + Ligne moyenne (Completed - 20 Avril 2026)
+- [x] **ChartGrid.js entièrement réécrit** pour matcher exactement le mockup Proposition A :
+  - **Top 3 barres en violet gradient** (#7C3AED) — calculé dynamiquement via tri descendant
+  - **Barres moyennes en bleu clair** (#93C5FD)
+  - **Barres basses en gris neutre** (#CBD5E1)
+  - **Ligne rouge dashed "Moy. X"** dessinée via plugin Chart.js custom `averageLine` avec label pill arrondi top-right
+  - Barres avec `borderRadius: 6` + `maxBarThickness: 38` pour un look moderne
+  - Card wrapper propre (suppression de PrimeReact Card + gradients legacy)
+  - **Légende en haut** avec swatches : Top 3 · Moyen · Bas · Moyenne globale + valeur
+  - Tooltip hover noir premium
+- [x] Suppression du bouton "Exporter" PrimeReact inutile.
+- [x] Validation screenshot : MAGHREB STEEL/JORF OCP/LAURENT MEMBREZ en violet, autres barres en gris avec 2 barres moyennes en bleu, ligne rouge "Moy. 21.1" nette ✅
+
 ### Phase 34 - Page Status Refonte Executive Dashboard (Proposition A) (Completed - 20 Avril 2026)
 - [x] **KPICardGrid.js refait** en style Stripe/executive :
   - **Sparkline SVG** calculée deterministiquement (seed basé sur index + valeur) en couleur assortie à l'icône
