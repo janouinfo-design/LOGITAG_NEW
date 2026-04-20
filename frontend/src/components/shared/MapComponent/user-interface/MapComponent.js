@@ -748,7 +748,7 @@ const MapComponent = ({
       if (Array.isArray(payload) && payload?.[0]?.geometry?.geometry) {
         const geometry = payload?.[0]?.geometry?.geometry
         const centerOfGeo = turf.centerOfMass(geometry).geometry.coordinates
-        if (mapRef.current) mapRef.current.setView(centerOfGeo.reverse(), 19)
+        if (mapRef.current) mapRef.current.setView(centerOfGeo.reverse(), 13)
         if (geometry) {
           setSelectedGeo(item?.uid)
           let _layer = L.geoJSON(geometry, {color: 'red', weight: 0.7, id: item?.LocationID})
@@ -977,7 +977,7 @@ const MapComponent = ({
       setEnginMarker([o.lat, o.lng])
       // const getZomm = mapRef.current.getZoom()
       mapRef.current.closePopup()
-      mapRef.current.flyTo({lat: o.lat, lng: o.lng}, 18)
+      mapRef.current.flyTo({lat: o.lat, lng: o.lng}, 13)
     }
   }
 

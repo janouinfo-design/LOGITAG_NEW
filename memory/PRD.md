@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 33 - Zoom carte Map adouci (Completed - 20 Avril 2026)
+- [x] **Bug UX rapporté** : le clic "Localiser" zoomait trop fortement (niveau 18 - vue rue) → perte du contexte géographique.
+- [x] **Fix appliqué** sur `MapComponent.js` :
+  - `flyTo` lors de la localisation d'un asset : zoom 18 → **13** (vue quartier/ville)
+  - `setView` lors du centrage sur une zone : zoom 19 → **13**
+  - `setView` lors du centrage sur coords : zoom 11 (déjà OK)
+  - Zoom par défaut de la carte reste à 10 (vue régionale)
+- [x] Résultat visuel : l'utilisateur voit maintenant le contexte régional (ex: Europe entière avec clusters) au chargement, et un zoom confortable au niveau ville lors du clic sur un asset.
+- [x] Validation screenshot : Europe visible avec clusters 6/25 bien répartis ✅
+
 ### Phase 32 - UX Refactor : Supprimer séparée du kebab (Completed - 20 Avril 2026)
 - [x] **Problème UX identifié** : avoir "Supprimer" juste à côté de "Détail" dans le kebab ⋮ créait un risque de clic accidentel → perte de données.
 - [x] **DataTableComponent.jsx** modifié globalement :
