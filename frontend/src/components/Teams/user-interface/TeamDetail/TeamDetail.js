@@ -241,12 +241,12 @@ const TeamDetail = () => {
         <div className='lt-detail-tabs'>
           <TabView className='lt-tabview'>
             <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Général</span>}>
-              <div className='lt-detail-grid'>
+              <div className='lt-detail-grid' style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px', alignItems: 'start'}}>
                 {/* LEFT: Form */}
                 <div className='lt-detail-form'>
                   <div className='lt-form-section'>
                     <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
-                    <div className='lt-form-grid'>
+                    <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                       <div className='lt-form-field lt-form-field--full'>
                         {imageChange ? (
                           <div><div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => { setImageChange(!imageChange); setIsValid(false) }}><i className='pi pi-times'></i></button></div>
@@ -276,7 +276,7 @@ const TeamDetail = () => {
                   </div>
                   <div className='lt-form-section'>
                     <h4 className='lt-form-section-title'><i className='pi pi-calendar'></i>Dates</h4>
-                    <div className='lt-form-grid'>
+                    <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                       <div className='lt-form-field'>
                         <label className='lt-form-label'>Date de naissance</label>
                         <Calendar name='birthday' showIcon className='lt-form-input' dateFormat='dd/mm/yy' onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.birthday} />

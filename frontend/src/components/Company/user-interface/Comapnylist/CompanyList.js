@@ -191,10 +191,11 @@ const CompanyList = () => {
         <div className='lt-detail-tabs'>
           <TabView className='lt-tabview'>
             <TabPanel header={<span className='lt-tab-header'><i className='pi pi-building'></i>Général</span>}>
-              <div className='lt-detail-form' style={{maxWidth: 700}}>
+              <div className='lt-detail-grid' style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px', alignItems: 'start'}}>
+                <div className='lt-detail-form'>
                 <div className='lt-form-section'>
                   <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Informations</h4>
-                  <div className='lt-form-grid'>
+                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                     <div className='lt-form-field lt-form-field--full'>
                       {imageChange ? (
                         <div><div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => setImageChange(!imageChange)}><i className='pi pi-times'></i></button></div>
@@ -222,7 +223,7 @@ const CompanyList = () => {
                 </div>
                 <div className='lt-form-section'>
                   <h4 className='lt-form-section-title'><i className='pi pi-clock'></i>Horaires</h4>
-                  <div className='lt-form-grid'>
+                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                     <div className='lt-form-field'>
                       <label className='lt-form-label'><OlangItem olang='Date.From' /></label>
                       <Calendar name='begDate' className='lt-form-input' value={company?.begDate} onChange={onInputChange} timeOnly showIcon icon={() => <i className='pi pi-clock' />} />
@@ -234,6 +235,25 @@ const CompanyList = () => {
                     <div className='lt-form-field'>
                       <label className='lt-form-label'><OlangItem olang='gpsConfig' /></label>
                       <div style={{paddingTop: 6}}><InputSwitch name='gpsConfig' checked={company?.gpsConfig == 1} onChange={onInputChange} /></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+                {/* RIGHT: Sidebar */}
+                <div className='lt-detail-side'>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Résumé</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Code</span><span className='lt-sidebar-row-val'>{company?.code || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Label</span><span className='lt-sidebar-row-val'>{company?.label || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>IDE</span><span className='lt-sidebar-row-val'>{company?.NPA || '-'}</span></div>
+                    </div>
+                  </div>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Relations</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-link'><span className='lt-sidebar-link-label'>Adresses</span><span className='lt-sidebar-link-count'>{companyAddresses?.length || 0}</span></div>
                     </div>
                   </div>
                 </div>
@@ -256,7 +276,7 @@ const CompanyList = () => {
                   <h4 className='lt-form-section-title'>
                     <img src={require('../../../../assets/images/LOGITRAK.webp')} style={{width: 120, objectFit: 'cover'}} alt="Logitrak" />
                   </h4>
-                  <div className='lt-form-grid'>
+                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                     <div className='lt-form-field'>
                       <label className='lt-form-label'><OlangItem olang='Email' /></label>
                       <InputText name='email' className={`lt-form-input ${formik.errors.email && formik.touched.email ? 'p-invalid' : ''}`} value={formik.values.email} onChange={formik.handleChange} disabled={isDisabled} />

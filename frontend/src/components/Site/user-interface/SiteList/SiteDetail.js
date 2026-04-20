@@ -28,7 +28,7 @@ const SiteDetail = () => {
             <div className='lt-detail-form' style={{maxWidth: 500}}>
               <div className='lt-form-section'>
                 <h4 className='lt-form-section-title'><i className='pi pi-building'></i>Customer Info</h4>
-                <div className='lt-form-grid'>
+                <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                   <div className='lt-form-field lt-form-field--full'><FileUploadeComponent /></div>
                   <div className='lt-form-field'><label className='lt-form-label'>Client</label><InputText placeholder='Client' className='lt-form-input' /></div>
                   <div className='lt-form-field'><label className='lt-form-label'>Label</label><InputText placeholder='Label' className='lt-form-input' /></div>

@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 20 - Fix Layout Détails (Inline Grid Forcing) (Completed - 20 Avril 2026)
+- [x] **Bug résolu** : PrimeReact écrasait les classes CSS `lt-detail-grid` et `lt-form-grid` → les pages Détails affichaient le formulaire en 1 seule colonne au lieu de 2.
+- [x] **Solution** : Injection de `style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px'}}` directement sur les balises React (pour contourner la priorité CSS de PrimeReact).
+- [x] Appliqué sur :
+  - `TeamDetail.js` (Utilisateurs) — grille 65/35 + form-grid 2 cols
+  - `ClientDetail.js` (Clients) — grille 65/35 + sidebar Résumé/Relations ajoutée
+  - `CompanyList.js` (Entreprises) — grille 65/35 + sidebar Résumé/Relations ajoutée + Paramètres form-grid 2 cols
+  - `SiteDetail.js` (Sites) — form-grid 2 cols
+- [x] Validation visuelle via screenshot : structure 2 colonnes confirmée sur les 3 pages.
+
 ### Phase 19 - PrimaryActionButton Standard (Completed - 20 Avril 2026)
 - [x] **Composant `PrimaryActionButton`** créé dans `/app/frontend/src/components/shared/PrimaryActionButton/`
   - 7 types : edit (violet gradient), save, communicate (secondary), more (ghost), back (ghost), add (primary), delete (danger)
@@ -144,6 +154,9 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] CSS : .lt-action-btn--primary (gradient #6366F1→#4F46E5), .lt-action-btn--secondary, .lt-action-btn--ghost, .lt-action-btn--danger
 
 ## Backlog
+
+### P1 (Haute priorité)
+- [ ] **Refonte SaaS Premium** des pages `DepotDetail`, `FamilleDetail`, `StatusDetail`, `StatutDetail` — actuellement en PrimeReact Card standard (pas de lt-detail-header / lt-detail-grid). Nécessite un refactor complet (pas seulement des styles inline) : header premium, 65/35 grid + sidebar, form-grid 2 cols, PrimaryActionButton. Scope ~4 fichiers, ~200-300 lignes à refactorer chacun.
 
 ### P2 (Moyenne priorité)
 - [ ] Export PDF des rapports de présence B2B

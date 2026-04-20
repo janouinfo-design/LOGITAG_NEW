@@ -325,10 +325,11 @@ const ClientDetail = () => {
         <div className='lt-detail-tabs'>
           <TabView className='lt-tabview'>
             <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Général</span>}>
-              <div className='lt-detail-form' style={{maxWidth: 700}}>
+              <div className='lt-detail-grid' style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px', alignItems: 'start'}}>
+                <div className='lt-detail-form'>
                 <div className='lt-form-section'>
                   <h4 className='lt-form-section-title'><i className='pi pi-building'></i>Informations Client</h4>
-                  <div className='lt-form-grid'>
+                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
                     <div className='lt-form-field lt-form-field--full'>
                       {imageChange ? (
                         <div>
@@ -353,6 +354,26 @@ const ClientDetail = () => {
                     <div className='lt-form-field'>
                       <label className='lt-form-label'><OlangItem olang='IDE' /></label>
                       <InputText name='NPA' value={selectedCustomer?.NPA} onChange={onInputChange} placeholder='IDE' className='lt-form-input' />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+                {/* RIGHT: Sidebar */}
+                <div className='lt-detail-side'>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Résumé</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Code</span><span className='lt-sidebar-row-val'>{selectedCustomer?.code || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Label</span><span className='lt-sidebar-row-val'>{selectedCustomer?.label || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>IDE</span><span className='lt-sidebar-row-val'>{selectedCustomer?.NPA || '-'}</span></div>
+                    </div>
+                  </div>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Relations</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-link'><span className='lt-sidebar-link-label'>Engins</span><span className='lt-sidebar-link-count'>{selectedCustomer?.enginNumber || 0}</span></div>
+                      <div className='lt-sidebar-link'><span className='lt-sidebar-link-label'>Tags</span><span className='lt-sidebar-link-count'>{tags?.length || 0}</span></div>
                     </div>
                   </div>
                 </div>
