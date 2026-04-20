@@ -155,232 +155,126 @@ const CompanyList = () => {
 
   return (
     <>
-      {/* <Toast ref={messagesRef} /> */}
-      {/* <div className='bg-primary w-12 my-2'>
-        <h3 className=' text-white p-3'>Information</h3>
-      </div> */}
       <Toast ref={toast} />
-      <TabView>
-        <TabPanel header={<OlangItem olang='Reception' />}>
-          <Card
-            className='lg:w-6 w-full md:w-6 '
-            style={{
-              boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-              borderRadius: '15px',
-            }}
-          >
-            <div className='p-2  flex flex-column'>
-              <div className='flex flex-column'>
-                {imageChange ? (
-                  <div className='w-11'>
-                    <div className='flex justify-content-end'>
-                      <i
-                        className='pi pi-times cursor-pointer'
-                        onClick={() => setImageChange(!imageChange)}
-                      ></i>
-                    </div>
-
-                    <FileUploadeComponent
-                      accept={'image/*'}
-                      // onUploadFinished={onFinishedUpload}
-                      uploadExtraInfo={{
-                        src: 'company',
-                        srcID: company?.id || 0,
-                        id: company?.imageid || 0,
-                        desc: 'profile',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className='w-5 flex flex-column '>
-                    <div className='ml-5'>
-                      <Button
-                        icon='pi pi-pencil'
-                        className='ml-8 h-2rem w-2rem '
-                        rounded
-                        severity='secondary'
-                        aria-label='User'
-                        onClick={() => setImageChange(!imageChange)}
-                      />
-                    </div>
-                    <div>
-                      <Image
-                        src={`${API_BASE_URL_IMAGE}${company?.image}`}
-                        alt='Image'
-                        width='100'
-                        preview
-                        imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className='flex flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='Code' />
-                </label>
-                <InputText
-                  name='code'
-                  className='w-11 font-semibold text-lg'
-                  value={company?.code}
-                  onChange={onInputChange}
-                />
-              </div>
-              <div className='flex flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='Label' />
-                </label>
-                <InputText
-                  type='text'
-                  name='label'
-                  className='w-11 font-semibold text-lg'
-                  value={company?.label}
-                  onChange={onInputChange}
-                />
-              </div>
-              <div className='flex flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='IDE' />
-                </label>
-                <InputText
-                  type='text'
-                  name='NPA'
-                  className='w-11 font-semibold text-lg'
-                  value={company?.NPA}
-                  onChange={onInputChange}
-                />
-              </div>
-              <div className='flex flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='Date.From' />
-                </label>
-                <Calendar
-                  name='begDate'
-                  className='w-11 font-semibold text-lg'
-                  value={company?.begDate}
-                  onChange={onInputChange}
-                  timeOnly
-                  showIcon
-                  icon={() => <i className='pi pi-clock' />}
-                />
-              </div>
-              <div className='flex flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='Date.To' />
-                </label>
-                <Calendar
-                  name='endDate'
-                  className='w-11 font-semibold text-lg'
-                  value={company?.endDate}
-                  onChange={onInputChange}
-                  timeOnly
-                  showIcon
-                  icon={() => <i className='pi pi-clock' />}
-                />
-              </div>
-              <div className='flex gap-2 flex-column my-3'>
-                <label className=''>
-                  <OlangItem olang='gpsConfig' />
-                </label>
-                <InputSwitch
-                  name='gpsConfig'
-                  className='font-semibold text-lg'
-                  checked={company?.gpsConfig == 1 ? true : false}
-                  onChange={onInputChange}
-                />
-              </div>
-              <div className='flex justify-content-end w-11 mt-6 my-5'>
-                <ButtonComponent onClick={save} className='w-10rem flex justify-content-center'>
-                  <OlangItem olang='Save' />
-                </ButtonComponent>
+      <div className='lt-page' data-testid="company-detail-page">
+        {/* ── Premium Header ── */}
+        <div className='lt-detail-header'>
+          <div className='lt-detail-header-left'>
+            <div className='lt-detail-avatar'>
+              {company?.image ? (
+                <Image src={`${API_BASE_URL_IMAGE}${company.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
+              ) : (
+                <div className='lt-detail-avatar-ph' style={{background: '#FEF3C7', color: '#D97706'}}><i className='pi pi-building'></i></div>
+              )}
+            </div>
+            <div className='lt-detail-info'>
+              <h2 className='lt-detail-name'>{company?.label || 'Entreprise'}</h2>
+              <div className='lt-detail-meta'>
+                <span className='lt-badge lt-badge-info'><i className='pi pi-hashtag' style={{fontSize: '0.5rem'}}></i>{company?.code || '-'}</span>
+                {company?.NPA && <span className='lt-badge lt-badge-info'>IDE: {company.NPA}</span>}
               </div>
             </div>
-          </Card>
-        </TabPanel>
-        <TabPanel header={<OlangItem olang='Addresses' />} leftIcon='pi pi-map mr-2'>
-          <div>
-            {editAddress == true ? (
-              <AddressDetail handleSaveAddress={(e) => saveAddressCompany(e)} />
-            ) : (
-              <div className='flex flex-wrap lg:ml-8 w-full'>
-                {companyAddresses?.map((address) => (
-                  <AddressesComponent
-                    key={address.id}
-                    className='w-full lg:w-6 mt-4'
-                    id={address.id}
-                    type={address.type}
-                    {...address}
-                  />
-                ))}
-              </div>
-            )}
           </div>
-        </TabPanel>
-        <TabPanel header={<OlangItem olang='Setting' />} leftIcon='pi pi-cog mr-2'>
-          <Card
-            className='lg:w-6 w-full md:w-6'
-            style={{
-              boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-              borderRadius: '15px',
-            }}
-          >
-            <section className='w-full px-2'>
-              <div className='text-2xl font-bold'>
-                <img
-                  src={require('../../../../assets/images/LOGITRAK.webp')}
-                  style={{width: '200px', height: '20%', objectFit: 'cover'}}
-                />
-                {/* <span className='text-primary'>
-                  <OlangItem olang='LOGITRAK' />
-                </span> */}
-              </div>
-              <div>
-                <div className='w-full  my-3 flex flex-column'>
-                  <label className='my-2 ml-1'>
-                    <OlangItem olang='Email' />
-                  </label>
-                  <InputText
-                    name='email'
-                    className={`w-[90%] font-semibold text-lg ${
-                      formik.errors.email && formik.touched.email ? 'p-invalid' : ''
-                    }`}
-                    value={formik.values.email}
-                    onChange={formik.handleChange}
-                    disabled={isDisabled}
-                  />
+          <div className='lt-detail-header-right'>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Adresses</div>
+              <div className='lt-detail-stat-val'>{companyAddresses?.length || 0}</div>
+            </div>
+            <div className='lt-detail-actions'>
+              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={save} title="Enregistrer"><i className='pi pi-check'></i></button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Tabs ── */}
+        <div className='lt-detail-tabs'>
+          <TabView className='lt-tabview'>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-building'></i>Général</span>}>
+              <div className='lt-detail-form' style={{maxWidth: 700}}>
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Informations</h4>
+                  <div className='lt-form-grid'>
+                    <div className='lt-form-field lt-form-field--full'>
+                      {imageChange ? (
+                        <div><div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => setImageChange(!imageChange)}><i className='pi pi-times'></i></button></div>
+                          <FileUploadeComponent accept={'image/*'} uploadExtraInfo={{src: 'company', srcID: company?.id || 0, id: company?.imageid || 0, desc: 'profile'}} /></div>
+                      ) : (
+                        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                          <Image src={`${API_BASE_URL_IMAGE}${company?.image}`} alt='Image' width='56' preview imageStyle={{objectFit: 'cover', borderRadius: '10px'}} />
+                          <button className='lt-form-upload-btn' onClick={() => setImageChange(!imageChange)}><i className='pi pi-pencil'></i>Changer</button>
+                        </div>
+                      )}
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Code' /></label>
+                      <InputText name='code' className='lt-form-input' value={company?.code} onChange={onInputChange} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Label' /></label>
+                      <InputText name='label' className='lt-form-input' value={company?.label} onChange={onInputChange} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='IDE' /></label>
+                      <InputText name='NPA' className='lt-form-input' value={company?.NPA} onChange={onInputChange} />
+                    </div>
+                  </div>
                 </div>
-                <div className='my-3 flex flex-column'>
-                  <label className='my-2 ml-1'>
-                    <OlangItem olang='Password' />
-                  </label>
-                  <Password
-                    name='password'
-                    value={formik.values.password}
-                    toggleMask
-                    feedback={false}
-                    onChange={formik.handleChange}
-                    className={`font-semibold w-[90%] text-lg`}
-                    inputClassName='w-full'
-                    disabled={isDisabled}
-                  />
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'><i className='pi pi-clock'></i>Horaires</h4>
+                  <div className='lt-form-grid'>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Date.From' /></label>
+                      <Calendar name='begDate' className='lt-form-input' value={company?.begDate} onChange={onInputChange} timeOnly showIcon icon={() => <i className='pi pi-clock' />} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Date.To' /></label>
+                      <Calendar name='endDate' className='lt-form-input' value={company?.endDate} onChange={onInputChange} timeOnly showIcon icon={() => <i className='pi pi-clock' />} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='gpsConfig' /></label>
+                      <div style={{paddingTop: 6}}><InputSwitch name='gpsConfig' checked={company?.gpsConfig == 1} onChange={onInputChange} /></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className='flex xl:justify-content-end w-[90%] justify-content-end align-items-center mt-6 my-5 '>
-                <ButtonComponent className='p-button-danger font-semibold mr-2' onClick={logOut}>
-                  <OlangItem olang='Log.Out' />
-                </ButtonComponent>
-                <ButtonComponent
-                  onClick={formik.handleSubmit}
-                  className='w-full flex justify-content-center font-semibold '
-                  disabled={isDisabled}
-                >
-                  <OlangItem olang='Log.In' />
-                </ButtonComponent>
+            </TabPanel>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i>Adresses</span>}>
+              {editAddress == true ? (
+                <AddressDetail handleSaveAddress={(e) => saveAddressCompany(e)} />
+              ) : (
+                <div className='flex flex-wrap w-full' style={{gap: 12}}>
+                  {companyAddresses?.map((address) => (
+                    <AddressesComponent key={address.id} className='w-full lg:w-6 mt-2' id={address.id} type={address.type} {...address} />
+                  ))}
+                </div>
+              )}
+            </TabPanel>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Paramètres</span>}>
+              <div className='lt-detail-form' style={{maxWidth: 500}}>
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'>
+                    <img src={require('../../../../assets/images/LOGITRAK.webp')} style={{width: 120, objectFit: 'cover'}} alt="Logitrak" />
+                  </h4>
+                  <div className='lt-form-grid'>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Email' /></label>
+                      <InputText name='email' className={`lt-form-input ${formik.errors.email && formik.touched.email ? 'p-invalid' : ''}`} value={formik.values.email} onChange={formik.handleChange} disabled={isDisabled} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Password' /></label>
+                      <Password name='password' value={formik.values.password} toggleMask feedback={false} onChange={formik.handleChange} className='lt-form-input' inputClassName='w-full' disabled={isDisabled} />
+                    </div>
+                    <div className='lt-form-field lt-form-field--full' style={{display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end'}}>
+                      <button className='lt-modal-btn-cancel' onClick={logOut}>Déconnexion</button>
+                      <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={formik.handleSubmit} disabled={isDisabled} style={{width: 'auto', padding: '8px 16px', borderRadius: 8}}><i className='pi pi-sign-in' style={{marginRight: 4}}></i> Connexion</button>
+                    </div>
+                  </div>
+                </div>
               </div>
-            </section>
-          </Card>
-        </TabPanel>
-      </TabView>
+            </TabPanel>
+          </TabView>
+        </div>
+      </div>
     </>
   )
 }

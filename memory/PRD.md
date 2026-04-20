@@ -125,6 +125,13 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **Page Détail Tag** : Header premium (icône violet, nom, badge actif/inactif, code, statut) + tab Général avec formulaire structuré
 - [x] **Page Détail Client** : Header premium (icône bleu, nom, code, compteurs engins/tags) + tabs Général/Adresses/Sites
 
+### Phase 18 - Détails Utilisateurs/Sites/Entreprises (Completed - 20 Avril 2026)
+- [x] **TeamDetail (Utilisateurs)** : Header premium (avatar, nom prénom, badge actif, typeName, embauche) + tabs Général (Identité + Dates) / Tags
+  - Sections : Identité (photo, nom*, prénom*, fonction*) + Dates (anniversaire, embauche, départ)
+- [x] **CompanyList (Entreprise)** : Header premium (avatar, nom, badges code+IDE, compteur adresses) + tabs Général (Informations + Horaires) / Adresses / Paramètres (Logitrak login)
+- [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
+- [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
+
 ## Backlog
 
 ### P2 (Moyenne priorité)

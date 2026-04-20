@@ -13,68 +13,51 @@ import {OlangItem} from '../../../shared/Olang/user-interface/OlangItem/OlangIte
 
 const SiteDetail = () => {
   return (
-    <>
-      <div>
-        <h3 className='bg-primary p-2 card'>
-          <OlangItem olang='Detail WorkSite' style={{margin: '0 auto'}} />
-        </h3>
+    <div className='lt-page' data-testid="site-detail-page">
+      <div className='lt-detail-header'>
+        <div className='lt-detail-header-left'>
+          <div className='lt-detail-avatar-ph' style={{background: '#FEF3C7', color: '#D97706'}}><i className='pi pi-map-marker'></i></div>
+          <div className='lt-detail-info'>
+            <h2 className='lt-detail-name'>Détail du site</h2>
+          </div>
+        </div>
       </div>
-      <div className='w-full mt-4 flex align-items-center'>
-        <TabView className='w-full'>
-          <TabPanel header='Customer.info' leftIcon='pi pi-user mr-2'>
-            <div
-              className='flex flex-column mt-8 p-6 w-6'
-              style={{
-                boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                borderRadius: '15px',
-                height: '37rem',
-              }}
-            >
-              <h3>Customer Info</h3>
-              <div className='mt-7 flex flex-column'>
-                <FileUploadeComponent />
-                <InputText placeholder='Client' className='my-5' />
-                <InputText placeholder='Label' />
-                <ButtonComponent className={'mt-5 absolute left-50'}>Enregistrer</ButtonComponent>
+      <div className='lt-detail-tabs'>
+        <TabView className='lt-tabview'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Info client</span>}>
+            <div className='lt-detail-form' style={{maxWidth: 500}}>
+              <div className='lt-form-section'>
+                <h4 className='lt-form-section-title'><i className='pi pi-building'></i>Customer Info</h4>
+                <div className='lt-form-grid'>
+                  <div className='lt-form-field lt-form-field--full'><FileUploadeComponent /></div>
+                  <div className='lt-form-field'><label className='lt-form-label'>Client</label><InputText placeholder='Client' className='lt-form-input' /></div>
+                  <div className='lt-form-field'><label className='lt-form-label'>Label</label><InputText placeholder='Label' className='lt-form-input' /></div>
+                </div>
               </div>
             </div>
           </TabPanel>
-          <TabPanel header='Customer.address' leftIcon='pi pi-map-marker mr-2'>
-            <div className='flex flex-column mt-6 p-6'>
-              <h3>
-                <i className='pi pi-map m-2 text-blue-500'></i>
-                List
-              </h3>
-              <Card
-                title='address.type'
-                className='mt-5 p-3 w-5 '
-                style={{boxShadow: 'rgba(0, 0, 0, 0.35) 0px 5px 15px'}}
-              >
-                <i className='pi pi-map-marker mb-3 text-blue-500'></i>
-                <h4>Contact</h4>
-                <h4>address.city</h4>
-                <h4>address.email</h4>
-                <h4>address.phone</h4>
-              </Card>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i>Adresse</span>}>
+            <div className='lt-detail-form' style={{maxWidth: 500}}>
+              <div className='lt-form-section'>
+                <h4 className='lt-form-section-title'><i className='pi pi-map'></i>Adresses</h4>
+                <Card className='w-full' style={{borderRadius: 12, border: '1px solid var(--lt-border)'}}>
+                  <div style={{display: 'flex', alignItems: 'center', gap: 6, marginBottom: 8}}><i className='pi pi-map-marker' style={{color: '#3B82F6'}}></i><strong>Contact</strong></div>
+                  <p style={{color: '#64748B', fontSize: '0.85rem', margin: 0}}>address.city / address.email / address.phone</p>
+                </Card>
+              </div>
             </div>
           </TabPanel>
-          <TabPanel header='Customer.sites'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-sitemap'></i>Sites</span>}>
             <SiteEditor />
             <SiteList titleShow={false} />
           </TabPanel>
-          <TabPanel header='Customer.rentals' leftIcon='pi pi-search mr-2'>
-            <Card title='Customer.rentals' className='mt-5 p-3 w-5'>
-              <label>Site.List</label>
-              <Dropdown className='w-5 ml-2' placeholder='Tous' />
-            </Card>
-          </TabPanel>
-          <TabPanel header='Customer.tag'>
+          <TabPanel header={<span className='lt-tab-header'><i className='pi pi-tag'></i>Tags</span>}>
             <TagEditor />
             <TagList titleShow={false} />
           </TabPanel>
         </TabView>
       </div>
-    </>
+    </div>
   )
 }
 
