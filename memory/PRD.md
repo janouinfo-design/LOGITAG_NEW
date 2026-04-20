@@ -3,6 +3,15 @@
 ## Problem Statement
 Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterprise-grade. **CONTRAINTE** : Frontend UI/UX uniquement. Aucune modification API/Redux.
 
+### Phase 29 — Single Engin Detail Panel + Dashboard Fix (20 Avril 2026)
+- [x] **Panneau détaillé single engin** : clic sur un marker individuel ouvre `ClusterInsightsPanel` en mode `singleMode`
+  - Header dédié : badge de statut coloré selon bucket (Sur site/Arrivé/Sorti/Ancien), titre=reference, chip famille, 3 stats (Dernier signal, Batterie, Zone)
+  - Section Timeline récente (avec événements datés) + Section Informations (adresse, état, device/RSSI, utilisateur, GPS)
+  - Bouton "Centrer la vue sur la carte" pour zoomer dessus
+  - Auto-expand, filtres/tri masqués
+- [x] **Fix bug `fitBounds` null** (useEffect ligne 931 dans MapComponent.js) : guard try/catch + double check refs + validation de bounds avec `isValid()`, cleanup du timeout. Plus d'erreur runtime au chargement du Dashboard.
+- [x] **Testé** via `testing_agent_v3_fork` iteration_56.json : 6/6 checkpoints PASS
+
 ### Phase 28 — Cluster Insights Panel pour la Map (20 Avril 2026)
 - [x] **Nouveau composant** `ClusterInsightsPanel.jsx` : drawer latéral premium ouvert au clic sur un cluster
   - **Header** : badge violet compteur, nom de la zone (LocationObjectname), adresse, 4 stats (Sur site / Arrivés <1h / Sortis / Durée moyenne)
