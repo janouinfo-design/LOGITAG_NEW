@@ -1929,7 +1929,8 @@ const MapComponent = ({
                           icon={redIcon}
                           eventHandlers={{
                             click: (e) => {
-                              // Open the rich side panel instead of the native popup
+                              // Prevent native popup — use the rich side panel instead
+                              try { e.target.closePopup && e.target.closePopup() } catch (err) {}
                               setClusterPopup({
                                 position: {lat: pio?.last_lat, lng: pio?.last_lng},
                                 items: [pio],
@@ -1938,13 +1939,7 @@ const MapComponent = ({
                               onClickMarker(pio)
                             },
                           }}
-                        >
-                          <Popup>
-                            {typeof pioPopupTemplate === 'function'
-                              ? pioPopupTemplate(pio)
-                              : pio[markerNameKey] || pio?.label}
-                          </Popup>
-                        </Marker>
+                        />
                       )
                   }),
                 [engMap]
