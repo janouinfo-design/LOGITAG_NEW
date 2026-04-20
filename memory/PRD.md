@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 26 - Refonte AddressDetail full-page (3 variantes) (Completed - 20 Avril 2026)
+- [x] **3 variantes refactorisées** (Company / Depot / Site) avec le layout Premium complet :
+  - Header Premium (Retour + avatar map-marker coloré + titre dynamique "Adresse de {type}" + badges type/ville + bouton "Enregistrer" violet gradient)
+  - Layout 2 colonnes 65/35 via styles inline (contournement PrimeReact)
+  - Colonne gauche : 2 sections (Adresse / Contact) avec form-grid 2 cols (Route, N°, Code postal, Ville, Pays full, Téléphone, Fax, Email full)
+  - Colonne droite : **sticky card "Localisation"** contenant MapSearchComponent + footer Lat/Lng en bas
+  - Avatar Site utilise bleu (#3B82F6) pour différenciation visuelle vs Depot/Company (violet)
+- [x] Code simplifié : suppression du `addresses` state inutilisé + des imports superflus. Composants tous sous 180 lignes (vs 284 avant).
+- [x] Validation visuelle screenshot : rend parfaitement (client 33 facturation Lausanne) avec carte interactive.
+
 ### Phase 25 - Régression Complète + Harmonisation Depot/Site (Completed - 20 Avril 2026)
 - [x] **AddressesDepotComponent** et **AddressesSiteComponent** refactorisés avec le même design premium que AddressesComponent (icône colorée circulaire, statut Active, 3 actions œil/crayon/poubelle). Ces 2 composants étaient des fichiers séparés non-partagés.
 - [x] **Régression testing_agent_v3_fork** (iteration_54) : 
@@ -212,7 +222,7 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 ## Backlog
 
 ### P1 (Haute priorité)
-- [ ] `AddressDetail.jsx` (3 variantes : Company / Depot / Site) — c'est une page plein-écran (pas un dialogue), donc non-couverte par la refonte globale `.p-dialog`. Refactor manuel nécessaire si souhaité (layout row/col-lg legacy + MapSearchComponent).
+- [ ] (Tech debt) Nettoyer les React warnings : keys manquantes dans SidebarMenuMain/PrivateRoutes/ChatMessage/DatatableComponent, attributs `full`/`sortable` non-boolean.
 
 ### P2 (Moyenne priorité)
 - [ ] Export PDF des rapports de présence B2B
