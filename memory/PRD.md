@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 29 - Refonte Page Statuts (Même design que Familles) (Completed - 20 Avril 2026)
+- [x] **StatusList.js entièrement refait** avec exactement le même design pattern que Familles :
+  - Header "Statuts" + breadcrumb "Configuration > Statuts" + bouton "+ Nouveau statut" violet gradient
+  - Segmented control Tag / Engin (depuis `fetchObject`)
+  - Toolbar Filtres + recherche instantanée + cog settings
+  - Table custom : Actions (kebab Modifier/Supprimer), Couleur (swatch), Icône (boîte bordée), Nom du statut, Type (pill), Code (monospace), Statut (pill Actif/Inactif), chevron
+  - Pagination locale (perPage 10/25/50, numéros violets, range "X à Y de Z éléments")
+- [x] Logique métier préservée : `fetchStatus`, `fetchObject`, `setSelectedStatus`, `setEditStatus`, `setShow`.
+- [x] Validation visuelle : rendu identique au pattern Familles, 11+ statuts affichés correctement ✅
+
 ### Phase 28 - Refonte Page Familles (Match design fourni) (Completed - 20 Avril 2026)
 - [x] **FamilleList.js entièrement refait** pour matcher le mockup fourni :
   - Header avec titre "Familles" + breadcrumb "Configuration > Familles" + bouton "+ Nouvelle famille" (gradient violet #7C3AED → #6D28D9)
