@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Logitag — Propositions Filtres Modernes</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lucide-static@0.454.0/font/lucide.css">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #F8FAFC;
+    color: #0F172A;
+    padding: 40px 32px;
+    min-height: 100vh;
+  }
+  .wrap { max-width: 1280px; margin: 0 auto; }
+  h1 {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  .subtitle { color: #64748B; font-size: 0.9rem; margin-bottom: 32px; }
+  .proposal {
+    background: #FFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 28px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.04);
+  }
+  .proposal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .proposal-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.05rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .proposal-tag {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: #EDE9FE;
+    color: #6D28D9;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .proposal-desc { color: #64748B; font-size: 0.85rem; max-width: 620px; }
+
+  /* ───────── Proposition A — Pills violet segmenté ───────── */
+  .bar-a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    padding: 14px 16px;
+    background: #FFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+  }
+  .segment {
+    display: inline-flex;
+    background: #F1F5F9;
+    border-radius: 10px;
+    padding: 4px;
+    gap: 2px;
+  }
+  .segment button {
+    padding: 7px 14px;
+    border: 0;
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #475569;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    font-family: inherit;
+  }
+  .segment button.active {
+    background: #FFF;
+    color: #6D28D9;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.06), 0 0 0 1px rgba(109,40,217,0.12);
+  }
+  .segment button:hover:not(.active) { color: #0F172A; }
+
+  .dd-compact {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    background: #FFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #334155;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .dd-compact:hover { border-color: #CBD5E1; background: #F8FAFC; }
+  .dd-compact .label { color: #94A3B8; font-weight: 500; }
+  .dd-compact .value { color: #0F172A; font-weight: 600; }
+  .dd-compact i.lucide { font-size: 14px; color: #94A3B8; }
+
+  .btn-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    background: #6D28D9;
+    color: #FFF;
+    border: 0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(109,40,217,0.35);
+    transition: all .15s;
+  }
+  .btn-primary:hover { background: #5B21B6; transform: translateY(-1px); }
+
+  .spacer { flex: 1; }
+
+  /* Chips actifs (Proposition A) */
+  .chips-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 10px 5px 12px;
+    background: #F5F3FF;
+    color: #6D28D9;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #E9E1FF;
+  }
+  .chip .x { cursor: pointer; opacity: .7; font-size: 12px; }
+  .chip .x:hover { opacity: 1; }
+
+  /* ───────── Proposition B — Tabs underlined + inputs épurés ───────── */
+  .bar-b {
+    background: #FFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .tabs-b {
+    display: flex;
+    gap: 0;
+    padding: 0 20px;
+    border-bottom: 1px solid #E2E8F0;
+    background: #FAFBFC;
+  }
+  .tab-b {
+    padding: 14px 18px;
+    border: 0;
+    background: transparent;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: #64748B;
+    cursor: pointer;
+    position: relative;
+    font-family: inherit;
+    transition: color .15s;
+  }
+  .tab-b.active { color: #0F172A; }
+  .tab-b.active::after {
+    content: '';
+    position: absolute;
+    left: 14px; right: 14px; bottom: -1px;
+    height: 2px;
+    background: #3B82F6;
+    border-radius: 2px 2px 0 0;
+  }
+  .tab-b:hover:not(.active) { color: #0F172A; }
+
+  .filters-b {
+    display: flex;
+    gap: 10px;
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .dd-b {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px 9px 14px;
+    background: #F8FAFC;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    font-size: 0.82rem;
+    color: #334155;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .dd-b:hover { background: #F1F5F9; border-color: #E2E8F0; }
+  .dd-b.active { background: #EFF6FF; color: #2563EB; border-color: #BFDBFE; }
+
+  .btn-ghost {
+    padding: 9px 14px;
+    background: transparent;
+    color: #64748B;
+    border: 0;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .btn-ghost:hover { color: #0F172A; background: #F1F5F9; }
+
+  /* ───────── Proposition C — Minimaliste avec "Filtres avancés" popover ───────── */
+  .bar-c {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 14px 18px;
+    background: linear-gradient(180deg, #FFF 0%, #FAFBFC 100%);
+    border: 1px solid #E2E8F0;
+    border-radius: 14px;
+    box-shadow: 0 1px 2px rgba(15,23,42,0.03);
+  }
+  .outline-seg {
+    display: inline-flex;
+    gap: 6px;
+  }
+  .outline-seg button {
+    padding: 8px 14px;
+    background: #FFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.82rem;
+    color: #475569;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all .15s;
+  }
+  .outline-seg button.active {
+    background: #7C3AED;
+    color: #FFF;
+    border-color: #7C3AED;
+    box-shadow: 0 2px 8px rgba(124,58,237,0.25);
+  }
+  .outline-seg button:hover:not(.active) {
+    border-color: #CBD5E1;
+    color: #0F172A;
+  }
+  .btn-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    background: #FFF;
+    color: #0F172A;
+    border: 1px dashed #CBD5E1;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .15s;
+  }
+  .btn-more:hover { border-color: #7C3AED; color: #7C3AED; background: #FAF5FF; }
+  .btn-more .count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    background: #7C3AED;
+    color: #FFF;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  /* Note choix */
+  .choice-note {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    color: #64748B;
+  }
+  .choice-note b { color: #0F172A; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Propositions de filtres modernes — Dashboard Status</h1>
+  <p class="subtitle">3 directions UI/UX B2B premium. Toutes conservent la logique métier (périodes, Etat, Famille, Modèle, Client).</p>
+
+  <!-- ════════════ A ════════════ -->
+  <div class="proposal">
+    <div class="proposal-head">
+      <div class="proposal-title">
+        Proposition A — <span style="color:#6D28D9">Pills Segmenté Violet</span>
+        <span class="proposal-tag">Recommandé</span>
+      </div>
+    </div>
+    <p class="proposal-desc" style="margin-bottom:18px">Segmented control violet pour la période (Linear-style) + dropdowns compacts épurés. Style cohérent avec l'identité SaaS premium déjà en place.</p>
+
+    <div class="bar-a">
+      <div class="segment">
+        <button>Jour</button>
+        <button>Semaine</button>
+        <button>Mois</button>
+        <button class="active">Année</button>
+      </div>
+
+      <div style="width:1px;height:24px;background:#E2E8F0"></div>
+
+      <div class="dd-compact"><i class="lucide">&#xe914;</i><span class="label">Etat</span><span class="value">Tous</span><i class="lucide">&#xe901;</i></div>
+      <div class="dd-compact"><i class="lucide">&#xe9b3;</i><span class="label">Famille</span><span class="value">Tous</span><i class="lucide">&#xe901;</i></div>
+      <div class="dd-compact"><i class="lucide">&#xe93d;</i><span class="label">Modèle</span><span class="value">Tous</span><i class="lucide">&#xe901;</i></div>
+      <div class="dd-compact"><i class="lucide">&#xea08;</i><span class="label">Client</span><span class="value">Tous</span><i class="lucide">&#xe901;</i></div>
+
+      <div class="spacer"></div>
+
+      <button class="btn-primary"><i class="lucide">&#xe9fb;</i> Filtrer</button>
+    </div>
+
+    <div class="chips-row">
+      <span class="chip">Année 2026 <span class="x">×</span></span>
+      <span class="chip">Etat : Actif <span class="x">×</span></span>
+    </div>
+  </div>
+
+  <!-- ════════════ B ════════════ -->
+  <div class="proposal">
+    <div class="proposal-head">
+      <div class="proposal-title">
+        Proposition B — <span style="color:#2563EB">Tabs Underlined (Style Stripe)</span>
+      </div>
+    </div>
+    <p class="proposal-desc" style="margin-bottom:18px">Onglets soulignés bleu pour la période + dropdowns colorés sur fond gris très léger, façon Stripe Dashboard.</p>
+
+    <div class="bar-b">
+      <div class="tabs-b">
+        <button class="tab-b">Jour</button>
+        <button class="tab-b">Semaine</button>
+        <button class="tab-b">Mois</button>
+        <button class="tab-b active">Année</button>
+      </div>
+      <div class="filters-b">
+        <div class="dd-b"><i class="lucide">&#xe914;</i> Etat <span style="opacity:.5">▾</span></div>
+        <div class="dd-b active"><i class="lucide">&#xe9b3;</i> Famille : Compacteur <span style="opacity:.5">▾</span></div>
+        <div class="dd-b"><i class="lucide">&#xe93d;</i> Modèle <span style="opacity:.5">▾</span></div>
+        <div class="dd-b"><i class="lucide">&#xea08;</i> Client <span style="opacity:.5">▾</span></div>
+        <div class="spacer"></div>
+        <button class="btn-ghost">Réinitialiser</button>
+        <button class="btn-primary" style="background:#2563EB;box-shadow:0 1px 3px rgba(37,99,235,0.35)"><i class="lucide">&#xe9fb;</i> Appliquer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ════════════ C ════════════ -->
+  <div class="proposal">
+    <div class="proposal-head">
+      <div class="proposal-title">
+        Proposition C — <span style="color:#7C3AED">Minimaliste — Filtres avancés</span>
+      </div>
+    </div>
+    <p class="proposal-desc" style="margin-bottom:18px">Ultra épuré : uniquement la période visible. Les autres filtres (Etat, Famille, Modèle, Client) regroupés dans un bouton "Filtres avancés" ouvrant un popover. Style Notion.</p>
+
+    <div class="bar-c">
+      <div class="outline-seg">
+        <button>Jour</button>
+        <button>Semaine</button>
+        <button>Mois</button>
+        <button class="active">Année</button>
+      </div>
+
+      <div style="width:1px;height:24px;background:#E2E8F0"></div>
+
+      <button class="btn-more">
+        <i class="lucide">&#xe91f;</i> Filtres avancés <span class="count">2</span>
+      </button>
+
+      <div class="spacer"></div>
+
+      <span style="color:#94A3B8;font-size:.8rem">
+        <i class="lucide" style="font-size:13px">&#xe9bd;</i>
+        Mis à jour il y a 2 min
+      </span>
+
+      <button class="btn-primary"><i class="lucide">&#xe98c;</i> Actualiser</button>
+    </div>
+  </div>
+
+  <p class="choice-note">
+    👉 <b>Ma recommandation :</b> Proposition <b>A</b> — Pills Segmenté Violet. 
+    Elle est la plus cohérente avec les KPI Cards et le ChartGrid violet déjà en place, et reste lisible avec tous les filtres visibles.
+  </p>
+</div>
+</body>
+</html>
