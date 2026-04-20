@@ -227,12 +227,11 @@ const TeamDetail = () => {
                   {selectedTeam?.active ? 'Actif' : 'Inactif'}
                 </span>
                 {selectedTeam?.typeName && <span className='lt-badge lt-badge-info'><i className='pi pi-briefcase' style={{fontSize: '0.55rem'}}></i>{selectedTeam.typeName}</span>}
-                <span style={{color: '#94A3B8', fontSize: '0.78rem'}}>Embauche</span>
+                {selectedTeam?.hireday && <span style={{color: '#94A3B8', fontSize: '0.78rem'}}>Embauché le {selectedTeam.hireday}</span>}
               </div>
             </div>
           </div>
           <div className='lt-detail-actions-group'>
-            <PrimaryActionButton type="more" />
             <PrimaryActionButton type="edit" onClick={formik.handleSubmit} />
           </div>
         </div>
@@ -287,9 +286,11 @@ const TeamDetail = () => {
                       </div>
                       <div className='lt-form-field'>
                         <label className='lt-form-label'>Date départ</label>
-                        <div style={{display: 'flex', gap: 6}}>
+                        <div style={{display: 'flex', gap: 6, alignItems: 'stretch'}}>
                           <Calendar showIcon disabled={disabled} name='exitday' dateFormat='dd/mm/yy' className='lt-form-input' style={{flex: 1}} onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.exitday} />
-                          <Button icon={`${disabled ? 'pi pi-plus' : 'pi pi-times'}`} severity={`${disabled ? 'success' : 'danger'}`} onClick={removeDateDp} style={{flexShrink: 0}} />
+                          <button type='button' onClick={removeDateDp} title={disabled ? 'Activer la date de départ' : 'Retirer la date de départ'} style={{flexShrink: 0, width: 36, border: '1px solid #E2E8F0', background: '#FFF', borderRadius: 8, color: disabled ? '#10B981' : '#EF4444', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.8rem'}}>
+                            <i className={disabled ? 'pi pi-plus' : 'pi pi-times'}></i>
+                          </button>
                         </div>
                       </div>
                     </div>

@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 23 - Hotfix UX Page Utilisateurs + CSS Global (Completed - 20 Avril 2026)
+- [x] **Bug CSS critique résolu** : bloc `.lt-detail-header {` non fermé (ligne ~3146) cassait tous les styles après. Également un bloc orphelin (`box-shadow` sans sélecteur) à la fin du fichier. Correction propre + ajout de propriétés complètes pour `.lt-detail-header` (flex, padding, border, shadow, margin).
+- [x] **TeamDetail `.js` polish** :
+  - Suppression du bouton `more` redondant dans le header (⋯ à côté du bouton Modifier)
+  - "Embauche" → "Embauché le {hireday}" (n'affiche que si valeur présente)
+  - Bouton "Date départ" toggle (PrimeReact Button violet agressif) remplacé par un `<button>` HTML natif aux couleurs neutres (vert doux pour +, rouge doux pour ✕) bordé gris, aligné verticalement avec l'input Calendar
+- [x] **CSS Calendar + Dropdown** : nouvelles règles pour `.p-calendar.lt-form-input` et `.p-dropdown.lt-form-input` — boutons calendrier/trigger intégrés au champ avec fond gris doux (`#F8FAFC`), border gauche continue, hover bleu doux. Fin des gros boutons violets visuellement détachés.
+- [x] **`.lt-form-label`** : `display: inline-flex` pour aligner l'asterisque `*` à côté du libellé proprement (plus d'asterisques au-dessus).
+- [x] Validation visuelle : TeamDetail "Zakaria RAHALI" rend maintenant de façon complètement premium (header avec Modifier violet gradient, inputs propres, sidebar cards bien stylées, dates intégrées).
+
 ### Phase 22 - Uniformisation Éditeurs / Dialogues Premium (Completed - 20 Avril 2026)
 - [x] **Refonte CSS globale des dialogues PrimeReact** (`.p-dialog`) — impact automatique sur les 30+ editors existants (TagEditor, SiteEditor, TeamEditor, CustomerEditor, AddressEditor, DepotEditor, EnginEditor, AlertEditor, StatusEditor, etc.) :
   - Rayon 16px, shadow premium 24px+8px
