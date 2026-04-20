@@ -1676,6 +1676,12 @@ const MapComponent = ({
                             )}
                             onClick={() => {
                               dispatch(setSelectedEnginMap(pio))
+                              // Open the rich single-engin side panel
+                              setClusterPopup({
+                                position: {lat: pio?.last_lat || 0, lng: pio?.last_lng || 0},
+                                items: [pio],
+                                _single: true,
+                              })
                               setExpandedPioUid((prev) => {
                                 const next = prev === key ? null : key
                                 if (next) getDetailEngin(pio)
