@@ -48,7 +48,7 @@ const MapComponent = forwardRef((props) => {
   const [routeLine, setRouteLine] = useState(null)
   const [timelineFilter, setTimelineFilter] = useState('all')
 
-  const [zoom, setZoom] = useState(20)
+  const [zoom, setZoom] = useState(14)
   const ref = useRef(null)
   const editorRef = useRef(null)
   const routeLayer = useRef(null)
