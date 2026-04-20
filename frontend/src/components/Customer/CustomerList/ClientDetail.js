@@ -281,161 +281,100 @@ const ClientDetail = () => {
   const _labelValidator = validators.find((validator) => validator.id === 'label')
   return (
     <>
-      <TagEditor
-        visible={tagEdit}
-        selectedTag={selectedTagClient}
-        onHide={onHideTag}
-        client={true}
-        onSubmitHandler={(e) => saveTag(e)}
-      />
+      <TagEditor visible={tagEdit} selectedTag={selectedTagClient} onHide={onHideTag} client={true} onSubmitHandler={(e) => saveTag(e)} />
       <EditeTagClient />
       <SiteEditor selectedCLient={selectedCustomer} save={onSaveSite} />
-      <div className='mt-3 flex align-items-center justify-content-between'>
-        <div>
-          <ButtonComponent onClick={onHideDetail}>
-            <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-            <div className='ml-2 text-base font-semibold'>
-              <OlangItem olang='btn.back' />
-            </div>
-          </ButtonComponent>
-          <ButtonComponent onClick={addSiteClient} className='ml-2 border-1'>
-            <i class='pi pi-plus text-white'></i>
-            <div className='ml-2 text-white font-bold text-base'>
-              <OlangItem olang='btn.addSite' />
-            </div>
-          </ButtonComponent>
-        </div>
-        <div className='w-3 flex align-items-center justify-content-center text-xl'>
-          <strong className=' p-3'>{selectedCustomer?.label}</strong>
-        </div>
-      </div>
-      <div className='w-full mt-2 flex align-items-center flex-column'>
-        <TabView className='w-full'>
-          <TabPanel header={<OlangItem olang='Customer.Info' />} leftIcon='pi pi-user mr-2'>
-            <Card
-              className='w-full md:w-9 lg:w-10 xl:w-6 mt-6 p-2'
-              style={{
-                boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                borderRadius: '15px',
-              }}
-              title={title}
-              footer={footer}
-            >
-              <div className='flex flex-column justify-content-center'>
-                {imageChange ? (
-                  <div>
-                    <i
-                      className='pi pi-times cursor-pointer'
-                      style={{marginLeft: '98%'}}
-                      onClick={() => setImageChange(!imageChange)}
-                    ></i>
-                    <FileUploadeComponent
-                      accept={'image/*'}
-                      onUploadFinished={onFinishedUpload}
-                      uploadExtraInfo={{
-                        src: 'customer',
-                        srcID: selectedCustomer?.id || 0,
-                        id: selectedCustomer?.imageid || 0,
-                        desc: 'profile',
-                      }}
-                    />
-                  </div>
-                ) : (
-                  <div className='w-5'>
-                    <div>
-                      <Button
-                        icon='pi pi-pencil'
-                        className='ml-8 h-2rem w-2rem '
-                        rounded
-                        severity='secondary'
-                        aria-label='User'
-                        onClick={() => setImageChange(!imageChange)}
-                      />
-                    </div>
-                    <Image
-                      src={`${API_BASE_URL_IMAGE}${selectedCustomer?.image}`}
-                      alt='Image'
-                      width='80'
-                      preview
-                      imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
-                    />
-                  </div>
-                )}
-                <div className='flex flex-column my-2 w-12 mt-5'>
-                  <label htmlFor='code'>
-                    <OlangItem olang='Nom' />
-                    {_codeValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-                  </label>
-                  <InputText
-                    id='code'
-                    name='code'
-                    value={selectedCustomer?.code}
-                    onChange={onInputChange}
-                    placeholder='Client'
-                    className={`font-semibold text-lg  ${
-                      inputValidity['code'] == false ? 'p-invalid' : ''
-                    }`}
-                  />
-                </div>
-                <div className='flex flex-column my-2 w-12'>
-                  <label htmlFor='label'>
-                    <OlangItem olang='Label' />
-                    {_labelValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-                  </label>
-                  <InputText
-                    id='label'
-                    name='label'
-                    value={selectedCustomer?.label}
-                    onChange={onInputChange}
-                    placeholder='label'
-                    className={`font-semibold text-lg ${
-                      inputValidity['label'] == false ? 'p-invalid' : ''
-                    }`}
-                  />
-                </div>
-                <div className='flex flex-column my-2 w-12'>
-                  <label className='p-2'>
-                    <OlangItem olang='IDE' />
-                  </label>
-                  <InputText
-                    name='NPA'
-                    value={selectedCustomer?.NPA}
-                    onChange={onInputChange}
-                    placeholder='IDE'
-                    className='font-semibold text-lg'
-                  />
-                </div>
-              </div>
-            </Card>
-          </TabPanel>
-          <TabPanel
-            header={<OlangItem olang='Customer.address' />}
-            leftIcon='pi pi-map-marker mr-2'
-          >
-            <div>
-              {editAddress == true ? (
-                <AddressDetail client={true} handleSaveAddress={(e) => saveAddress(e)} />
+
+      <div className='lt-page' data-testid="client-detail-page">
+        {/* ── Premium Header ── */}
+        <div className='lt-detail-header' data-testid="client-detail-header">
+          <div className='lt-detail-header-left'>
+            <button className='lt-back-btn' onClick={onHideDetail}><i className='pi pi-arrow-left'></i></button>
+            <div className='lt-detail-avatar'>
+              {selectedCustomer?.image ? (
+                <Image src={`${API_BASE_URL_IMAGE}${selectedCustomer.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
               ) : (
-                <div className='flex flex-wrap lg:ml-5 w-full'>
-                  {customerAddress &&
-                    customerAddress?.map((address) => (
-                      <AddressesComponent
-                        client={true}
-                        key={address.id}
-                        className='w-full lg:w-6 mt-4'
-                        id={address.id}
-                        type={address.type}
-                        {...address}
-                      />
-                    ))}
-                </div>
+                <div className='lt-detail-avatar-ph' style={{background: '#EFF6FF', color: '#3B82F6'}}><i className='pi pi-building'></i></div>
               )}
             </div>
-          </TabPanel>
-          <TabPanel header={<OlangItem olang='Customer.sites' />}>
-            <SiteClientComponent />
-          </TabPanel>
-        </TabView>
+            <div className='lt-detail-info'>
+              <h2 className='lt-detail-name'>{selectedCustomer?.label || '-'}</h2>
+              <div className='lt-detail-meta'>
+                <span className='lt-badge lt-badge-info'><i className='pi pi-hashtag' style={{fontSize: '0.5rem'}}></i>{selectedCustomer?.code || '-'}</span>
+              </div>
+            </div>
+          </div>
+          <div className='lt-detail-header-right'>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Engins</div>
+              <div className='lt-detail-stat-val'>{selectedCustomer?.enginNumber || 0}</div>
+            </div>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Tags</div>
+              <div className='lt-detail-stat-val'>{tags?.length || 0}</div>
+            </div>
+            <div className='lt-detail-actions'>
+              <button className='lt-detail-action-btn' onClick={addSiteClient} title="Ajouter site"><i className='pi pi-plus'></i></button>
+              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={onSave} title="Enregistrer"><i className='pi pi-check'></i></button>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Tabs ── */}
+        <div className='lt-detail-tabs'>
+          <TabView className='lt-tabview'>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Général</span>}>
+              <div className='lt-detail-form' style={{maxWidth: 700}}>
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'><i className='pi pi-building'></i>Informations Client</h4>
+                  <div className='lt-form-grid'>
+                    <div className='lt-form-field lt-form-field--full'>
+                      {imageChange ? (
+                        <div>
+                          <div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => setImageChange(!imageChange)}><i className='pi pi-times'></i></button></div>
+                          <FileUploadeComponent accept={'image/*'} onUploadFinished={onFinishedUpload} uploadExtraInfo={{src: 'customer', srcID: selectedCustomer?.id || 0, id: selectedCustomer?.imageid || 0, desc: 'profile'}} />
+                        </div>
+                      ) : (
+                        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                          <Image src={`${API_BASE_URL_IMAGE}${selectedCustomer?.image}`} alt='Image' width='56' preview imageStyle={{objectFit: 'cover', borderRadius: '10px'}} />
+                          <button className='lt-form-upload-btn' onClick={() => setImageChange(!imageChange)}><i className='pi pi-pencil'></i>Changer</button>
+                        </div>
+                      )}
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Nom' />{_codeValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                      <InputText id='code' name='code' value={selectedCustomer?.code} onChange={onInputChange} placeholder='Client' className={`lt-form-input ${inputValidity['code'] == false ? 'p-invalid' : ''}`} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Label' />{_labelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                      <InputText id='label' name='label' value={selectedCustomer?.label} onChange={onInputChange} placeholder='label' className={`lt-form-input ${inputValidity['label'] == false ? 'p-invalid' : ''}`} />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='IDE' /></label>
+                      <InputText name='NPA' value={selectedCustomer?.NPA} onChange={onInputChange} placeholder='IDE' className='lt-form-input' />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </TabPanel>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i>Adresses</span>}>
+              <div>
+                {editAddress == true ? (
+                  <AddressDetail client={true} handleSaveAddress={(e) => saveAddress(e)} />
+                ) : (
+                  <div className='flex flex-wrap w-full' style={{gap: 12}}>
+                    {customerAddress && customerAddress?.map((address) => (
+                      <AddressesComponent client={true} key={address.id} className='w-full lg:w-6 mt-2' id={address.id} type={address.type} {...address} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </TabPanel>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-sitemap'></i>Sites</span>}>
+              <SiteClientComponent />
+            </TabPanel>
+          </TabView>
+        </div>
       </div>
     </>
   )

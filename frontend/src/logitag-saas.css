@@ -2402,7 +2402,20 @@
   background: #FAFBFC !important;
   border-right: 1px solid #E8ECF0 !important;
   box-shadow: none !important;
-  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+/* Sidebar Section Groups */
+.lt-sidebar-section {
+  padding: 16px 18px 4px;
+}
+
+.lt-sidebar-section-label {
+  font-family: 'Inter', -apple-system, sans-serif;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94A3B8;
 }
 
 #kt_app_sidebar .app-sidebar-logo {

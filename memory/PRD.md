@@ -116,6 +116,15 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **Layout 65/35** : Formulaire gauche + carte GPS droite
 - [x] Sections formulaire : Identité (référence, statut, image) + Véhicule (brand, model, immatriculation, VIN, infos, famille)
 
+### Phase 17 - Sidebar Groupée + Détail Tags/Clients (Completed - 20 Avril 2026)
+- [x] **Sidebar restructurée** par groupes avec labels de section :
+  - GESTION : Engins, Tags, Calendrier, Map
+  - ORGANISATION : Places, Inventory, Utilisateurs, Facturation, Paramètres
+  - ANALYSE : Rapports, LOGS
+  - CSS : .lt-sidebar-section, .lt-sidebar-section-label (uppercase, 0.65rem, #94A3B8)
+- [x] **Page Détail Tag** : Header premium (icône violet, nom, badge actif/inactif, code, statut) + tab Général avec formulaire structuré
+- [x] **Page Détail Client** : Header premium (icône bleu, nom, code, compteurs engins/tags) + tabs Général/Adresses/Sites
+
 ## Backlog
 
 ### P2 (Moyenne priorité)

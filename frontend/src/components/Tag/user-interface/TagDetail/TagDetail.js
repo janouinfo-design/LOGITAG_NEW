@@ -190,135 +190,82 @@ const TagDetail = () => {
       <Toast ref={toast} position='top-center'>
         <div>Success message!</div>
       </Toast>
-      <div className='flex justify-content-between align-items-center'>
-        <div>
-          <ButtonComponent onClick={() => dispatch(setShow(true))}>
-            <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-            <div className='ml-2'>
-              <OlangItem olang='btn.back' />
-            </div>
-          </ButtonComponent>
-        </div>
 
-        <div className='w-2 flex align-items-center justify-content-center text-xl'>
-          <strong className='p-3'>{selectedTag?.name}</strong>
-        </div>
-      </div>
-      <div className='w-full mt-4 flex align-items-center'>
-        <TabView className='w-full'>
-          <TabPanel header={<OlangItem olang='Tag.Info' />} leftIcon='pi pi-sliders-h mr-2'>
-            <div className='flex justify-content-center'>
-              {existItem && (
-                <Message severity='error' text='The Tag is Already Exist' className='w-6' />
-              )}
+      <div className='lt-page' data-testid="tag-detail-page">
+        {/* ── Premium Header ── */}
+        <div className='lt-detail-header' data-testid="tag-detail-header">
+          <div className='lt-detail-header-left'>
+            <button className='lt-back-btn' onClick={() => dispatch(setShow(true))} data-testid="tag-back-btn">
+              <i className='pi pi-arrow-left'></i>
+            </button>
+            <div className='lt-detail-avatar-ph' style={{background: '#F3E8FF', color: '#7C3AED'}}>
+              <i className='pi pi-tag'></i>
             </div>
-            <Card
-              title={title}
-              footer={footer}
-              className='flex flex-column mt-6 p-2 w-full md:w-9 lg:w-9 xl:w-6'
-              style={{
-                boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                borderRadius: '15px',
-              }}
-            >
-              <div className=' flex flex-column'>
-                {selectedTag?.id && (
-                  <div className='my-3'>
-                    <label>
-                      <OlangItem olang='Label' />
-                      {_labelValidator?.isRequired == 1 && (
-                        <span className='h3 text-danger'>*</span>
-                      )}
-                    </label>
-                    <InputText
-                      name='label'
-                      className={`w-full ${
-                        formik.errors?.label && formik.submitCount > 0 ? 'p-invalid' : null
-                      }`}
-                      onChange={formik.handleChange}
-                      value={formik.values?.label}
-                      disabled={selectedTag?.id != 0 ? true : false}
-                    />
-                  </div>
+            <div className='lt-detail-info'>
+              <h2 className='lt-detail-name'>{selectedTag?.name || selectedTag?.label || '-'}</h2>
+              <div className='lt-detail-meta'>
+                {selectedTag?.familleTag && (
+                  <span className='lt-badge' style={{background: selectedTag.familleTagIconBgcolor || '#7C3AED', color: '#FFF', fontSize: '0.68rem'}}>{selectedTag.familleTag}</span>
                 )}
-                <div className='my-3'>
-                  <label>
-                    <OlangItem olang='Emplacément' />
-                  </label>
-                  <Dropdown
-                    id='LocationID'
-                    name='LocationID'
-                    filter
-                    value={formik.values?.LocationID}
-                    options={(worksites || []).map(o => ({label: o.name, value: o.type+':'+o.id}))}
-                    // optionLabel='name'
-                    // optionValue='id'
-                    onChange={e => {
-                      console.log('location changed', e);
-                      formik.handleChange(e)
-                    }}
-                    placeholder={'Select '}
-                    className={`w-full ${
-                      formik.errors?.status && formik.submitCount > 0 ? 'p-invalid' : null
-                    }`}
-                  />
-                </div>
-                <div className='my-3'>
-                  <label>
-                    <OlangItem olang='Status' />
-                    {_statusValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-                  </label>
-                  <Dropdown
-                    id='statusid'
-                    name='statusid'
-                    value={formik.values?.statusid}
-                    options={statusOption}
-                    optionLabel='name'
-                    optionValue='value'
-                    onChange={formik.handleChange}
-                    placeholder={'Select status'}
-                    className={`w-full ${
-                      formik.errors?.status && formik.submitCount > 0 ? 'p-invalid' : null
-                    }`}
-                  />
-                </div>
-                <div className='my-3'>
-                  <label>
-                    <OlangItem olang='Famille' />
-                    {_familleValidator?.isRequired == 1 && (
-                      <span className='h3 text-danger'>*</span>
-                    )}
-                  </label>
-                  <Dropdown
-                    id='familleId'
-                    name='familleId'
-                    options={familles}
-                    optionLabel='label'
-                    optionValue='id'
-                    onChange={formik.handleChange}
-                    value={`${formik.values?.familleId}`}
-                    placeholder={'select famille'}
-                    className={`w-full ${
-                      formik.errors?.famille && formik.submitCount > 0 ? 'p-invalid' : null
-                    }`}
-                  />
-                </div>
+                <span className={`lt-badge ${selectedTag?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`}>
+                  <span className={`lt-badge-dot ${selectedTag?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>
+                  {selectedTag?.active ? 'Actif' : 'Inactif'}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className='lt-detail-header-right'>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Code</div>
+              <div className='lt-detail-stat-val' style={{fontSize: '0.8rem', color: '#3B82F6'}}>{selectedTag?.code || '-'}</div>
+            </div>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Statut</div>
+              <div className='lt-detail-stat-val' style={{fontSize: '0.8rem'}}>{selectedTag?.statuslabel || '-'}</div>
+            </div>
+            <div className='lt-detail-actions'>
+              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={formik.handleSubmit} title="Enregistrer"><i className='pi pi-check'></i></button>
+            </div>
+          </div>
+        </div>
 
-                <div className='my-3 mt-6 flex align-items-center gap-2'>
-                  <label>
-                    <OlangItem olang='Active' />
-                  </label>
-                  <InputSwitch
-                    id='active'
-                    name='active'
-                    checked={formik.values.active}
-                    onChange={formik.handleChange}
-                  />
+        {/* ── Tabs ── */}
+        <div className='lt-detail-tabs'>
+          <TabView className='lt-tabview'>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Général</span>}>
+              <div className='lt-detail-form' style={{maxWidth: 700}}>
+                <div className='lt-form-section'>
+                  <h4 className='lt-form-section-title'><i className='pi pi-tag'></i>Informations Tag</h4>
+                  {existItem && <Message severity='error' text='The Tag is Already Exist' className='w-full' style={{marginBottom: 8}} />}
+                  <div className='lt-form-grid'>
+                    {selectedTag?.id && (
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Label' />{_labelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='label' className={`lt-form-input ${formik.errors?.label && formik.submitCount > 0 ? 'p-invalid' : ''}`} onChange={formik.handleChange} value={formik.values?.label} disabled={selectedTag?.id != 0} />
+                      </div>
+                    )}
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Emplacément' /></label>
+                      <Dropdown id='LocationID' name='LocationID' filter value={formik.values?.LocationID} options={(worksites || []).map(o => ({label: o.name, value: o.type+':'+o.id}))} onChange={formik.handleChange} placeholder='Emplacement' className='lt-form-input' />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Status' />{_statusValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                      <Dropdown id='statusid' name='statusid' value={formik.values?.statusid} options={statusOption} optionLabel='name' optionValue='value' onChange={formik.handleChange} placeholder='Statut' className='lt-form-input' />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Famille' />{_familleValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                      <Dropdown id='familleId' name='familleId' options={familles} optionLabel='label' optionValue='id' onChange={formik.handleChange} value={`${formik.values?.familleId}`} placeholder='Famille' className='lt-form-input' />
+                    </div>
+                    <div className='lt-form-field'>
+                      <label className='lt-form-label'><OlangItem olang='Active' /></label>
+                      <div style={{paddingTop: 6}}><InputSwitch id='active' name='active' checked={formik.values.active} onChange={formik.handleChange} /></div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </Card>
-          </TabPanel>
-        </TabView>
+            </TabPanel>
+          </TabView>
+        </div>
       </div>
     </>
   )
