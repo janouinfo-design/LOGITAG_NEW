@@ -71,6 +71,7 @@ import {setGeofencesSelectedSite} from '../../shared/MapComponent/slice/geofenci
 import {fetchValidator, getValidator} from '../../Inventory/slice/inventory.slice'
 import {API_BASE_URL_IMAGE} from '../../../api/config'
 import {useSelector} from 'react-redux'
+import PrimaryActionButton from '../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const ClientDetail = () => {
   const [inputs, setInputs] = useState({})
@@ -313,9 +314,9 @@ const ClientDetail = () => {
               <div className='lt-detail-stat-label'>Tags</div>
               <div className='lt-detail-stat-val'>{tags?.length || 0}</div>
             </div>
-            <div className='lt-detail-actions'>
-              <button className='lt-detail-action-btn' onClick={addSiteClient} title="Ajouter site"><i className='pi pi-plus'></i></button>
-              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={onSave} title="Enregistrer"><i className='pi pi-check'></i></button>
+            <div className='lt-detail-actions-group'>
+              <PrimaryActionButton type="more" onClick={addSiteClient} />
+              <PrimaryActionButton type="edit" onClick={onSave} />
             </div>
           </div>
         </div>

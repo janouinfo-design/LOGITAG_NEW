@@ -41,6 +41,7 @@ import moment from 'moment'
 import TeamTag from './TeamTag'
 import TagListDrop from './TagListDrop'
 import {fetchTags, fetchTagsFree} from '../../../Tag/slice/tag.slice'
+import PrimaryActionButton from '../../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const TeamDetail = () => {
   const [isValid, setIsValid] = useState(false)
@@ -210,7 +211,7 @@ const TeamDetail = () => {
         {/* ── Premium Header ── */}
         <div className='lt-detail-header'>
           <div className='lt-detail-header-left'>
-            <button className='lt-back-btn' onClick={() => dispatch(setShow(true))}><i className='pi pi-arrow-left'></i></button>
+            <button className='lt-back-btn' onClick={() => dispatch(setShow(true))}><i className='pi pi-arrow-left'></i><span style={{fontSize: '0.78rem', fontWeight: 600, color: '#475569'}}>Retour</span></button>
             <div className='lt-detail-avatar'>
               {selectedTeam?.image ? (
                 <Image src={`${API_BASE_URL_IMAGE}${selectedTeam.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
@@ -221,23 +222,18 @@ const TeamDetail = () => {
             <div className='lt-detail-info'>
               <h2 className='lt-detail-name'>{selectedTeam?.firstname} {selectedTeam?.lastname}</h2>
               <div className='lt-detail-meta'>
-                {selectedTeam?.typeName && <span className='lt-badge lt-badge-info'>{selectedTeam.typeName}</span>}
                 <span className={`lt-badge ${selectedTeam?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`}>
                   <span className={`lt-badge-dot ${selectedTeam?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>
                   {selectedTeam?.active ? 'Actif' : 'Inactif'}
                 </span>
+                {selectedTeam?.typeName && <span className='lt-badge lt-badge-info'><i className='pi pi-briefcase' style={{fontSize: '0.55rem'}}></i>{selectedTeam.typeName}</span>}
+                <span style={{color: '#94A3B8', fontSize: '0.78rem'}}>Embauche</span>
               </div>
             </div>
           </div>
-          <div className='lt-detail-header-right'>
-            <div className='lt-detail-stat'>
-              <div className='lt-detail-stat-label'>Embauche</div>
-              <div className='lt-detail-stat-val' style={{fontSize: '0.75rem'}}>{selectedTeam?.hireday || '-'}</div>
-            </div>
-            <div className='lt-detail-actions'>
-              <button className='lt-detail-action-btn' onClick={createTag} disabled={selectedTeam?.relationId != 0} title="Ajouter Tag"><i className='pi pi-plus'></i></button>
-              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={formik.handleSubmit} title="Enregistrer"><i className='pi pi-check'></i></button>
-            </div>
+          <div className='lt-detail-actions-group'>
+            <PrimaryActionButton type="more" />
+            <PrimaryActionButton type="edit" onClick={formik.handleSubmit} />
           </div>
         </div>
 
@@ -245,54 +241,76 @@ const TeamDetail = () => {
         <div className='lt-detail-tabs'>
           <TabView className='lt-tabview'>
             <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Général</span>}>
-              <div className='lt-detail-form' style={{maxWidth: 700}}>
-                <div className='lt-form-section'>
-                  <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
-                  <div className='lt-form-grid'>
-                    <div className='lt-form-field lt-form-field--full'>
-                      {imageChange ? (
-                        <div><div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => { setImageChange(!imageChange); setIsValid(false) }}><i className='pi pi-times'></i></button></div>
-                          <FileUploadeComponent accept={'image/*'} onUploadFinished={onFinishedUpload} uploadExtraInfo={{src: 'staff', srcID: selectedTeam?.id || 0, id: selectedTeam?.imageid || 0, desc: 'profile'}} /></div>
-                      ) : (
-                        <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
-                          <Image src={`${API_BASE_URL_IMAGE}${selectedTeam?.image}`} alt='Image' width='56' preview imageStyle={{objectFit: 'cover', borderRadius: '10px'}} />
-                          <button className='lt-form-upload-btn' onClick={() => setImageChange(!imageChange)}><i className='pi pi-pencil'></i>Changer</button>
+              <div className='lt-detail-grid'>
+                {/* LEFT: Form */}
+                <div className='lt-detail-form'>
+                  <div className='lt-form-section'>
+                    <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
+                    <div className='lt-form-grid'>
+                      <div className='lt-form-field lt-form-field--full'>
+                        {imageChange ? (
+                          <div><div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => { setImageChange(!imageChange); setIsValid(false) }}><i className='pi pi-times'></i></button></div>
+                            <FileUploadeComponent accept={'image/*'} onUploadFinished={onFinishedUpload} uploadExtraInfo={{src: 'staff', srcID: selectedTeam?.id || 0, id: selectedTeam?.imageid || 0, desc: 'profile'}} /></div>
+                        ) : (
+                          <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                            <Image src={`${API_BASE_URL_IMAGE}${selectedTeam?.image}`} alt='Image' width='56' preview imageStyle={{objectFit: 'cover', borderRadius: '10px'}} />
+                            <button className='lt-form-upload-btn' onClick={() => setImageChange(!imageChange)}><i className='pi pi-pencil'></i>Changer</button>
+                          </div>
+                        )}
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Nom{renderAsterisk(validators, 'firstname')}</label>
+                        <InputText name='firstname' className={`lt-form-input ${formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''}`} onChange={formik.handleChange} value={formik.values.firstname} />
+                        {formik.errors.firstname && formik.touched.firstname && <small className='p-error'>{formik.errors.firstname}</small>}
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Prénom{renderAsterisk(validators, 'lastname')}</label>
+                        <InputText name='lastname' className={`lt-form-input ${formik.errors.lastname && formik.touched.lastname ? 'p-invalid' : ''}`} onChange={formik.handleChange} value={formik.values.lastname} />
+                        {formik.errors.lastname && formik.touched.lastname && <small className='p-error'>{formik.errors.lastname}</small>}
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Fonction{renderAsterisk(validators, 'typeName')}</label>
+                        <Dropdown name='typeName' options={statusOption} optionLabel='name' optionValue='value' onChange={formik.handleChange} placeholder='Fonction' className={`lt-form-input ${formik.errors.typeName && formik.touched.typeName ? 'p-invalid' : ''}`} value={formik.values.typeName} />
+                      </div>
+                    </div>
+                  </div>
+                  <div className='lt-form-section'>
+                    <h4 className='lt-form-section-title'><i className='pi pi-calendar'></i>Dates</h4>
+                    <div className='lt-form-grid'>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Date de naissance</label>
+                        <Calendar name='birthday' showIcon className='lt-form-input' dateFormat='dd/mm/yy' onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.birthday} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Date de création</label>
+                        <Calendar name='hireday' showIcon className='lt-form-input' dateFormat='dd/mm/yy' onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.hireday} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Date départ</label>
+                        <div style={{display: 'flex', gap: 6}}>
+                          <Calendar showIcon disabled={disabled} name='exitday' dateFormat='dd/mm/yy' className='lt-form-input' style={{flex: 1}} onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.exitday} />
+                          <Button icon={`${disabled ? 'pi pi-plus' : 'pi pi-times'}`} severity={`${disabled ? 'success' : 'danger'}`} onClick={removeDateDp} style={{flexShrink: 0}} />
                         </div>
-                      )}
-                    </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Nom' />{renderAsterisk(validators, 'firstname')}</label>
-                      <InputText name='firstname' className={`lt-form-input ${formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''}`} onChange={formik.handleChange} value={formik.values.firstname} />
-                      {formik.errors.firstname && formik.touched.firstname && <small className='p-error'>{formik.errors.firstname}</small>}
-                    </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Prenom' />{renderAsterisk(validators, 'lastname')}</label>
-                      <InputText name='lastname' className={`lt-form-input ${formik.errors.lastname && formik.touched.lastname ? 'p-invalid' : ''}`} onChange={formik.handleChange} value={formik.values.lastname} />
-                      {formik.errors.lastname && formik.touched.lastname && <small className='p-error'>{formik.errors.lastname}</small>}
-                    </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Function' />{renderAsterisk(validators, 'typeName')}</label>
-                      <Dropdown name='typeName' options={statusOption} optionLabel='name' optionValue='value' onChange={formik.handleChange} placeholder='Fonction' className={`lt-form-input ${formik.errors.typeName && formik.touched.typeName ? 'p-invalid' : ''}`} value={formik.values.typeName} />
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className='lt-form-section'>
-                  <h4 className='lt-form-section-title'><i className='pi pi-calendar'></i>Dates</h4>
-                  <div className='lt-form-grid'>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Anniversaire' /></label>
-                      <Calendar name='birthday' showIcon className='lt-form-input' dateFormat='dd/mm/yy' onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.birthday} />
+
+                {/* RIGHT: Sidebar */}
+                <div className='lt-detail-side'>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Résumé</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Statut</span><span className='lt-sidebar-row-val'><span className={`lt-badge ${selectedTeam?.active ? 'lt-badge-success' : 'lt-badge-neutral'}`} style={{fontSize: '0.7rem'}}><span className={`lt-badge-dot ${selectedTeam?.active ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>{selectedTeam?.active ? 'Actif' : 'Inactif'}</span></span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Fonction</span><span className='lt-sidebar-row-val'>{selectedTeam?.typeName || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Date de naissance</span><span className='lt-sidebar-row-val'>{selectedTeam?.birthday || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Membre depuis</span><span className='lt-sidebar-row-val'>{selectedTeam?.hireday || '-'}</span></div>
                     </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Create.debut' /></label>
-                      <Calendar name='hireday' showIcon className='lt-form-input' dateFormat='dd/mm/yy' onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.hireday} />
-                    </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Date.depart' /></label>
-                      <div style={{display: 'flex', gap: 6}}>
-                        <Calendar showIcon disabled={disabled} name='exitday' dateFormat='dd/mm/yy' className='lt-form-input' style={{flex: 1}} onChange={formik.handleChange} placeholder='dd/mm/yy' value={formik.values.exitday} />
-                        <Button icon={`${disabled ? 'pi pi-plus' : 'pi pi-times'}`} severity={`${disabled ? 'success' : 'danger'}`} onClick={removeDateDp} style={{flexShrink: 0}} />
-                      </div>
+                  </div>
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Relations</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-link'><span className='lt-sidebar-link-label'>Tags assignés</span><span className='lt-sidebar-link-count'>{tagStaff?.length || 0}</span></div>
                     </div>
                   </div>
                 </div>

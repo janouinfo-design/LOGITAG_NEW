@@ -27,6 +27,7 @@ import {useSelector} from 'react-redux'
 import {fetchValidator, getValidator} from '../../../Inventory/slice/inventory.slice'
 import { getEnginesWorksite } from '../../../Engin/slice/engin.slice'
 import { fetchSitesClient, getSelectedSiteClient } from '../../../../store/slices/customer.slice'
+import PrimaryActionButton from '../../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const TagDetail = () => {
   const [isValid, setIsValid] = useState(true)
@@ -223,8 +224,8 @@ const TagDetail = () => {
               <div className='lt-detail-stat-label'>Statut</div>
               <div className='lt-detail-stat-val' style={{fontSize: '0.8rem'}}>{selectedTag?.statuslabel || '-'}</div>
             </div>
-            <div className='lt-detail-actions'>
-              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={formik.handleSubmit} title="Enregistrer"><i className='pi pi-check'></i></button>
+            <div className='lt-detail-actions-group'>
+              <PrimaryActionButton type="edit" onClick={formik.handleSubmit} />
             </div>
           </div>
         </div>

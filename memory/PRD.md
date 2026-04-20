@@ -132,6 +132,17 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 19 - PrimaryActionButton Standard (Completed - 20 Avril 2026)
+- [x] **Composant `PrimaryActionButton`** créé dans `/app/frontend/src/components/shared/PrimaryActionButton/`
+  - 7 types : edit (violet gradient), save, communicate (secondary), more (ghost), back (ghost), add (primary), delete (danger)
+  - Même couleur, taille, padding, border-radius, icône, typographie partout
+- [x] **Appliqué à toutes les pages détail** : Engins, Tags, Clients, Utilisateurs, Entreprises
+  - "Modifier" violet en haut à droite (primary action)
+  - "Communication" blanc bordé (secondary)
+  - "⋮" discret (ghost)
+- [x] **Layout 65/35 avec sidebar** sur page Utilisateurs : Résumé (statut, fonction, dates) + Relations (tags assignés)
+- [x] CSS : .lt-action-btn--primary (gradient #6366F1→#4F46E5), .lt-action-btn--secondary, .lt-action-btn--ghost, .lt-action-btn--danger
+
 ## Backlog
 
 ### P2 (Moyenne priorité)

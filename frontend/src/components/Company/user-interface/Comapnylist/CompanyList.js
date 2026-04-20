@@ -45,6 +45,7 @@ import {API_BASE_URL_IMAGE} from '../../../../api/config'
 import {Card} from 'primereact/card'
 import {Calendar} from 'primereact/calendar'
 import {InputSwitch} from 'primereact/inputswitch'
+import PrimaryActionButton from '../../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const CompanyList = () => {
   let company = useAppSelector(getSelectedCompany)
@@ -180,8 +181,8 @@ const CompanyList = () => {
               <div className='lt-detail-stat-label'>Adresses</div>
               <div className='lt-detail-stat-val'>{companyAddresses?.length || 0}</div>
             </div>
-            <div className='lt-detail-actions'>
-              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={save} title="Enregistrer"><i className='pi pi-check'></i></button>
+            <div className='lt-detail-actions-group'>
+              <PrimaryActionButton type="edit" onClick={save} />
             </div>
           </div>
         </div>

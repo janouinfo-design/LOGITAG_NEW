@@ -59,6 +59,7 @@ import {
   fetchConversationList,
   setDetailChat,
 } from '../../../_metronic/partials/layout/drawer-messenger/slice/Chat.slice'
+import PrimaryActionButton from '../../shared/PrimaryActionButton/PrimaryActionButton'
 
 const EnginDetail = () => {
   const [inputs, setInputs] = useState({})
@@ -400,10 +401,10 @@ const EnginDetail = () => {
               <div className='lt-detail-stat-label'>Tag</div>
               <div className='lt-detail-stat-val' style={{fontSize: '0.8rem', color: '#3B82F6'}}>{selectedEngin?.tagname || 'Non assigné'}</div>
             </div>
-            <div className='lt-detail-actions'>
-              <button className='lt-detail-action-btn' onClick={displayChatDetail} title="Chat"><i className='pi pi-comments'></i></button>
-              <button className='lt-detail-action-btn' onClick={create} disabled={selectedEngin?.relationId != 0} title="Ajouter Tag"><i className='pi pi-plus'></i></button>
-              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={onSave} title="Enregistrer"><i className='pi pi-check'></i></button>
+            <div className='lt-detail-actions-group'>
+              <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
+              <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
+              <PrimaryActionButton type="edit" onClick={onSave} />
             </div>
           </div>
         </div>
