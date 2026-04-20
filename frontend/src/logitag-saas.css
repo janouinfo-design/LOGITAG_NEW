@@ -3547,3 +3547,185 @@
   font-size: 0.72rem;
   font-weight: 700;
 }
+
+
+/* ═══════════════════════════════════════════════════════════════
+   PREMIUM DIALOG / EDITOR GLOBAL STYLES
+   Applies to all PrimeReact .p-dialog — unifies all editors
+   (SiteEditor, TagEditor, CustomerEditor, AddressDetail, etc.)
+   ═══════════════════════════════════════════════════════════════ */
+
+.p-dialog {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+  box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18), 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+  border: 1px solid #E2E8F0 !important;
+  background: #FFF !important;
+}
+
+.p-dialog .p-dialog-header {
+  background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%) !important;
+  border-bottom: 1px solid #F1F5F9 !important;
+  padding: 18px 24px !important;
+  border-top-left-radius: 16px !important;
+  border-top-right-radius: 16px !important;
+}
+
+.p-dialog .p-dialog-title {
+  font-family: 'Manrope', 'Inter', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 800 !important;
+  color: #0F172A !important;
+  letter-spacing: 0.01em !important;
+}
+
+.p-dialog .p-dialog-header-icon {
+  width: 32px !important;
+  height: 32px !important;
+  border-radius: 8px !important;
+  border: 1px solid #E2E8F0 !important;
+  background: #FFF !important;
+  color: #64748B !important;
+  transition: all 0.15s !important;
+}
+.p-dialog .p-dialog-header-icon:hover {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+.p-dialog .p-dialog-content {
+  padding: 22px 24px !important;
+  background: #FFF !important;
+}
+
+.p-dialog .p-dialog-footer {
+  padding: 14px 24px !important;
+  border-top: 1px solid #F1F5F9 !important;
+  background: #FAFBFC !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 10px !important;
+  border-bottom-left-radius: 16px !important;
+  border-bottom-right-radius: 16px !important;
+}
+
+/* Dialog form fields — auto-spaced */
+.p-dialog .p-dialog-content > .my-3,
+.p-dialog .p-dialog-content > div > .my-3 {
+  margin-top: 14px !important;
+  margin-bottom: 14px !important;
+}
+
+.p-dialog .p-dialog-content label {
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  display: block !important;
+  margin-bottom: 6px !important;
+  letter-spacing: 0.01em !important;
+}
+
+/* Inputs inside dialogs */
+.p-dialog .p-dialog-content .p-inputtext,
+.p-dialog .p-dialog-content .p-dropdown,
+.p-dialog .p-dialog-content .p-calendar,
+.p-dialog .p-dialog-content .p-password input {
+  border-radius: 8px !important;
+  border: 1px solid #E2E8F0 !important;
+  background: #FFF !important;
+  padding: 9px 12px !important;
+  font-size: 0.85rem !important;
+  transition: border-color 0.15s, box-shadow 0.15s !important;
+}
+.p-dialog .p-dialog-content .p-inputtext:focus,
+.p-dialog .p-dialog-content .p-dropdown:not(.p-disabled).p-focus {
+  border-color: #6366F1 !important;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+  outline: 0 !important;
+}
+.p-dialog .p-dialog-content .p-inputtext.p-invalid,
+.p-dialog .p-dialog-content .p-dropdown.p-invalid {
+  border-color: #EF4444 !important;
+}
+
+/* Footer buttons — upgrade Annuler (p-button-danger) + Enregistrer (default) */
+.p-dialog .p-dialog-footer .p-button {
+  border-radius: 10px !important;
+  font-weight: 700 !important;
+  font-size: 0.82rem !important;
+  padding: 9px 18px !important;
+  letter-spacing: 0.01em !important;
+  transition: all 0.18s ease !important;
+  border: 1px solid transparent !important;
+  box-shadow: none !important;
+}
+
+/* Cancel button (p-button-danger) → outlined ghost */
+.p-dialog .p-dialog-footer .p-button.p-button-danger {
+  background: #FFF !important;
+  color: #475569 !important;
+  border-color: #E2E8F0 !important;
+}
+.p-dialog .p-dialog-footer .p-button.p-button-danger:hover {
+  background: #F8FAFC !important;
+  color: #0F172A !important;
+  border-color: #CBD5E1 !important;
+}
+
+/* Save button (default) → violet gradient */
+.p-dialog .p-dialog-footer .p-button:not(.p-button-danger):not(.p-button-secondary):not(.p-button-text) {
+  background: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%) !important;
+  color: #FFF !important;
+  border-color: transparent !important;
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3) !important;
+}
+.p-dialog .p-dialog-footer .p-button:not(.p-button-danger):not(.p-button-secondary):not(.p-button-text):hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.4) !important;
+}
+
+/* Required indicator (h3.text-danger "*") inside dialogs → cleaner red asterisk */
+.p-dialog .p-dialog-content .h3.text-danger,
+.p-dialog .p-dialog-content .text-danger {
+  color: #EF4444 !important;
+  font-weight: 700 !important;
+  font-size: inherit !important;
+  margin-left: 2px !important;
+}
+
+/* Helper small errors */
+.p-dialog .p-dialog-content .p-error,
+.p-dialog .p-dialog-content small.p-error {
+  color: #EF4444 !important;
+  font-size: 0.72rem !important;
+  font-weight: 600 !important;
+  display: block !important;
+  margin-top: 4px !important;
+}
+
+/* Fix generic "w-full" inputs inside dialogs look */
+.p-dialog .p-dialog-content .w-full.p-inputtext,
+.p-dialog .p-dialog-content input.w-full {
+  width: 100% !important;
+}
+
+/* Big title text inside dialog (e.g., selectedClient code) → softer */
+.p-dialog .p-dialog-content .text-2xl {
+  font-size: 0.95rem !important;
+  color: #6366F1 !important;
+  background: #EEF2FF !important;
+  padding: 8px 14px !important;
+  border-radius: 8px !important;
+  display: inline-block !important;
+  margin: 0 auto 14px auto !important;
+  font-weight: 700 !important;
+}
+
+/* Message severity error inside dialog */
+.p-dialog .p-dialog-content .p-message.p-message-error {
+  border-radius: 10px !important;
+  border: 1px solid #FECACA !important;
+  background: #FEF2F2 !important;
+  margin-bottom: 14px !important;
+}

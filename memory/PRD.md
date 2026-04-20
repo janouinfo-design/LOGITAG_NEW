@@ -132,6 +132,17 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 22 - Uniformisation Éditeurs / Dialogues Premium (Completed - 20 Avril 2026)
+- [x] **Refonte CSS globale des dialogues PrimeReact** (`.p-dialog`) — impact automatique sur les 30+ editors existants (TagEditor, SiteEditor, TeamEditor, CustomerEditor, AddressEditor, DepotEditor, EnginEditor, AlertEditor, StatusEditor, etc.) :
+  - Rayon 16px, shadow premium 24px+8px
+  - Header : gradient subtil, titre uppercase Manrope 800, bouton close dans carré outlined
+  - Body : padding 22/24px, labels uniformisés (0.78rem / 600 / #334155), inputs rayon 8px + focus violet (#6366F1 + ring 3px)
+  - Footer : séparateur, fond #FAFBFC, boutons alignés droite
+  - Bouton "Annuler" (p-button-danger) → ghost outlined blanc
+  - Bouton "Enregistrer" (default) → gradient violet #6366F1→#4F46E5 avec shadow et hover translateY
+  - Messages d'erreur, asterisques required, badges clients restylés
+- [x] **Validation visuelle** : dialog "Create team" (TeamEditor) confirmé en rendu premium complet avec tous les éléments stylés.
+
 ### Phase 21 - Refonte SaaS Premium Complète & Actions Rapides (Completed - 20 Avril 2026)
 - [x] **4 pages détails refactorisées** au format SaaS Premium (header + 65/35 grid + sidebar + PrimaryActionButton) :
   - `DepotDetail.js` + `DepotDetailWithLinks.js` (Dépôts, avec onglets Info/Adresse/Géofencing unifiés)
@@ -167,7 +178,7 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 ## Backlog
 
 ### P1 (Haute priorité)
-- [ ] Appliquer le même traitement SaaS Premium sur les autres pages secondaires (si détectées) : pages d'édition, pop-ups d'adresse, etc.
+- [ ] `AddressDetail.jsx` (3 variantes : Company / Depot / Site) — c'est une page plein-écran (pas un dialogue), donc non-couverte par la refonte globale `.p-dialog`. Refactor manuel nécessaire si souhaité (layout row/col-lg legacy + MapSearchComponent).
 
 ### P2 (Moyenne priorité)
 - [ ] Export PDF des rapports de présence B2B
