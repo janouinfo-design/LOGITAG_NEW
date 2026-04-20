@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 30 - Refonte Pages Config Restantes (StatutList + EnginInactive) (Completed - 20 Avril 2026)
+- [x] **StatutList.js** (module Statut séparé) refait avec le même pattern que Familles/Status : header + breadcrumb + bouton "+ Nouveau statut" violet gradient, tabs par objet, toolbar Filtres/Recherche/Cog, table 7 colonnes (Actions, Couleur, Icône, Nom, Type, Statut, chevron), paginator local.
+- [x] **EnginInactive.jsx** (`Analyse > Objets inactifs`) refait avec adaptation contextuelle :
+  - Header "Objets inactifs" + breadcrumb + **badge orange "X objets archivés"** (alert count)
+  - Tabs dynamiques par `tableName` (Tous, Engin, Tag, Site, Client, Objet…) — chaque type avec son icône et couleur distinctive (Engin bleu, Tag violet, Client vert, Site jaune, etc.)
+  - Actions kebab adaptées : **Réactiver** (vert pi-replay) + **Supprimer** (rouge)
+  - Colonnes : Actions, Image (placeholder icône colorée si image absente), Nom, Type (pill coloré), ID (#monospace), Statut (pill Inactif)
+  - Empty state positif "Aucun objet inactif — tout est à jour !" si rien
+- [x] Screenshot : 122 objets archivés visibles, 9 lignes par page, tabs dynamiques colorés ✅
+
 ### Phase 29 - Refonte Page Statuts (Même design que Familles) (Completed - 20 Avril 2026)
 - [x] **StatusList.js entièrement refait** avec exactement le même design pattern que Familles :
   - Header "Statuts" + breadcrumb "Configuration > Statuts" + bouton "+ Nouveau statut" violet gradient
