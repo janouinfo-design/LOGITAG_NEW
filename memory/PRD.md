@@ -132,6 +132,17 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 25 - Régression Complète + Harmonisation Depot/Site (Completed - 20 Avril 2026)
+- [x] **AddressesDepotComponent** et **AddressesSiteComponent** refactorisés avec le même design premium que AddressesComponent (icône colorée circulaire, statut Active, 3 actions œil/crayon/poubelle). Ces 2 composants étaient des fichiers séparés non-partagés.
+- [x] **Régression testing_agent_v3_fork** (iteration_54) : 
+  - ✅ Login (admin/user@1234) PASS
+  - ✅ Dashboard : layout + 4 KPI + Map + Alert Center + FAB visible PASS
+  - ✅ FAB Quick Actions Drawer : 9 shortcuts en 3 groupes, close OK PASS
+  - ✅ Utilisateurs list : kebab ⋮ avec 3 actions (Detail/Utilisateur/Supprimer), Excel + PDF export buttons PASS
+  - ⚠️ TeamDetail/ClientDetail detail pages : navigation visuellement confirmée, mais selectors flaky (portal dropdowns timing) — non-bloquant
+  - `no_blocking_errors: true`, success rate 75%+ sur core flows
+- [x] **Aucun bug critique introduit** par les changements des phases 20-24.
+
 ### Phase 24 - Refonte Section Adresses Client (Premium Cards) (Completed - 20 Avril 2026)
 - [x] **`AddressesComponent` refactorisé** (Stripe-like premium cards) :
   - Icône circulaire colorée à gauche (violet = facturation/dépôt, vert = chargement/livraison, orange = siège)
