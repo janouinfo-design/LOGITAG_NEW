@@ -1,6 +1,4 @@
-import {FC, useEffect, useState} from 'react'
-
-import {SplitButton} from 'primereact/splitbutton'
+import {useEffect, useState} from 'react'
 
 import {Chip} from 'primereact/chip'
 import {useNavigate} from 'react-router-dom'
@@ -53,22 +51,45 @@ export const CustomerList = () => {
     },
   ]
 
-  const imageTemplate = (rowData) => (
-    <img
-      src={`${API_BASE_URL_IMAGE}${rowData?.image}`}
-      alt='EngineImage'
-      width='60'
-      height='60'
-      className='image-preview rounded'
-      preview
-    />
-  )
+  const imageTemplate = (rowData) => {
+    const hasImage = rowData?.image
+    return (
+      <div className="lt-user-cell">
+        {hasImage ? (
+          <img
+            src={`${API_BASE_URL_IMAGE}${rowData.image}`}
+            alt={rowData?.label || ''}
+            className="lt-user-avatar"
+            style={{objectFit: 'cover', border: '1.5px solid var(--lt-border)'}}
+            onError={(e) => { e.target.style.display = 'none' }}
+          />
+        ) : (
+          <div className="lt-user-avatar" style={{background: '#EFF6FF', color: '#2563EB', border: '1.5px solid var(--lt-border)'}}>
+            <i className="pi pi-building" style={{fontSize: '0.85rem'}}></i>
+          </div>
+        )}
+        <div className="lt-user-info">
+          <span className="lt-user-name">{rowData?.label || '-'}</span>
+          <span className="lt-user-login">{rowData?.code || '-'}</span>
+        </div>
+      </div>
+    )
+  }
+
+  const enginCountTemplate = (rowData) => {
+    const count = rowData?.enginNumber || 0
+    return (
+      <span className="lt-badge lt-badge-info" data-testid="customer-engin-count">
+        <i className="pi pi-box" style={{fontSize: '0.65rem'}}></i>
+        {count} engins
+      </span>
+    )
+  }
 
   const columns = [
-    {field: null, header: 'Image', olang: 'Image', body: imageTemplate},
-    {field: 'label', header: 'Nom client', olang: 'Nom.client', filter: true},
-    {field: 'code', header: 'Code client', olang: 'Code.client', filter: true},
-    {field: 'enginNumber', header: "Nombre d'engin", olang: 'Nombre.engin', filter: true},
+    {field: 'label', header: 'Client', body: imageTemplate, filter: true},
+    {field: 'code', header: 'Code', filter: true},
+    {field: 'enginNumber', header: "Engins", body: enginCountTemplate, filter: true},
   ]
 
   const exportFields = [
@@ -101,23 +122,39 @@ export const CustomerList = () => {
   }
 
   return (
-    <>
-      <div className='py-3 flex flex-row align-items-center'>
-        <h1 className='text-700'>
-          <OlangItem olang={'customer.list'} />
-        </h1>
+    <div className='lt-page' data-testid="customer-list-page">
+      <div className='lt-page-header'>
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #6366F1, #4F46E5)'}}>
+            <i className='pi pi-building'></i>
+          </div>
+          <div>
+            <h1 className='lt-page-title'>Clients</h1>
+            <p className='lt-page-subtitle'>Gestion de votre portefeuille clients</p>
+          </div>
+        </div>
+        <div className='lt-page-header-right'>
+          {list && list.length > 0 && (
+            <div className='lt-count-badge' data-testid="customer-total-count">
+              <i className='pi pi-building' style={{fontSize: '0.75rem'}}></i>
+              <strong>{list.length}</strong> clients
+            </div>
+          )}
+        </div>
       </div>
-      <DatatableComponent
-        tableId='customer-table'
-        data={list}
-        columns={columns}
-        onNew={create}
-        isLoading={isLoadingButton}
-        exportFields={exportFields}
-        rowGroupTemplates={rowGroupTemplates}
-        rowActions={actions}
-      />
+      <div className='lt-table-wrap'>
+        <DatatableComponent
+          tableId='customer-table'
+          data={list}
+          columns={columns}
+          onNew={create}
+          isLoading={isLoadingButton}
+          exportFields={exportFields}
+          rowGroupTemplates={rowGroupTemplates}
+          rowActions={actions}
+        />
+      </div>
       <CustomerEditor />
-    </>
+    </div>
   )
 }

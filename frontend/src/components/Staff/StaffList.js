@@ -394,10 +394,28 @@ const StaffList = () => {
   ]
 
   return (
-    <>
-      <h3 className='bg-primary p-2 card text-center'>Equipes</h3>
-      <DatatableComponent columns={columns} data={_data} exportFields={exportFields} />
-    </>
+    <div className='lt-page' data-testid="staff-list-page">
+      <div className='lt-page-header'>
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)'}}>
+            <i className='pi pi-users'></i>
+          </div>
+          <div>
+            <h1 className='lt-page-title'>Equipes</h1>
+            <p className='lt-page-subtitle'>Gestion du personnel et des effectifs</p>
+          </div>
+        </div>
+        <div className='lt-page-header-right'>
+          <div className='lt-count-badge'>
+            <i className='pi pi-users' style={{fontSize: '0.75rem'}}></i>
+            <strong>{_data.length}</strong> membres
+          </div>
+        </div>
+      </div>
+      <div className='lt-table-wrap'>
+        <DatatableComponent columns={columns} data={_data} exportFields={exportFields} rowActions={actions} />
+      </div>
+    </div>
   )
 }
 

@@ -91,6 +91,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] Background #F1F5F9, cartes blanches border-radius 14px, max-width 1440px
 - [x] **Tests** : Navigation vérifiée (Dashboard, Engins, Tags)
 
+### Phase 14 - Refonte UI SaaS Globale (Completed - 20 Avril 2026)
+- [x] **Clients** : Header SaaS (icône indigo, compteur), avatar+nom+code en colonnes, badges "engins"
+- [x] **Staff/Equipes** : Wrapper lt-page + header + lt-table-wrap
+- [x] **WorkSite/Dépôts** : Wrapper lt-page + header + lt-table-wrap
+- [x] **Sites/Places, Utilisateurs, Teams, Inventory** : Déjà au design SaaS, vérifiés
+- [x] **Espaces resserrés** : Padding pages 10px/14px, header margin 12px, container max-width none
+- [x] **Vignettes 5 colonnes** : Engins + Tags compacts (image 48px, badges 0.62rem)
+- [x] Boutons d'action inline (oeil/chat/poubelle/crayon) sur toutes les entités
+- [x] Modale de consultation rapide (3 onglets) sur toutes les tables
+
 ## Backlog
 
 ### P2 (Moyenne priorité)

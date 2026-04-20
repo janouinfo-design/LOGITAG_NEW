@@ -55,10 +55,22 @@ const WorkSiteList = () => {
   ]
 
   return (
-    <>
-      <h3 className='bg-primary p-2 card text-center'>Sites</h3>
-      <DatatableComponent columns={cols} data={[]} exportFields={exportFields} />
-    </>
+    <div className='lt-page' data-testid="worksite-list-page">
+      <div className='lt-page-header'>
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #F59E0B, #D97706)'}}>
+            <i className='pi pi-map-marker'></i>
+          </div>
+          <div>
+            <h1 className='lt-page-title'>Dépôts</h1>
+            <p className='lt-page-subtitle'>Gestion des sites et dépôts</p>
+          </div>
+        </div>
+      </div>
+      <div className='lt-table-wrap'>
+        <DatatableComponent columns={cols} data={[]} exportFields={exportFields} rowActions={actions} />
+      </div>
+    </div>
   )
 }
 
