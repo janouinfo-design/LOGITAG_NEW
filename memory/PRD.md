@@ -103,12 +103,18 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 
 ### Phase 15 - Menu ⋮ + Vignettes Cliquables (Completed - 20 Avril 2026)
 - [x] **Menu ⋮ (three dots)** remplace les 4 boutons d'action inline dans les tableaux
-  - Dropdown animé avec Consulter / Detail / Chat / Supprimer
-  - CSS : .lt-dots-btn, .lt-dots-menu, .lt-dots-item avec animation ltMenuIn
+  - Dropdown portal (React createPortal) avec Consulter / Detail / Chat / Supprimer
+  - CSS : .lt-dots-btn, .lt-dots-menu (position: fixed via portal au body)
   - Appliqué globalement via DataTableComponent.jsx
-- [x] **Vignettes cliquables** : clic sur une carte ouvre la page détail (dispatch setSelectedEngine + setDetailChat)
-- [x] **Menu ⋮ sur vignettes** : apparaît au hover (opacity 0 → 1) avec Détail + Localiser
-- [x] Tests visuels : Vue grille + vue tableau validés
+- [x] **Vignettes cliquables** : clic sur une carte ouvre la page détail
+- [x] **Menu ⋮ sur vignettes** : apparaît au hover avec Détail + Localiser
+- [x] Tests visuels : Menu dropdown + navigation détail validés
+
+### Phase 16 - Page Détail Engin Premium (Completed - 20 Avril 2026)
+- [x] **Header résumé** : flèche retour, avatar, nom, badges état/statut/famille, batterie, position, tag, boutons action
+- [x] **Formulaire tabs** : Général (Identité + Véhicule en 2 colonnes) / Relations-Tags / Historique
+- [x] **Layout 65/35** : Formulaire gauche + carte GPS droite
+- [x] Sections formulaire : Identité (référence, statut, image) + Véhicule (brand, model, immatriculation, VIN, infos, famille)
 
 ## Backlog
 

@@ -1,4 +1,5 @@
 import {useMemo, useState, useCallback} from 'react'
+import {createPortal} from 'react-dom'
 import {DataTable} from 'primereact/datatable'
 import {OverlayPanel} from 'primereact/overlaypanel'
 import {InputSwitch} from 'primereact/inputswitch'
@@ -491,6 +492,7 @@ export const DatatableComponent = ({
   }
 
   const [menuOpen, setMenuOpen] = useState(null)
+  const [menuPos, setMenuPos] = useState({top: 0, left: 0})
 
   const actionTemplate = (rowData) => {
     if (!Array.isArray(actions)) return
@@ -512,19 +514,23 @@ export const DatatableComponent = ({
     const rowId = rowData?.id || rowData?.code || Math.random()
     const isOpen = menuOpen === rowId
 
+    const handleOpen = (e) => {
+      e.stopPropagation()
+      if (isOpen) { setMenuOpen(null); return }
+      const rect = e.currentTarget.getBoundingClientRect()
+      setMenuPos({top: rect.bottom + 4, left: rect.right - 170})
+      setMenuOpen(rowId)
+    }
+
     return (
-      <div className="lt-row-actions" data-testid="row-actions" style={{position: 'relative'}}>
-        <button
-          className="lt-dots-btn"
-          onClick={(e) => { e.stopPropagation(); setMenuOpen(isOpen ? null : rowId); }}
-          data-testid="row-action-menu"
-        >
+      <div className="lt-row-actions" data-testid="row-actions">
+        <button className="lt-dots-btn" onClick={handleOpen} data-testid="row-action-menu">
           <i className="pi pi-ellipsis-v"></i>
         </button>
-        {isOpen && (
+        {isOpen && createPortal(
           <>
             <div className="lt-dots-overlay" onClick={() => setMenuOpen(null)} />
-            <div className="lt-dots-menu" data-testid="row-action-dropdown">
+            <div className="lt-dots-menu" style={{position: 'fixed', top: menuPos.top, left: menuPos.left}} data-testid="row-action-dropdown">
               <button className="lt-dots-item" onClick={(e) => { e.stopPropagation(); setMenuOpen(null); setModalData(rowData); setModalTab(0); }} data-testid="row-action-consulter">
                 <i className="pi pi-file-edit" style={{color: '#F59E0B'}}></i>Consulter
               </button>
@@ -539,7 +545,8 @@ export const DatatableComponent = ({
                 )
               })}
             </div>
-          </>
+          </>,
+          document.body
         )}
       </div>
     )

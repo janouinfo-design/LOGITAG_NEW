@@ -352,286 +352,158 @@ const EnginDetail = () => {
         engin={true}
         onSubmitHandler={(e) => onSaveTag(e)}
       />
-      <div className='mt-3 flex align-items-center justify-content-between'>
-        <div className='flex'>
-          <div>
-            <ButtonComponent onClick={() => dispatch(setShow(true))}>
-              <i class='fa-solid fa-share fa-flip-horizontal text-white'></i>
-              <div className='ml-2 text-base font-semibold'>
-                <OlangItem olang='btn.back' />
-              </div>
-            </ButtonComponent>
-          </div>
-          <div>
-            <ButtonComponent
-              onClick={create}
-              className='ml-2 border-1'
-              disabled={selectedEngin?.relationId != 0}
-            >
-              <i class='pi pi-plus text-white'></i>
-              <div className='ml-2 text-white font-bold text-base'>
-                <OlangItem olang='Add.Tag' />
-              </div>
-            </ButtonComponent>
-          </div>
-          <div>
-            <ButtonComponent onClick={displayChatDetail} className='ml-2 border-1 bg-green-500'>
-              <i class='pi pi-comments text-white'></i>
-              <div className='ml-2 text-white font-bold text-base'>
-                <OlangItem olang='comunication' />
-              </div>
-            </ButtonComponent>
-          </div>
-        </div>
-        <div className=' w-2 flex align-items-center justify-content-center text-xl'>
-          <strong className='p-3'>{selectedEngin?.reference}</strong>
-        </div>
-      </div>
-      <div className='w-full mt-2 flex align-items-center flex-column'>
-        <TabView className='w-full'>
-          <TabPanel header={<OlangItem olang='Info.Engin' />} leftIcon='pi pi-wrench mr-2'>
-            <div className='row'>
-              <div className='col-lg-6 col-md-12 col-sm-12 col-xs-12'>
-                <Card
-                  className='w-full p-2 h-full m-2'
-                  title={title}
-                  footer={footer}
-                  style={{
-                    boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                    borderRadius: '15px',
-                  }}
-                >
-                  <div className='flex flex-column justify-content-center'>
-                    {imageChange ? (
-                      <div>
-                        <i
-                          className='pi pi-times cursor-pointer'
-                          style={{marginLeft: '96%'}}
-                          onClick={() => setImageChange(!imageChange)}
-                        ></i>
-                        <FileUploadeComponent
-                          accept={'image/*'}
-                          onUploadFinished={onFinishedUpload}
-                          uploadExtraInfo={{
-                            src: 'engin',
-                            srcID: selectedEngin?.id || 0,
-                            id: selectedEngin?.imageid || 0,
-                            desc: 'profile',
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <div className='w-5'>
-                        <div>
-                          <Button
-                            icon='pi pi-pencil'
-                            className='ml-8 h-2rem w-2rem '
-                            rounded
-                            severity='secondary'
-                            aria-label='User'
-                            onClick={() => setImageChange(!imageChange)}
-                          />
-                        </div>
-                        <Image
-                          src={`${API_BASE_URL_IMAGE}${selectedEngin?.image}`}
-                          alt='Image'
-                          width='80'
-                          preview
-                          imageStyle={{objectFit: 'cover', borderRadius: '10px'}}
-                        />
-                      </div>
-                    )}
-                    <div className='my-4 mt-5'>
-                      <label htmlFor='reference'>
-                        <OlangItem olang='Reference' />
-                        {_referenceValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        name='reference'
-                        id='reference'
-                        value={selectedEngin?.reference}
-                        onChange={onInputChange}
-                        className={`w-full font-semibold text-lg ${
-                          alreadyExist ? 'p-invalid' : null
-                        } ${inputValidity['reference'] === false ? 'p-invalid' : ''}
-                        }`}
-                      />
-                      {_referenceValidator?.isRequired == 1 && (
-                        <small className='p-error'>{_referenceValidator?.messageError}</small>
-                      )}
-                    </div>
-                    <div className='my-4 mt-5'>
-                      <Dropdown
-                        className='w-full'
-                        placeholder='Select Status'
-                        name='sysStatus'
-                        optionLabel='label'
-                        optionValue='status'
-                        value={+selectedEngin?.sysStatus}
-                        options={statusList}
-                        onChange={onInputChange}
-                      />
-                    </div>
-                    <div className='my-4 mt-5'>
-                      <label>
-                        <OlangItem olang='Brand' />
-                        {_brandValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        name='brand'
-                        id='brand'
-                        value={selectedEngin?.brand}
-                        onChange={onInputChange}
-                        className={`w-full font-semibold text-lg ${
-                          inputValidity['brand'] === false ? 'p-invalid' : ''
-                        }`}
-                      />
-                    </div>
-                    <div className='my-4'>
-                      <label>
-                        <OlangItem olang='Model' />
-                        {_modelValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        id='model'
-                        value={selectedEngin?.model}
-                        onChange={onInputChange}
-                        name='model'
-                        className={`w-full font-semibold text-lg ${
-                          inputValidity['model'] === false ? 'p-invalid' : ''
-                        }`}
-                      />
-                    </div>
 
-                    <div className='my-4'>
-                      <label htmlFor='immatriculation'>
-                        <OlangItem olang='Immatriculation' />
-                        {_immatriculationValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        id='immatriculation'
-                        value={selectedEngin?.immatriculation}
-                        onChange={onInputChange}
-                        name='immatriculation'
-                        className={`w-full font-semibold text-lg ${
-                          inputValidity['immatriculation'] === false ? 'p-invalid' : ''
-                        }`}
-                      />
-                    </div>
-                    <div className='my-4'>
-                      <label htmlFor='vin'>
-                        <OlangItem olang='Engine.Vin' />
-                        {_vinValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        id='vin'
-                        value={selectedEngin?.vin}
-                        onChange={onInputChange}
-                        name='vin'
-                        className={`w-full font-semibold text-lg ${
-                          inputValidity['vin'] === false ? 'p-invalid' : ''
-                        }`}
-                      />
-                    </div>
-                    <div className='my-4'>
-                      <label htmlFor='infosAdditionnelles'>
-                        <OlangItem olang='Informations.additionnelles' />
-                        {_infosAdditionnellesValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <InputText
-                        id='infosAdditionnelles'
-                        value={selectedEngin?.infosAdditionnelles}
-                        onChange={onInputChange}
-                        name='infosAdditionnelles'
-                        className={`w-full font-semibold text-lg ${
-                          inputValidity['infosAdditionnelles'] === false ? 'p-invalid' : ''
-                        }`}
-                      />
-                    </div>
-                    <div className='my-4'>
-                      <label htmlFor='famille'>
-                        <OlangItem olang='famille.list' />
-                        {_familleValidator?.isRequired == 1 && (
-                          <span className='h3 text-danger'>*</span>
-                        )}
-                      </label>
-                      <Dropdown
-                        id='familleId'
-                        name='familleId'
-                        options={familles}
-                        onChange={onInputChange}
-                        placeholder='select famille'
-                        value={selectedEngin?.familleId}
-                        className={`w-full  ${
-                          inputValidity['famille'] === false ? 'p-invalid' : ''
-                        }`}
-                        optionLabel='label'
-                        optionValue='id'
-                      />
-                    </div>
-                  </div>
-                </Card>
-              </div>
-              <div className='col-lg-6 col-md-12 col-sm-12 col-xs-12'>
-                {selectedEngin?.last_lat != 0 && selectedEngin?.last_lng != 0 && (
-                  <Card
-                    // header={HeaderMap}
-                    className='w-full p-2 h-full m-2'
-                    style={{
-                      boxShadow: 'rgba(0, 0, 0, 0.24) 0px 3px 8px',
-                      borderRadius: '15px',
-                    }}
-                  >
-                    <MapComponent
-                      position={{
-                        last_lat: selectedEngin?.last_lat,
-                        last_lng: selectedEngin?.last_lng,
-                      }}
-                      icon={customIcon}
-                      popupTitle={
-                        selectedEngin?.labeltag === null ||
-                        selectedEngin?.labeltag === '' ||
-                        selectedEngin?.labeltag == undefined
-                          ? selectedEngin?.tagname
-                          : selectedEngin?.labeltag
-                      }
-                      locationHistory={enginesHistory}
-                    />
-                  </Card>
+      <div className='lt-page' data-testid="engin-detail-page">
+        {/* ── Premium Header Summary ── */}
+        <div className='lt-detail-header' data-testid="engin-detail-header">
+          <div className='lt-detail-header-left'>
+            <button className='lt-back-btn' onClick={() => dispatch(setShow(true))} data-testid="engin-back-btn">
+              <i className='pi pi-arrow-left'></i>
+            </button>
+            <div className='lt-detail-avatar'>
+              {selectedEngin?.image ? (
+                <Image src={`${API_BASE_URL_IMAGE}${selectedEngin.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
+              ) : (
+                <div className='lt-detail-avatar-ph'><i className='pi pi-box'></i></div>
+              )}
+            </div>
+            <div className='lt-detail-info'>
+              <h2 className='lt-detail-name'>{selectedEngin?.reference || '-'}</h2>
+              <div className='lt-detail-meta'>
+                {selectedEngin?.etatenginname && (
+                  <span className='lt-badge' style={{background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : selectedEngin.etatenginname === 'reception' ? '#F0FDF4' : '#FFFBEB', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : selectedEngin.etatenginname === 'reception' ? '#16A34A' : '#D97706'}}>
+                    <span className='lt-badge-dot' style={{background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : selectedEngin.etatenginname === 'reception' ? '#16A34A' : '#D97706'}}></span>
+                    {selectedEngin.etatenginname === 'exit' ? 'Sortie' : selectedEngin.etatenginname === 'reception' ? 'Entrée' : selectedEngin.etatenginname}
+                  </span>
+                )}
+                {selectedEngin?.statuslabel && (
+                  <span className='lt-badge lt-badge-info'><i className='pi pi-circle-fill' style={{fontSize: '0.4rem'}}></i>{selectedEngin.statuslabel}</span>
+                )}
+                {selectedEngin?.famille && (
+                  <span className='lt-badge' style={{background: selectedEngin.familleBgcolor || '#64748B', color: '#FFF', fontSize: '0.68rem'}}>{selectedEngin.famille}</span>
                 )}
               </div>
             </div>
-          </TabPanel>
+          </div>
+          <div className='lt-detail-header-right'>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Batterie</div>
+              <div className='lt-detail-stat-val' style={{color: (parseInt(selectedEngin?.batteries) || 0) >= 50 ? '#22C55E' : (parseInt(selectedEngin?.batteries) || 0) >= 20 ? '#F59E0B' : '#EF4444'}}>
+                {selectedEngin?.batteries != null ? `${selectedEngin.batteries}%` : 'N/A'}
+              </div>
+            </div>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Position</div>
+              <div className='lt-detail-stat-val' style={{fontSize: '0.75rem', color: '#475569'}}>{selectedEngin?.enginAddress || selectedEngin?.LocationObjectname || '-'}</div>
+            </div>
+            <div className='lt-detail-stat'>
+              <div className='lt-detail-stat-label'>Tag</div>
+              <div className='lt-detail-stat-val' style={{fontSize: '0.8rem', color: '#3B82F6'}}>{selectedEngin?.tagname || 'Non assigné'}</div>
+            </div>
+            <div className='lt-detail-actions'>
+              <button className='lt-detail-action-btn' onClick={displayChatDetail} title="Chat"><i className='pi pi-comments'></i></button>
+              <button className='lt-detail-action-btn' onClick={create} disabled={selectedEngin?.relationId != 0} title="Ajouter Tag"><i className='pi pi-plus'></i></button>
+              <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={onSave} title="Enregistrer"><i className='pi pi-check'></i></button>
+            </div>
+          </div>
+        </div>
 
-          <TabPanel header={<OlangItem olang='Engin.Tags' />}>
-            {selectedEngin?.relationId != 0 ? (
-              <EnginTagged
-                tableId={`tag-engin-${selectedEngin?.id}`}
-                data={enginTags}
-                actions={actions}
-              />
-            ) : (
-              <p className='text-2xl text-center'>
-                <OlangItem olang="The.Engin.don't.have.a.Tag" />
-              </p>
-            )}
-          </TabPanel>
-          <TabPanel header={<OlangItem olang='Engin.Timeline' />}>
-            <CalendarViewEngin />
-          </TabPanel>
-        </TabView>
+        {/* ── Tabs ── */}
+        <div className='lt-detail-tabs'>
+          <TabView className='lt-tabview'>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Général</span>}>
+              <div className='lt-detail-grid'>
+                {/* LEFT: Form */}
+                <div className='lt-detail-form'>
+                  <div className='lt-form-section'>
+                    <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
+                    <div className='lt-form-grid'>
+                      {/* Image upload */}
+                      <div className='lt-form-field lt-form-field--full'>
+                        {imageChange ? (
+                          <div>
+                            <div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => setImageChange(!imageChange)}><i className='pi pi-times'></i></button></div>
+                            <FileUploadeComponent accept={'image/*'} onUploadFinished={onFinishedUpload} uploadExtraInfo={{src: 'engin', srcID: selectedEngin?.id || 0, id: selectedEngin?.imageid || 0, desc: 'profile'}} />
+                          </div>
+                        ) : (
+                          <div style={{display: 'flex', alignItems: 'center', gap: 10}}>
+                            <Image src={`${API_BASE_URL_IMAGE}${selectedEngin?.image}`} alt='Image' width='56' preview imageStyle={{objectFit: 'cover', borderRadius: '10px'}} />
+                            <button className='lt-form-upload-btn' onClick={() => setImageChange(!imageChange)}><i className='pi pi-pencil'></i>Changer</button>
+                          </div>
+                        )}
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Reference' />{_referenceValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='reference' value={selectedEngin?.reference} onChange={onInputChange} className={`lt-form-input ${alreadyExist || inputValidity['reference'] === false ? 'p-invalid' : ''}`} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'>Statut</label>
+                        <Dropdown className='lt-form-input' placeholder='Select Status' name='sysStatus' optionLabel='label' optionValue='status' value={+selectedEngin?.sysStatus} options={statusList} onChange={onInputChange} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className='lt-form-section'>
+                    <h4 className='lt-form-section-title'><i className='pi pi-car'></i>Véhicule</h4>
+                    <div className='lt-form-grid'>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Brand' />{_brandValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='brand' value={selectedEngin?.brand} onChange={onInputChange} className={`lt-form-input ${inputValidity['brand'] === false ? 'p-invalid' : ''}`} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Model' />{_modelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='model' value={selectedEngin?.model} onChange={onInputChange} className={`lt-form-input ${inputValidity['model'] === false ? 'p-invalid' : ''}`} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Immatriculation' />{_immatriculationValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='immatriculation' value={selectedEngin?.immatriculation} onChange={onInputChange} className={`lt-form-input ${inputValidity['immatriculation'] === false ? 'p-invalid' : ''}`} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Engine.Vin' />{_vinValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <InputText name='vin' value={selectedEngin?.vin} onChange={onInputChange} className={`lt-form-input ${inputValidity['vin'] === false ? 'p-invalid' : ''}`} />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='Informations.additionnelles' /></label>
+                        <InputText name='infosAdditionnelles' value={selectedEngin?.infosAdditionnelles} onChange={onInputChange} className='lt-form-input' />
+                      </div>
+                      <div className='lt-form-field'>
+                        <label className='lt-form-label'><OlangItem olang='famille.list' /></label>
+                        <Dropdown name='familleId' options={familles} onChange={onInputChange} placeholder='Famille' value={selectedEngin?.familleId} className='lt-form-input' optionLabel='label' optionValue='id' />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* RIGHT: Map */}
+                <div className='lt-detail-side'>
+                  {selectedEngin?.last_lat != 0 && selectedEngin?.last_lng != 0 && (
+                    <div className='lt-detail-map-card'>
+                      <div className='lt-detail-map-head'><i className='pi pi-map' style={{color: '#10B981'}}></i>Position GPS</div>
+                      <div className='lt-detail-map-body'>
+                        <MapComponent position={{last_lat: selectedEngin?.last_lat, last_lng: selectedEngin?.last_lng}} icon={customIcon} popupTitle={selectedEngin?.labeltag || selectedEngin?.tagname} locationHistory={enginesHistory} />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </TabPanel>
+
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-link'></i>Relations / Tags</span>}>
+              {selectedEngin?.relationId != 0 ? (
+                <EnginTagged tableId={`tag-engin-${selectedEngin?.id}`} data={enginTags} actions={actions} />
+              ) : (
+                <div className='lt-empty-state'>
+                  <i className='pi pi-tag' style={{fontSize: '2rem', color: '#CBD5E1'}}></i>
+                  <p><OlangItem olang="The.Engin.don't.have.a.Tag" /></p>
+                </div>
+              )}
+            </TabPanel>
+
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-clock'></i>Historique</span>}>
+              <CalendarViewEngin />
+            </TabPanel>
+          </TabView>
+        </div>
       </div>
       <EditTag />
     </>
