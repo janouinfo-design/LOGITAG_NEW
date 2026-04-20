@@ -1604,9 +1604,27 @@ const EnginList = () => {
               const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
               const statusColor = item.statusbgColor || '#94A3B8'
               return (
-                <div key={item.id || i} className="lt-vcard" data-testid={`engin-vcard-${i}`}>
+                <div key={item.id || i} className="lt-vcard" data-testid={`engin-vcard-${i}`}
+                  onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setDetailChat(true)); }}>
+                  <div className="lt-vcard-dots" onClick={(e) => e.stopPropagation()}>
+                    <button className="lt-vcard-dots-btn" onClick={(e) => {
+                      e.stopPropagation()
+                      const el = e.currentTarget.nextElementSibling
+                      if (el) el.style.display = el.style.display === 'flex' ? 'none' : 'flex'
+                    }}>
+                      <i className="pi pi-ellipsis-v"></i>
+                    </button>
+                    <div className="lt-vcard-dots-menu" style={{display: 'none'}}>
+                      <button className="lt-dots-item" onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setDetailChat(true)); }}>
+                        <i className="pi pi-eye" style={{color: '#3B82F6'}}></i>Détail
+                      </button>
+                      <button className="lt-dots-item" onClick={() => handleShowMap(item, null)}>
+                        <i className="pi pi-map-marker" style={{color: '#10B981'}}></i>Localiser
+                      </button>
+                    </div>
+                  </div>
                   {item.image ? (
-                    <div className="lt-vcard-img">
+                    <div className="lt-vcard-img" onClick={(e) => e.stopPropagation()}>
                       <Image
                         src={`${API_BASE_URL_IMAGE}${item.image}`}
                         alt={item.reference || ''} width="48" height="48" preview

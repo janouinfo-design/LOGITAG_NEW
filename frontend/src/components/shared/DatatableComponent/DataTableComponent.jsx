@@ -490,6 +490,8 @@ export const DatatableComponent = ({
     )
   }
 
+  const [menuOpen, setMenuOpen] = useState(null)
+
   const actionTemplate = (rowData) => {
     if (!Array.isArray(actions)) return
     let _actions = actions
@@ -501,40 +503,44 @@ export const DatatableComponent = ({
       )
 
     const iconMap = {
-      'Detail': {icon: 'pi pi-eye', color: '#3B82F6', bg: '#EFF6FF'},
-      'Chat': {icon: 'pi pi-comment', color: '#10B981', bg: '#F0FDF4'},
-      'Supprimer': {icon: 'pi pi-trash', color: '#EF4444', bg: '#FEF2F2'},
+      'Detail': {icon: 'pi pi-eye', color: '#3B82F6'},
+      'Chat': {icon: 'pi pi-comment', color: '#10B981'},
+      'Supprimer': {icon: 'pi pi-trash', color: '#EF4444'},
+      'Modifier': {icon: 'pi pi-pencil', color: '#F59E0B'},
     }
 
+    const rowId = rowData?.id || rowData?.code || Math.random()
+    const isOpen = menuOpen === rowId
+
     return (
-      <div className="lt-row-actions" data-testid="row-actions">
-        {_actions.map((action, idx) => {
-          const mapped = iconMap[action.label] || {icon: 'pi pi-cog', color: '#64748B', bg: '#F8FAFC'}
-          return (
-            <button
-              key={idx}
-              className="lt-row-action-btn"
-              title={action.label}
-              onClick={(e) => {
-                e.stopPropagation()
-                if (action.command) action.command({item: action, originalEvent: e})
-              }}
-              style={{'--ra-color': mapped.color, '--ra-bg': mapped.bg}}
-              data-testid={`row-action-${(action.label || '').toLowerCase()}`}
-            >
-              <i className={mapped.icon}></i>
-            </button>
-          )
-        })}
+      <div className="lt-row-actions" data-testid="row-actions" style={{position: 'relative'}}>
         <button
-          className="lt-row-action-btn"
-          title="Consulter"
-          onClick={(e) => { e.stopPropagation(); setModalData(rowData); setModalTab(0); }}
-          style={{'--ra-color': '#F59E0B', '--ra-bg': '#FFFBEB'}}
-          data-testid="row-action-consulter"
+          className="lt-dots-btn"
+          onClick={(e) => { e.stopPropagation(); setMenuOpen(isOpen ? null : rowId); }}
+          data-testid="row-action-menu"
         >
-          <i className="pi pi-pencil"></i>
+          <i className="pi pi-ellipsis-v"></i>
         </button>
+        {isOpen && (
+          <>
+            <div className="lt-dots-overlay" onClick={() => setMenuOpen(null)} />
+            <div className="lt-dots-menu" data-testid="row-action-dropdown">
+              <button className="lt-dots-item" onClick={(e) => { e.stopPropagation(); setMenuOpen(null); setModalData(rowData); setModalTab(0); }} data-testid="row-action-consulter">
+                <i className="pi pi-file-edit" style={{color: '#F59E0B'}}></i>Consulter
+              </button>
+              {_actions.map((action, idx) => {
+                const mapped = iconMap[action.label] || {icon: 'pi pi-cog', color: '#64748B'}
+                return (
+                  <button key={idx} className={`lt-dots-item ${action.label === 'Supprimer' ? 'lt-dots-item--danger' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); setMenuOpen(null); if (action.command) action.command({item: action, originalEvent: e}); }}
+                    data-testid={`row-action-${(action.label || '').toLowerCase()}`}>
+                    <i className={mapped.icon} style={{color: mapped.color}}></i>{action.label}
+                  </button>
+                )
+              })}
+            </div>
+          </>
+        )}
       </div>
     )
   }

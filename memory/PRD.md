@@ -101,6 +101,15 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] Boutons d'action inline (oeil/chat/poubelle/crayon) sur toutes les entités
 - [x] Modale de consultation rapide (3 onglets) sur toutes les tables
 
+### Phase 15 - Menu ⋮ + Vignettes Cliquables (Completed - 20 Avril 2026)
+- [x] **Menu ⋮ (three dots)** remplace les 4 boutons d'action inline dans les tableaux
+  - Dropdown animé avec Consulter / Detail / Chat / Supprimer
+  - CSS : .lt-dots-btn, .lt-dots-menu, .lt-dots-item avec animation ltMenuIn
+  - Appliqué globalement via DataTableComponent.jsx
+- [x] **Vignettes cliquables** : clic sur une carte ouvre la page détail (dispatch setSelectedEngine + setDetailChat)
+- [x] **Menu ⋮ sur vignettes** : apparaît au hover (opacity 0 → 1) avec Détail + Localiser
+- [x] Tests visuels : Vue grille + vue tableau validés
+
 ## Backlog
 
 ### P2 (Moyenne priorité)

@@ -860,6 +860,59 @@
   flex-shrink: 0;
 }
 
+/* ── VCard Dots Menu ── */
+.lt-vcard-dots {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 10;
+}
+
+.lt-vcard-dots-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #CBD5E1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.12s;
+  opacity: 0;
+}
+
+.lt-vcard:hover .lt-vcard-dots-btn {
+  opacity: 1;
+  color: #64748B;
+}
+
+.lt-vcard-dots-btn:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.lt-vcard-dots-menu {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  background: #FFF;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  min-width: 140px;
+  padding: 4px;
+  flex-direction: column;
+  z-index: 20;
+  animation: ltMenuIn 0.15s ease;
+}
+
+.lt-vcard {
+  cursor: pointer;
+}
+
 /* ── Simple Pagination for Grid View ── */
 .lt-grid-pagination {
   display: flex;
@@ -2792,42 +2845,99 @@
 }
 
 
-/* ══════ ROW ACTION BUTTONS (Replaces SplitButton dropdown) ══════ */
+/* ══════ ROW ACTION MENU (⋮ three dots) ══════ */
 .lt-row-actions {
   display: flex;
   align-items: center;
-  gap: 6px;
   justify-content: center;
+  position: relative;
 }
 
-.lt-row-action-btn {
+.lt-dots-btn {
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  border: 1.5px solid transparent;
-  background: var(--ra-bg, #F8FAFC);
-  color: var(--ra-color, #64748B);
+  border: none;
+  background: transparent;
+  color: #94A3B8;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.15s;
+  font-size: 1rem;
+  transition: all 0.12s;
+}
+
+.lt-dots-btn:hover {
+  background: #F1F5F9;
+  color: #475569;
+}
+
+.lt-dots-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+}
+
+.lt-dots-menu {
+  position: absolute;
+  top: 36px;
+  right: 0;
+  z-index: 999;
+  background: #FFF;
+  border-radius: 10px;
+  border: 1px solid #E2E8F0;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  min-width: 160px;
+  padding: 4px;
+  animation: ltMenuIn 0.15s ease;
+}
+
+@keyframes ltMenuIn { from { opacity: 0; transform: translateY(-4px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+
+.lt-dots-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 7px;
+  border: none;
+  background: transparent;
+  font-family: var(--lt-font);
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.1s;
+  text-align: left;
+}
+
+.lt-dots-item i {
   font-size: 0.82rem;
+  width: 18px;
+  text-align: center;
 }
 
-.lt-row-action-btn:hover {
-  border-color: var(--ra-color, #64748B);
-  background: var(--ra-bg, #F8FAFC);
-  transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+.lt-dots-item:hover {
+  background: #F8FAFC;
+  color: #0F172A;
 }
 
-.lt-row-action-btn:active {
-  transform: scale(0.95);
+.lt-dots-item--danger:hover {
+  background: #FEF2F2;
+  color: #DC2626;
 }
 
-/* Hide the old SplitButton action menu styling */
+/* Hide old SplitButton */
 .p-splitbutton.p-component {
+  display: none !important;
+}
+
+.lt-row-action-btn {
   display: none !important;
 }
 
