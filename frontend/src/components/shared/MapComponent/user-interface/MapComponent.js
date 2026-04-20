@@ -930,9 +930,18 @@ const MapComponent = ({
 
   useEffect(() => {
     if (mapRef.current && piosRef.current && mapZoom) {
-      setTimeout(() => {
-        mapRef.current.fitBounds(piosRef.current.getBounds())
+      const tid = setTimeout(() => {
+        try {
+          if (!mapRef.current || !piosRef.current) return
+          const bounds = piosRef.current.getBounds && piosRef.current.getBounds()
+          if (bounds && bounds.isValid && bounds.isValid()) {
+            mapRef.current.fitBounds(bounds)
+          }
+        } catch (err) {
+          // Silent: refs may be torn down during unmount or re-render
+        }
       }, 1000)
+      return () => clearTimeout(tid)
     }
   }, [mapZoom, filterStatus, filterEtat])
 
@@ -1920,8 +1929,13 @@ const MapComponent = ({
                           icon={redIcon}
                           eventHandlers={{
                             click: (e) => {
-                              e.target.openPopup() // Open popup without collapsing the cluster
-                              onClickMarker(pio) // If necessary
+                              // Open the rich side panel instead of the native popup
+                              setClusterPopup({
+                                position: {lat: pio?.last_lat, lng: pio?.last_lng},
+                                items: [pio],
+                                _single: true,
+                              })
+                              onClickMarker(pio)
                             },
                           }}
                         >
@@ -2059,6 +2073,7 @@ const MapComponent = ({
       <ClusterInsightsPanel
         open={!!clusterPopup}
         items={clusterPopup?.items || []}
+        singleMode={!!clusterPopup?._single}
         onClose={() => setClusterPopup(null)}
         onSelectItem={(item) => {
           try {

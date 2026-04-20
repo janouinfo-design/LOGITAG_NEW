@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import moment from 'moment'
 
 /*
@@ -62,11 +62,24 @@ const BUCKET_META = {
   unknown: {label: '—', color: COLORS.muted, icon: 'pi-question'},
 }
 
-const ClusterInsightsPanel = ({open, items, onClose, onSelectItem}) => {
+const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) => {
+  const isSingle = singleMode || (items && items.length === 1)
   const [filter, setFilter] = useState('all')           // all | present | exited | battery
   const [familyFilter, setFamilyFilter] = useState('all')
   const [sort, setSort] = useState('recent')           // recent | name | duration | status
   const [expanded, setExpanded] = useState(null)       // id of expanded card
+
+  // Auto-expand the single item when in single mode
+  useEffect(() => {
+    if (isSingle && items && items.length === 1) {
+      setExpanded(items[0]?.id ?? 'single')
+    } else if (!open) {
+      setExpanded(null)
+      setFilter('all')
+      setFamilyFilter('all')
+      setSort('recent')
+    }
+  }, [isSingle, items, open])
 
   const enriched = useMemo(() => {
     return (items || []).map((it) => {
@@ -119,6 +132,169 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem}) => {
   }, [enriched, filter, familyFilter, sort])
 
   if (!open) return null
+
+  // ═══ SINGLE MODE: dedicated layout for a single engin ═══
+  if (isSingle && items && items[0]) {
+    const it = items[0]
+    const timing = computeTiming(it)
+    const bat = batteryState(it.batteries)
+    const meta = BUCKET_META[timing.bucket] || BUCKET_META.unknown
+    return (
+      <>
+        <div className='lt-cluster-backdrop' onClick={onClose} data-testid='engin-panel-backdrop' />
+        <aside className='lt-cluster-panel' data-testid='engin-detail-panel' role='dialog' aria-label="Détails de l'engin">
+          <header className='lt-cp-head' style={{paddingBottom: 18}}>
+            <div className='lt-cp-head-row'>
+              <span
+                className='lt-cp-single-badge'
+                style={{background: `linear-gradient(135deg, ${meta.color} 0%, ${meta.color}DD 100%)`}}
+              >
+                <i className={`pi ${meta.icon}`} />
+                {meta.label}
+              </span>
+              <button className='lt-cp-close' onClick={onClose} aria-label='Fermer' data-testid='engin-panel-close'>
+                <i className='pi pi-times' />
+              </button>
+            </div>
+            <h2 className='lt-cp-title' style={{marginTop: 16}} title={it.reference}>
+              {it.reference || '—'}
+            </h2>
+            <div style={{display: 'flex', gap: 8, alignItems: 'center', marginTop: 6, flexWrap: 'wrap'}}>
+              {it.famille && <span className='lt-cp-chip'>{it.famille}</span>}
+              {it.statuslabel && (
+                <span className='lt-cp-status' style={{color: it.statusbgColor || COLORS.subtext, fontSize: '0.75rem'}}>
+                  <i className='pi pi-circle-fill' style={{fontSize: '0.42rem'}} />
+                  {it.statuslabel}
+                </span>
+              )}
+            </div>
+            <div className='lt-cp-stats' style={{marginTop: 16}}>
+              <div className='lt-cp-stat'>
+                <span className='lt-cp-stat-dot' style={{background: meta.color}} />
+                <div>
+                  <div className='lt-cp-stat-val'>{humanize(timing.minutes)}</div>
+                  <div className='lt-cp-stat-lbl'>Dernier signal</div>
+                </div>
+              </div>
+              <div className='lt-cp-stat'>
+                <span className='lt-cp-stat-dot' style={{background: bat.color}} />
+                <div>
+                  <div className='lt-cp-stat-val'>{bat.label}</div>
+                  <div className='lt-cp-stat-lbl'>Batterie</div>
+                </div>
+              </div>
+              <div className='lt-cp-stat' style={{gridColumn: 'span 2'}}>
+                <span className='lt-cp-stat-dot' style={{background: COLORS.special}} />
+                <div>
+                  <div className='lt-cp-stat-val' style={{fontSize: '0.8rem'}}>
+                    {it.LocationObjectname || it.enginAddress || '—'}
+                  </div>
+                  <div className='lt-cp-stat-lbl'>Zone actuelle</div>
+                </div>
+              </div>
+            </div>
+          </header>
+
+          <div className='lt-cp-list' data-testid='engin-detail-content'>
+            <div className='lt-cp-section-title'>
+              <i className='pi pi-history' /> Timeline récente
+            </div>
+            <div className='lt-cp-card' style={{border: 'none', boxShadow: 'none'}}>
+              <div className='lt-cp-card-body' style={{paddingTop: 0, border: 'none', background: 'transparent'}}>
+                <div className='lt-cp-timeline'>
+                  {timing.ref && (
+                    <>
+                      <div className='lt-cp-tl-item'>
+                        <span className='lt-cp-tl-dot' style={{background: meta.color}} />
+                        <div>
+                          <div className='lt-cp-tl-lbl'>{meta.label}</div>
+                          <div className='lt-cp-tl-val'>{timing.ref.local().format('DD/MM/YYYY HH:mm')}</div>
+                        </div>
+                      </div>
+                      <div className='lt-cp-tl-item'>
+                        <span className='lt-cp-tl-dot' style={{background: COLORS.muted}} />
+                        <div>
+                          <div className='lt-cp-tl-lbl'>Durée depuis</div>
+                          <div className='lt-cp-tl-val'>{humanize(timing.minutes)}</div>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  {it.locationDate && (
+                    <div className='lt-cp-tl-item'>
+                      <span className='lt-cp-tl-dot' style={{background: COLORS.special}} />
+                      <div>
+                        <div className='lt-cp-tl-lbl'>Position GPS enregistrée</div>
+                        <div className='lt-cp-tl-val'>{it.locationDate}</div>
+                      </div>
+                    </div>
+                  )}
+                  {!timing.ref && (
+                    <div className='lt-cp-tl-item'>
+                      <span className='lt-cp-tl-dot' style={{background: COLORS.muted}} />
+                      <div>
+                        <div className='lt-cp-tl-lbl'>Aucune donnée temporelle disponible</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className='lt-cp-section-title' style={{marginTop: 6}}>
+              <i className='pi pi-info-circle' /> Informations
+            </div>
+            <div className='lt-cp-meta' style={{padding: '4px 6px 12px'}}>
+              {it.enginAddress && (
+                <div className='lt-cp-meta-row'>
+                  <i className='pi pi-map-marker' />
+                  <span>{it.enginAddress}</span>
+                </div>
+              )}
+              {it.etatenginname && (
+                <div className='lt-cp-meta-row'>
+                  <i
+                    className={it.etatIconName || 'pi pi-tag'}
+                    style={{color: it.etatbgColor || COLORS.subtext}}
+                  />
+                  <span>État : <strong>{it.etatenginname}</strong></span>
+                </div>
+              )}
+              {it.lastSeenDevice && (
+                <div className='lt-cp-meta-row'>
+                  <i className='pi pi-wifi' />
+                  <span>Détecté via <strong>{it.lastSeenDevice}</strong>{it.lastSeenRssi ? ` · RSSI ${it.lastSeenRssi}` : ''}</span>
+                </div>
+              )}
+              {it.lastUser && (
+                <div className='lt-cp-meta-row'>
+                  <i className='pi pi-user' />
+                  <span>Dernier utilisateur : <strong>{it.lastUser}</strong></span>
+                </div>
+              )}
+              {(it.last_lat && it.last_lng) && (
+                <div className='lt-cp-meta-row'>
+                  <i className='pi pi-compass' />
+                  <span>GPS : {Number(it.last_lat).toFixed(5)}, {Number(it.last_lng).toFixed(5)}</span>
+                </div>
+              )}
+            </div>
+
+            {onSelectItem && (
+              <button
+                className='lt-cp-card-action'
+                style={{marginLeft: 6, marginTop: 4}}
+                onClick={() => onSelectItem(it)}
+                data-testid='engin-detail-focus'
+              >
+                <i className='pi pi-arrow-right' /> Centrer la vue sur la carte
+              </button>
+            )}
+          </div>
+        </aside>
+      </>
+    )
+  }
 
   return (
     <>
