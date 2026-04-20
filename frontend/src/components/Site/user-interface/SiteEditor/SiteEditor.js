@@ -131,76 +131,125 @@ function SiteEditor({selectedCLient, save}) {
       <DialogComponent
         visible={visible}
         footer={footer}
-        header={`${selectedSite?.id ? 'Edit Site' : 'New Site'}`}
+        header={selectedSite?.id ? 'Modifier le site' : 'Nouveau site'}
         onHide={onHide}
+        style={{width: 560, maxWidth: '95vw'}}
       >
-        <div className='flex justify-content-center'>
-          {existItem && (
-            <Message severity='error' text='The WorkSite is Already Exist' className='w-6' />
-          )}
-        </div>
+        {existItem && (
+          <div style={{marginBottom: 14}}>
+            <Message severity='error' text='Ce site existe déjà' style={{width: '100%'}} />
+          </div>
+        )}
+
         {selectedCLient ? (
-          <div className='text-2xl font-semibold text-center'>{selectedCLient?.code}</div>
+          <div style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '8px 14px', borderRadius: 10,
+            background: '#EEF2FF', color: '#4F46E5',
+            fontSize: '0.85rem', fontWeight: 700, marginBottom: 18,
+          }}>
+            <i className='pi pi-briefcase' style={{fontSize: '0.8rem'}}></i>
+            Client : {selectedCLient?.code || selectedCLient?.label}
+          </div>
         ) : (
-          <div div className='my-3'>
-            <label>Customer's</label>
+          <div style={{marginBottom: 16}}>
+            <label>Client <span className='text-danger'>*</span></label>
             <Dropdown
               filter
               options={dropdownOptions}
               onChange={handleCustomerChange}
               optionLabel='label'
-              placeholder='Select a Costumer'
+              placeholder='Sélectionner un client'
               value={selectedCustomer ? selectedCustomer?.label : null}
               className='w-full'
+              data-testid='site-editor-customer'
             />
           </div>
         )}
 
-        <div className='my-3'>
-          <label htmlFor='Label'>
-            <OlangItem olang='Label' />
-            {_labelValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-          </label>
-          <InputText
-            id='label'
-            name='label'
-            onChange={onInputChange}
-            value={selectedSite?.label}
-            className={`w-full ${existItem ? 'p-invalid' : null} ${
-              inputValidity['label'] == false ? 'p-invalid' : ''
-            }`}
-          />
-          {_labelValidator?.isRequired == 1 && (
-            <small className='p-error'>{_labelValidator?.messageError}</small>
-          )}
-        </div>
-        <div className='my-3'>
-          <label htmlFor='Name'>
-            <OlangItem olang='Name' />
-            {_nameValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-          </label>
-          <InputText
-            id='name'
-            name='name'
-            className={`w-full ${existItem ? 'p-invalid' : null} ${
-              inputValidity['name'] == false ? 'p-invalid' : ''
-            }`}
-            onChange={onInputChange}
-            value={selectedSite?.name}
-          />
-          {_labelValidator?.isRequired == 1 && (
-            <small className='p-error'>{_labelValidator?.messageError}</small>
-          )}
-        </div>
-        <div className='my-3 flex align-items-center gap-2'>
-          <label>Active</label>
-          <InputSwitch
-            name='active'
-            checked={
-              selectedSite?.active ? true : false || selectedSite?.active == null ? true : null
-            }
-            onChange={onInputChange}
-          />
+        <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14}}>
+          <div>
+            <label htmlFor='label'>
+              <OlangItem olang='Label' />
+              {_labelValidator?.isRequired == 1 && <span className='text-danger'>*</span>}
+            </label>
+            <InputText
+              id='label'
+              name='label'
+              onChange={onInputChange}
+              value={selectedSite?.label || ''}
+              placeholder='Nom du site'
+              className={`w-full ${existItem || inputValidity['label'] == false ? 'p-invalid' : ''}`}
+              data-testid='site-editor-label'
+            />
+            {inputValidity['label'] == false && <small className='p-error'>{_labelValidator?.messageError || 'Champ requis'}</small>}
+          </div>
+
+          <div>
+            <label htmlFor='name'>
+              <OlangItem olang='Name' />
+              {_nameValidator?.isRequired == 1 && <span className='text-danger'>*</span>}
+            </label>
+            <InputText
+              id='name'
+              name='name'
+              onChange={onInputChange}
+              value={selectedSite?.name || ''}
+              placeholder='Identifiant'
+              className={`w-full ${existItem || inputValidity['name'] == false ? 'p-invalid' : ''}`}
+              data-testid='site-editor-name'
+            />
+          </div>
+
+          <div>
+            <label htmlFor='code'>Code</label>
+            <InputText
+              id='code'
+              name='code'
+              onChange={onInputChange}
+              value={selectedSite?.code || ''}
+              placeholder='Code du site'
+              className='w-full'
+              data-testid='site-editor-code'
+            />
+          </div>
+
+          <div>
+            <label htmlFor='reference'>Référence</label>
+            <InputText
+              id='reference'
+              name='reference'
+              onChange={onInputChange}
+              value={selectedSite?.reference || ''}
+              placeholder='Référence interne'
+              className='w-full'
+              data-testid='site-editor-reference'
+            />
+          </div>
+
+          <div style={{gridColumn: '1 / -1'}}>
+            <label htmlFor='description'>Description</label>
+            <InputText
+              id='description'
+              name='description'
+              onChange={onInputChange}
+              value={selectedSite?.description || ''}
+              placeholder='Description optionnelle'
+              className='w-full'
+              data-testid='site-editor-description'
+            />
+          </div>
+
+          <div style={{gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 12, padding: '10px 14px', background: '#F8FAFC', borderRadius: 10, border: '1px solid #E2E8F0'}}>
+            <label htmlFor='active' style={{margin: 0, fontWeight: 600, flex: 1}}>Site actif</label>
+            <InputSwitch
+              inputId='active'
+              name='active'
+              checked={selectedSite?.active == null ? true : !!selectedSite?.active}
+              onChange={onInputChange}
+              data-testid='site-editor-active'
+            />
+          </div>
         </div>
       </DialogComponent>
     </div>

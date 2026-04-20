@@ -132,6 +132,16 @@ Transformer l'application LOGITAG (tracking d'assets IoT) en un SaaS B2B Enterpr
 - [x] **SiteDetail (Sites)** : Header premium (icône map, titre) + tabs Info client / Adresse / Sites / Tags
 - [x] Formulaires structurés avec lt-form-section, lt-form-grid (2 colonnes), lt-form-input
 
+### Phase 27 - Bouton "Ajouter un site" + Form premium (Completed - 20 Avril 2026)
+- [x] **Bouton "+ Ajouter un site"** (violet gradient) ajouté en haut à droite de l'onglet Sites dans ClientDetail (via SiteList.js). Clic → pré-remplit `selectedSite` avec `customerID` + ouvre le Dialog SiteEditor.
+- [x] **SiteEditor refondu** en form premium :
+  - Titre français ("Nouveau site" / "Modifier le site")
+  - Badge client épinglé en haut ("Client : client 33") avec icône briefcase
+  - Form 2 colonnes : Label + Nom (requis), Code + Référence, Description (full), toggle "Site actif" dans encart gris stylé
+  - Boutons footer hérités de la CSS .p-dialog globale (Annuler ghost, Enregistrer violet gradient)
+  - Tous les champs équipés de `data-testid` (site-editor-label/name/code/reference/description/active)
+- [x] Validation visuelle : bouton visible → dialog ouvre → form rempli correctement ✅
+
 ### Phase 26 - Refonte AddressDetail full-page (3 variantes) (Completed - 20 Avril 2026)
 - [x] **3 variantes refactorisées** (Company / Depot / Site) avec le layout Premium complet :
   - Header Premium (Retour + avatar map-marker coloré + titre dynamique "Adresse de {type}" + badges type/ville + bouton "Enregistrer" violet gradient)

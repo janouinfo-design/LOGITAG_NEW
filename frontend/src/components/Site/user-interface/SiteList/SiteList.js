@@ -156,6 +156,34 @@ const SiteList = ({client, filter, showEdit, detailView = 'Detail'}) => {
           </div>
         </div>
         <div className='lt-page-header-right'>
+          {client && (
+            <button
+              data-testid='client-site-add-btn'
+              onClick={() => {
+                dispatch(fetchValidator('worksite'))
+                dispatch(setSelectedSite({
+                  id: 0,
+                  label: '',
+                  code: '',
+                  active: 1,
+                  customerID: selectedClientId?.codeClient || selectedClientId?.id,
+                }))
+                dispatch(setEditSite(true))
+              }}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 8,
+                padding: '10px 18px', borderRadius: 10, border: 'none',
+                background: 'linear-gradient(135deg, #6366F1 0%, #4F46E5 100%)',
+                color: '#FFF', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)', transition: 'all 0.18s',
+              }}
+              onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 18px rgba(99, 102, 241, 0.4)'}}
+              onMouseLeave={(e) => {e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 12px rgba(99, 102, 241, 0.3)'}}
+            >
+              <i className='pi pi-plus' style={{fontSize: '0.78rem'}}></i>
+              Ajouter un site
+            </button>
+          )}
           {sitesClient?.length > 0 && (
             <div className='lt-count-badge' data-testid="places-count">
               <i className='pi pi-building' style={{fontSize: '0.75rem'}}></i>
