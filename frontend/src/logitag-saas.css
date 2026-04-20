@@ -3381,15 +3381,22 @@
 .lt-tab-header i { font-size: 0.82rem; }
 
 /* ── Detail Grid (70/30) ── */
-.lt-detail-grid { display: grid; grid-template-columns: 65fr 35fr; gap: 16px; }
-@media (max-width: 1000px) { .lt-detail-grid { grid-template-columns: 1fr; } }
+.lt-detail-grid { display: grid !important; grid-template-columns: 65fr 35fr !important; gap: 16px !important; width: 100% !important; }
+@media (max-width: 1000px) { .lt-detail-grid { grid-template-columns: 1fr !important; } }
+
+/* Force TabView panels to fill width */
+.lt-detail-tabs .p-tabview,
+.lt-detail-tabs .p-tabview-panels,
+.lt-detail-tabs .p-tabview-panel {
+  width: 100% !important;
+}
 
 /* ── Form Sections ── */
 .lt-detail-form { display: flex; flex-direction: column; gap: 20px; }
 .lt-form-section { display: flex; flex-direction: column; gap: 12px; }
 .lt-form-section-title { font-family: var(--lt-font-heading); font-size: 0.85rem; font-weight: 800; color: #0F172A; margin: 0; display: flex; align-items: center; gap: 6px; padding-bottom: 8px; border-bottom: 1px solid #F1F5F9; }
 .lt-form-section-title i { color: #64748B; font-size: 0.82rem; }
-.lt-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.lt-form-grid { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 12px !important; }
 .lt-form-field { display: flex; flex-direction: column; gap: 4px; }
 .lt-form-field--full { grid-column: 1 / -1; }
 .lt-form-label { font-family: var(--lt-font); font-size: 0.78rem; font-weight: 700; color: #475569; }

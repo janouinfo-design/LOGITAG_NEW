@@ -386,26 +386,10 @@ const EnginDetail = () => {
               </div>
             </div>
           </div>
-          <div className='lt-detail-header-right'>
-            <div className='lt-detail-stat'>
-              <div className='lt-detail-stat-label'>Batterie</div>
-              <div className='lt-detail-stat-val' style={{color: (parseInt(selectedEngin?.batteries) || 0) >= 50 ? '#22C55E' : (parseInt(selectedEngin?.batteries) || 0) >= 20 ? '#F59E0B' : '#EF4444'}}>
-                {selectedEngin?.batteries != null ? `${selectedEngin.batteries}%` : 'N/A'}
-              </div>
-            </div>
-            <div className='lt-detail-stat'>
-              <div className='lt-detail-stat-label'>Position</div>
-              <div className='lt-detail-stat-val' style={{fontSize: '0.75rem', color: '#475569'}}>{selectedEngin?.enginAddress || selectedEngin?.LocationObjectname || '-'}</div>
-            </div>
-            <div className='lt-detail-stat'>
-              <div className='lt-detail-stat-label'>Tag</div>
-              <div className='lt-detail-stat-val' style={{fontSize: '0.8rem', color: '#3B82F6'}}>{selectedEngin?.tagname || 'Non assigné'}</div>
-            </div>
-            <div className='lt-detail-actions-group'>
-              <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
-              <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
-              <PrimaryActionButton type="edit" onClick={onSave} />
-            </div>
+          <div className='lt-detail-actions-group'>
+            <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
+            <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
+            <PrimaryActionButton type="edit" onClick={onSave} />
           </div>
         </div>
 
@@ -413,14 +397,13 @@ const EnginDetail = () => {
         <div className='lt-detail-tabs'>
           <TabView className='lt-tabview'>
             <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Général</span>}>
-              <div className='lt-detail-grid'>
+              <div style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: 16, width: '100%'}}>
                 {/* LEFT: Form */}
                 <div className='lt-detail-form'>
                   <div className='lt-form-section'>
                     <h4 className='lt-form-section-title'><i className='pi pi-id-card'></i>Identité</h4>
-                    <div className='lt-form-grid'>
-                      {/* Image upload */}
-                      <div className='lt-form-field lt-form-field--full'>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12}}>
+                      <div className='lt-form-field' style={{gridColumn: '1 / -1'}}>
                         {imageChange ? (
                           <div>
                             <div style={{display: 'flex', justifyContent: 'flex-end'}}><button className='lt-close-sm' onClick={() => setImageChange(!imageChange)}><i className='pi pi-times'></i></button></div>
@@ -434,49 +417,76 @@ const EnginDetail = () => {
                         )}
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Reference' />{_referenceValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <label className='lt-form-label'>Référence{_referenceValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
                         <InputText name='reference' value={selectedEngin?.reference} onChange={onInputChange} className={`lt-form-input ${alreadyExist || inputValidity['reference'] === false ? 'p-invalid' : ''}`} />
                       </div>
                       <div className='lt-form-field'>
                         <label className='lt-form-label'>Statut</label>
-                        <Dropdown className='lt-form-input' placeholder='Select Status' name='sysStatus' optionLabel='label' optionValue='status' value={+selectedEngin?.sysStatus} options={statusList} onChange={onInputChange} />
+                        <Dropdown className='lt-form-input' placeholder='Statut' name='sysStatus' optionLabel='label' optionValue='status' value={+selectedEngin?.sysStatus} options={statusList} onChange={onInputChange} />
                       </div>
                     </div>
                   </div>
 
                   <div className='lt-form-section'>
                     <h4 className='lt-form-section-title'><i className='pi pi-car'></i>Véhicule</h4>
-                    <div className='lt-form-grid'>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12}}>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Brand' />{_brandValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <label className='lt-form-label'>Marque{_brandValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
                         <InputText name='brand' value={selectedEngin?.brand} onChange={onInputChange} className={`lt-form-input ${inputValidity['brand'] === false ? 'p-invalid' : ''}`} />
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Model' />{_modelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <label className='lt-form-label'>Modèle{_modelValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
                         <InputText name='model' value={selectedEngin?.model} onChange={onInputChange} className={`lt-form-input ${inputValidity['model'] === false ? 'p-invalid' : ''}`} />
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Immatriculation' />{_immatriculationValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <label className='lt-form-label'>Immatriculation{_immatriculationValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
                         <InputText name='immatriculation' value={selectedEngin?.immatriculation} onChange={onInputChange} className={`lt-form-input ${inputValidity['immatriculation'] === false ? 'p-invalid' : ''}`} />
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Engine.Vin' />{_vinValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
+                        <label className='lt-form-label'>VIN{_vinValidator?.isRequired == 1 && <span className='lt-required'>*</span>}</label>
                         <InputText name='vin' value={selectedEngin?.vin} onChange={onInputChange} className={`lt-form-input ${inputValidity['vin'] === false ? 'p-invalid' : ''}`} />
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='Informations.additionnelles' /></label>
+                        <label className='lt-form-label'>Infos additionnelles</label>
                         <InputText name='infosAdditionnelles' value={selectedEngin?.infosAdditionnelles} onChange={onInputChange} className='lt-form-input' />
                       </div>
                       <div className='lt-form-field'>
-                        <label className='lt-form-label'><OlangItem olang='famille.list' /></label>
+                        <label className='lt-form-label'>Famille</label>
                         <Dropdown name='familleId' options={familles} onChange={onInputChange} placeholder='Famille' value={selectedEngin?.familleId} className='lt-form-input' optionLabel='label' optionValue='id' />
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* RIGHT: Map */}
+                {/* RIGHT: Sidebar */}
                 <div className='lt-detail-side'>
+                  {/* Résumé Card */}
+                  <div className='lt-sidebar-card'>
+                    <div className='lt-sidebar-card-head'>Résumé</div>
+                    <div className='lt-sidebar-card-body'>
+                      <div className='lt-sidebar-row'>
+                        <span className='lt-sidebar-row-label'>État</span>
+                        <span className='lt-sidebar-row-val'>
+                          {selectedEngin?.etatenginname && <span className='lt-badge' style={{background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : '#F0FDF4', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A', fontSize: '0.7rem'}}>
+                            <span className='lt-badge-dot' style={{background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}></span>
+                            {selectedEngin.etatenginname === 'exit' ? 'Sortie' : 'Entrée'}
+                          </span>}
+                        </span>
+                      </div>
+                      <div className='lt-sidebar-row'>
+                        <span className='lt-sidebar-row-label'>Batterie</span>
+                        <span className='lt-sidebar-row-val' style={{color: (parseInt(selectedEngin?.batteries) || 0) >= 50 ? '#22C55E' : (parseInt(selectedEngin?.batteries) || 0) >= 20 ? '#F59E0B' : '#EF4444'}}>
+                          {selectedEngin?.batteries != null ? `${selectedEngin.batteries}%` : 'N/A'}
+                        </span>
+                      </div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Statut</span><span className='lt-sidebar-row-val'>{selectedEngin?.statuslabel || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Famille</span><span className='lt-sidebar-row-val'>{selectedEngin?.famille || '-'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Tag</span><span className='lt-sidebar-row-val' style={{color: '#3B82F6'}}>{selectedEngin?.tagname || 'Non assigné'}</span></div>
+                      <div className='lt-sidebar-row'><span className='lt-sidebar-row-label'>Position</span><span className='lt-sidebar-row-val' style={{fontSize: '0.72rem', maxWidth: 140, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'}}>{selectedEngin?.enginAddress || selectedEngin?.LocationObjectname || '-'}</span></div>
+                    </div>
+                  </div>
+
+                  {/* Map Card */}
                   {selectedEngin?.last_lat != 0 && selectedEngin?.last_lng != 0 && (
                     <div className='lt-detail-map-card'>
                       <div className='lt-detail-map-head'><i className='pi pi-map' style={{color: '#10B981'}}></i>Position GPS</div>
