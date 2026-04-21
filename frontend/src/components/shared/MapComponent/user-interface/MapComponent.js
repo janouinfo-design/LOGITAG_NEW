@@ -246,9 +246,16 @@ const MapComponent = ({
   const [expandedPioUid, setExpandedPioUid] = useState(null)
   const [popupPioUid, setPopupPioUid] = useState(null)
   const [isMobile, setIsMobile] = useState(false)
+  // List enhancements: quick filter, sort, pagination
+  const [listQuickFilter, setListQuickFilter] = useState('all') // all | onsite | exited | battery
+  const [listSort, setListSort] = useState('name_asc') // name_asc | name_desc | status | activity
+  const [listPage, setListPage] = useState(1)
+  const [listPageSize, setListPageSize] = useState(10)
+  const [showSortMenu, setShowSortMenu] = useState(false)
   const assetListScrollRef = useRef(null)
   const assetRowRefs = useRef({})
   const assetMarkerRefs = useRef({})
+  const sortMenuRef = useRef(null)
 
   const selectedGeofence = useAppSelector(getSelectedGeoClient)
   const vehiculeHistoryRoute = useAppSelector(getVehiculeHistoryRoute)
@@ -292,6 +299,67 @@ const MapComponent = ({
       return acc
     }, [])
   }, [piosList])
+
+  // ─── Asset List: counts, filter, sort, pagination ───
+  const classifyAsset = (pio) => {
+    // returns {bucket: 'onsite' | 'arrived' | 'exited' | 'offline', color, label}
+    const now = moment()
+    const etat = `${pio?.etatenginname || pio?.etatengin || ''}`.toLowerCase()
+    const status = `${pio?.statusname || pio?.sysStatus || ''}`.toLowerCase()
+    if (status.includes('off') || status.includes('dis')) return {bucket: 'offline', color: '#94A3B8', label: 'Hors ligne'}
+    if (etat.includes('exit') || etat.includes('sort')) return {bucket: 'exited', color: '#EF4444', label: 'Sorti'}
+    if (pio?.lastSeenAt) {
+      const diffMin = now.diff(moment.utc(pio.lastSeenAt), 'minutes')
+      if (diffMin <= 60) return {bucket: 'arrived', color: '#F59E0B', label: 'Arrivé récemment'}
+    }
+    return {bucket: 'onsite', color: '#10B981', label: 'Sur site'}
+  }
+
+  const listCounts = useMemo(() => {
+    const c = {all: flatAssets.length, onsite: 0, arrived: 0, exited: 0, battery: 0, offline: 0}
+    flatAssets.forEach((p) => {
+      const cl = classifyAsset(p)
+      c[cl.bucket]++
+      const b = Number(p?.batteries)
+      if (!isNaN(b) && b > 0 && b <= 20) c.battery++
+    })
+    return c
+  }, [flatAssets])
+
+  const visibleAssets = useMemo(() => {
+    let list = flatAssets
+    if (listQuickFilter !== 'all') {
+      list = list.filter((p) => {
+        const cl = classifyAsset(p)
+        if (listQuickFilter === 'battery') {
+          const b = Number(p?.batteries)
+          return !isNaN(b) && b > 0 && b <= 20
+        }
+        return cl.bucket === listQuickFilter
+      })
+    }
+    const sorted = [...list]
+    if (listSort === 'name_asc') sorted.sort((a, b) => String(a.reference || a.label || '').localeCompare(String(b.reference || b.label || '')))
+    else if (listSort === 'name_desc') sorted.sort((a, b) => String(b.reference || b.label || '').localeCompare(String(a.reference || a.label || '')))
+    else if (listSort === 'status') sorted.sort((a, b) => String(a.statuslabel || '').localeCompare(String(b.statuslabel || '')))
+    else if (listSort === 'activity') {
+      sorted.sort((a, b) => {
+        const ta = a.lastSeenAt ? new Date(a.lastSeenAt).getTime() : 0
+        const tb = b.lastSeenAt ? new Date(b.lastSeenAt).getTime() : 0
+        return tb - ta
+      })
+    }
+    return sorted
+  }, [flatAssets, listQuickFilter, listSort])
+
+  const totalListPages = Math.max(1, Math.ceil(visibleAssets.length / listPageSize))
+  const currentListPage = Math.min(listPage, totalListPages)
+  const pagedAssets = useMemo(() => {
+    const start = (currentListPage - 1) * listPageSize
+    return visibleAssets.slice(start, start + listPageSize)
+  }, [visibleAssets, currentListPage, listPageSize])
+
+  useEffect(() => { setListPage(1) }, [listQuickFilter, listPageSize])
 
   const getAssetState = (pio) => {
     const status = `${pio?.statusname || pio?.sysStatus || ''}`.toLowerCase()
@@ -1507,14 +1575,15 @@ const MapComponent = ({
                     overflow: 'hidden',
                   }}
                 >
-                  <div className='flex align-items-center justify-content-between px-3 py-2 border-bottom-1 border-gray-200'>
-                    <div className='flex flex-column'>
-                      <strong style={{fontSize: '14px'}}>
-                        <OlangItem olang='lst.eng' /> ({flatAssets.length || 0})
-                      </strong>
-                      <span className='text-600' style={{fontSize: '11px'}}>
-                        {isMobile ? 'Assets' : 'Asset list'}
-                      </span>
+                  <div className='lt-asset-panel-head'>
+                    <div className='lt-asset-panel-title'>
+                      <i className='pi pi-bars' />
+                      <div>
+                        <strong>Liste des engins <span className='lt-asset-panel-total'>{flatAssets.length}</span></strong>
+                        <span className='lt-asset-panel-sub'>
+                          Page {currentListPage} / {totalListPages} · {listPageSize}/page
+                        </span>
+                      </div>
                     </div>
                     <Button
                       icon='pi pi-times'
@@ -1524,18 +1593,70 @@ const MapComponent = ({
                     />
                   </div>
 
-                  <div className='px-3 py-2 border-bottom-1 border-gray-100'>
-                    <span className='p-input-icon-left w-full'>
+                  <div className='lt-asset-searchbar'>
+                    <span className='lt-asset-search-inner'>
                       <i className='pi pi-search' />
                       <InputText
                         onChange={(e) => onFilter(e.target.value)}
-                        className='w-full'
-                        placeholder='Search'
+                        placeholder='Rechercher un engin…'
+                        data-testid='asset-search'
                       />
                     </span>
+                    <div className='lt-asset-sort-wrap' ref={sortMenuRef}>
+                      <button
+                        className={`lt-asset-sort-btn ${showSortMenu ? 'is-open' : ''}`}
+                        onClick={() => setShowSortMenu((v) => !v)}
+                        aria-label='Trier'
+                        data-testid='asset-sort-btn'
+                        title='Trier'
+                      >
+                        <i className='pi pi-sort-alt' />
+                      </button>
+                      {showSortMenu && (
+                        <div className='lt-asset-sort-menu' data-testid='asset-sort-menu'>
+                          <div className='lt-asset-sort-title'>Trier</div>
+                          {[
+                            {key: 'name_asc', label: 'Par nom (A-Z)'},
+                            {key: 'name_desc', label: 'Par nom (Z-A)'},
+                            {key: 'status', label: 'Par statut'},
+                            {key: 'activity', label: 'Par dernière activité'},
+                          ].map((s) => (
+                            <label key={s.key} className='lt-asset-sort-opt' data-testid={`sort-${s.key}`}>
+                              <input
+                                type='radio'
+                                checked={listSort === s.key}
+                                onChange={() => { setListSort(s.key); setShowSortMenu(false) }}
+                              />
+                              <span>{s.label}</span>
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className='asset-filterbar px-3 py-2 border-bottom-1 border-gray-100'>
+                  <div className='lt-asset-quick-filters' data-testid='asset-quick-filters'>
+                    {[
+                      {key: 'all', label: 'Tous', count: listCounts.all, color: '#0F172A'},
+                      {key: 'onsite', label: 'Sur site', count: listCounts.onsite, color: '#10B981'},
+                      {key: 'exited', label: 'Sortis', count: listCounts.exited, color: '#EF4444'},
+                      {key: 'battery', label: 'Batt. faible', count: listCounts.battery, color: '#F59E0B'},
+                    ].map((f) => (
+                      <button
+                        key={f.key}
+                        className={`lt-asset-qf ${listQuickFilter === f.key ? 'is-active' : ''}`}
+                        onClick={() => setListQuickFilter(f.key)}
+                        data-testid={`asset-qf-${f.key}`}
+                        style={{'--qf-color': f.color}}
+                      >
+                        <span className='lt-asset-qf-dot' style={{background: f.color}} />
+                        {f.label}
+                        <span className='lt-asset-qf-count'>{f.count}</span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <div className='asset-filterbar px-3 py-2 border-bottom-1 border-gray-100' style={{display: 'none'}}>
                     <div className='flex flex-wrap gap-2 align-items-center'>
                       <Chip
                         onClick={(e) => toggleOverlay(filterOverRefEtat, e)}
@@ -1650,7 +1771,7 @@ const MapComponent = ({
                     className='asset-panel-body '
                     style={{paddingBottom: '100px'}}
                   >
-                    {flatAssets.map((pio) => {
+                    {pagedAssets.map((pio) => {
                       const key = pio?.uid || pio?.id
                       const isSelected =
                         (selectedEnginMap?.uid ||
@@ -1659,8 +1780,11 @@ const MapComponent = ({
                           poiInfos?.id) === key
                       const isExpanded = expandedPioUid === key
                       const st = getAssetState(pio)
-
-                      console.log('pio map', pio)
+                      const cl = classifyAsset(pio)
+                      const bat = Number(pio?.batteries)
+                      const batLabel = (!isNaN(bat) && bat > 0) ? `${Math.round(bat)}%` : null
+                      const batColor = (!isNaN(bat) && bat <= 20 && bat > 0) ? '#EF4444' : (!isNaN(bat) && bat <= 40) ? '#F59E0B' : '#10B981'
+                      const timeFromNow = pio?.lastSeenAt ? moment.utc(pio.lastSeenAt).fromNow() : null
 
                       return (
                         <div key={key}>
@@ -1669,11 +1793,12 @@ const MapComponent = ({
                               if (key && el) assetRowRefs.current[key] = el
                             }}
                             className={classNames(
-                              'asset-row flex align-items-center rounded-lg pb-4 justify-content-between px-3 py-2 cursor-pointer',
+                              'asset-row flex align-items-center rounded-lg pb-4 justify-content-between px-3 py-2 cursor-pointer lt-asset-row-v2',
                               {
                                 'asset-row-selected': isSelected,
                               }
                             )}
+                            style={{'--row-accent': cl.color, position: 'relative'}}
                             onClick={() => {
                               dispatch(setSelectedEnginMap(pio))
                               // Open the rich single-engin side panel
@@ -1703,66 +1828,38 @@ const MapComponent = ({
                             }}
                             // style={{borderBottom: '1px solid #f1f5f9'}}
                           >
-                            <div
-                              className='flex align-items-center gap-2'
-                              style={{
-                                minWidth: 0,
-                                borderLeft: '4px solid',
-                                borderLeftColor: pio?.statusbgColor,
-                              }}
-                            >
-                              <span
-                                className='text-900'
-                                style={{
-                                  fontSize: '13px',
-                                  fontWeight: 600,
-                                  overflow: 'hidden',
-                                  whiteSpace: 'nowrap',
-                                  textOverflow: 'ellipsis',
-                                }}
-                              >
+                            <div className='lt-asset-row-main'>
+                              <div className='lt-asset-row-title' title={pio.reference || pio.label}>
                                 {typeof itemTemplate == 'function'
                                   ? itemTemplate(pio)
                                   : pio.reference || pio.label}
-                              </span>
-                            </div>
-                            <div className='flex flex-row gap-4'>
-                              <div className='flex flex-row gap-3 items-center'>
-                                <div className='mouvement-status mx-1'>
-                                  <i
-                                    title={`${pio?.etatengin} ${selectedEngMap?.[0]?.locationDate}`}
-                                    className={pio.etatIconName + ' text-lg'}
-                                    style={{color: pio.etatbgColor}}
-                                  />
-                                </div>
-                                {/* Status engin */}
-                                <div className='status-engin mx-1'>
-                                  <i
-                                    title={pio?.statuslabel}
-                                    className={pio.iconName + ' text-lg'}
-                                    style={{color: pio.statusbgColor}}
-                                  />
-                                </div>
-                                {/* famille tag */}
-                                <div className='tag-famille mx-1'>
-                                  {pio.tagId ? (
-                                    <i
-                                      title={pio?.familleTag}
-                                      className={pio.familleIconTag + ' text-lg'}
-                                      style={{color: pio.familleTagIconBgcolor}}
-                                    />
-                                  ) : (
-                                    <span className='badge badge-secondary border-radius-2'>
-                                      <OlangItem olang='No.tag' />
-                                    </span>
-                                  )}
-                                </div>
                               </div>
-
+                              <div className='lt-asset-row-meta'>
+                                <span className='lt-asset-row-badge' style={{background: `${cl.color}1A`, color: cl.color}}>
+                                  <span className='lt-asset-row-dot' style={{background: cl.color}} />
+                                  {cl.label}
+                                </span>
+                                {pio?.statuslabel && (
+                                  <span className='lt-asset-row-chip' title={pio.statuslabel}>
+                                    <i className={pio.iconName || 'pi pi-tag'} style={{color: pio.statusbgColor || '#64748B'}} />
+                                    {pio.statuslabel}
+                                  </span>
+                                )}
+                                {timeFromNow && (
+                                  <span className='lt-asset-row-time'><i className='pi pi-clock' />{timeFromNow}</span>
+                                )}
+                              </div>
+                            </div>
+                            <div className='lt-asset-row-right'>
+                              {batLabel && (
+                                <span className='lt-asset-row-bat' style={{color: batColor}}>
+                                  <i className='pi pi-bolt' />{batLabel}
+                                </span>
+                              )}
                               <i
                                 className={classNames(
-                                  'pi',
-                                  isExpanded ? 'pi-chevron-up' : 'pi-chevron-down'
+                                  'pi lt-asset-row-caret',
+                                  isExpanded ? 'pi-chevron-up' : 'pi-chevron-right'
                                 )}
                               />
                             </div>
@@ -1851,9 +1948,52 @@ const MapComponent = ({
                         </div>
                       )
                     })}
+                    {pagedAssets.length === 0 && (
+                      <div className='lt-asset-row-empty'>
+                        <i className='pi pi-inbox' /> Aucun engin ne correspond aux filtres
+                      </div>
+                    )}
                   </div>
 
-                  {(inputFilter.trim().length == 0 ||
+                  {/* Client-side pagination for quick filters */}
+                  <div className='lt-asset-pagination' data-testid='asset-pagination'>
+                    <div className='lt-asset-pagination-info'>
+                      {visibleAssets.length > 0
+                        ? `${(currentListPage - 1) * listPageSize + 1}–${Math.min(currentListPage * listPageSize, visibleAssets.length)} sur ${visibleAssets.length}`
+                        : '0 élément'}
+                    </div>
+                    <div className='lt-asset-pagination-ctrls'>
+                      <button
+                        className='lt-asset-pg-btn'
+                        onClick={() => setListPage(Math.max(1, currentListPage - 1))}
+                        disabled={currentListPage === 1}
+                        aria-label='Précédent'
+                        data-testid='asset-pg-prev'
+                      ><i className='pi pi-chevron-left' /></button>
+                      <span className='lt-asset-pg-num'>
+                        {currentListPage} / {totalListPages}
+                      </span>
+                      <button
+                        className='lt-asset-pg-btn'
+                        onClick={() => setListPage(Math.min(totalListPages, currentListPage + 1))}
+                        disabled={currentListPage >= totalListPages}
+                        aria-label='Suivant'
+                        data-testid='asset-pg-next'
+                      ><i className='pi pi-chevron-right' /></button>
+                      <select
+                        className='lt-asset-pg-size'
+                        value={listPageSize}
+                        onChange={(e) => setListPageSize(Number(e.target.value))}
+                        data-testid='asset-pg-size'
+                      >
+                        <option value={10}>10 / page</option>
+                        <option value={20}>20 / page</option>
+                        <option value={50}>50 / page</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {false && (inputFilter.trim().length == 0 ||
                     (Array.isArray(piosList?.[0]?.items) && piosList?.[0]?.items?.length > 0)) && (
                     <div className='asset-panel-footer flex justify-content-center align-items-center'>
                       <Paginator
