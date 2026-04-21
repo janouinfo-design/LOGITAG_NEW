@@ -362,55 +362,71 @@ const EnginDetail = () => {
         onSubmitHandler={(e) => onSaveTag(e)}
       />
 
-      <div data-testid="engin-detail-page" style={{padding: '10px 14px', fontFamily: "'Inter', -apple-system, sans-serif"}}>
-        {/* ── Header ── */}
-        <div data-testid="engin-detail-header" style={{display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px', background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', marginBottom: 14, gap: 12, flexWrap: 'wrap'}}>
-          <div style={{display: 'flex', alignItems: 'center', gap: 12}}>
-            <button onClick={() => dispatch(setShow(true))} data-testid="engin-back-btn" style={{width: 34, height: 34, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', fontSize: '0.85rem'}}>
-              <i className='pi pi-arrow-left'></i>
+      <div data-testid="engin-detail-page" className='lt-engin-page' style={{padding: '10px 14px', fontFamily: "'Inter', -apple-system, sans-serif"}}>
+        {/* ── Header Hero ── */}
+        <div data-testid="engin-detail-header" className='lt-engin-hero'>
+          <div className='lt-engin-hero-bg' />
+          <div className='lt-engin-hero-inner'>
+            <button onClick={() => dispatch(setShow(true))} data-testid="engin-back-btn" className='lt-engin-back'>
+              <i className='pi pi-arrow-left' />
             </button>
-            <div style={{width: 52, height: 52, borderRadius: 12, overflow: 'hidden', flexShrink: 0}}>
+            <div className='lt-engin-avatar'>
               {selectedEngin?.image ? (
-                <Image src={`${API_BASE_URL_IMAGE}${selectedEngin.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
+                <Image src={`${API_BASE_URL_IMAGE}${selectedEngin.image}`} alt='' width="72" height="72" preview imageStyle={{objectFit: 'cover', width: 72, height: 72, borderRadius: 16}} />
               ) : (
-                <div style={{width: 52, height: 52, borderRadius: 12, background: '#F1F5F9', color: '#94A3B8', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem'}}><i className='pi pi-box'></i></div>
+                <div className='lt-engin-avatar-ph'><i className='pi pi-box' /></div>
               )}
+              <span className='lt-engin-avatar-dot' style={{background: selectedEngin?.etatenginname === 'exit' ? '#EF4444' : '#10B981'}} />
             </div>
-            <div>
-              <h2 style={{fontFamily: "'Manrope', sans-serif", fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0}}>{selectedEngin?.reference || '-'}</h2>
-              <div style={{display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap', marginTop: 4}}>
+            <div style={{flex: 1, minWidth: 0}}>
+              <h2 className='lt-engin-title'>{selectedEngin?.reference || '-'}</h2>
+              <div className='lt-engin-badges'>
                 {selectedEngin?.etatenginname && (
-                  <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : '#F0FDF4', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}>
-                    <span style={{width: 6, height: 6, borderRadius: '50%', background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}></span>
+                  <span className='lt-engin-badge' style={{background: selectedEngin.etatenginname === 'exit' ? '#FEF2F2' : '#F0FDF4', color: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}}>
+                    <span className='lt-engin-badge-dot' style={{background: selectedEngin.etatenginname === 'exit' ? '#DC2626' : '#16A34A'}} />
                     {selectedEngin.etatenginname === 'exit' ? 'Sortie' : 'Entrée'}
                   </span>
                 )}
                 {selectedEngin?.statuslabel && (
-                  <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, background: '#EFF6FF', color: '#2563EB'}}>{selectedEngin.statuslabel}</span>
+                  <span className='lt-engin-badge' style={{background: '#EFF6FF', color: '#1D4ED8'}}>{selectedEngin.statuslabel}</span>
                 )}
                 {selectedEngin?.famille && (
-                  <span style={{display: 'inline-flex', alignItems: 'center', padding: '2px 10px', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, background: selectedEngin.familleBgcolor || '#64748B', color: '#FFF'}}>{selectedEngin.famille}</span>
+                  <span className='lt-engin-badge' style={{background: selectedEngin.familleBgcolor || '#64748B', color: '#FFF'}}>{selectedEngin.famille}</span>
+                )}
+                {selectedEngin?.tagname && (
+                  <span className='lt-engin-badge lt-engin-badge--outline'>
+                    <i className='pi pi-tag' style={{fontSize: '0.65rem'}} />
+                    {selectedEngin.tagname}
+                  </span>
                 )}
               </div>
             </div>
-          </div>
-          <div style={{display: 'flex', alignItems: 'center', gap: 8}}>
-            <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
-            <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
-            <PrimaryActionButton type="edit" onClick={onSave} />
+            <div className='lt-engin-actions'>
+              <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
+              <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
+              <PrimaryActionButton type="edit" onClick={onSave} />
+            </div>
           </div>
         </div>
 
         {/* ── Tabs ── */}
-        <div style={{background: '#FFF', borderRadius: 12, border: '1px solid #E8ECF0', overflow: 'hidden'}}>
+        <div className='lt-engin-tabs-wrap'>
           <TabView>
             <TabPanel header={<span style={{display: 'flex', alignItems: 'center', gap: 6}}><i className='pi pi-cog' style={{fontSize: '0.82rem'}}></i>Général</span>}>
-              <div style={{display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 20, padding: 16}}>
+              <div style={{display: 'grid', gridTemplateColumns: '1.8fr 1fr', gap: 20, padding: 20}}>
                 {/* LEFT: Form */}
                 <div>
-                  <div style={{marginBottom: 20}}>
-                    <h4 style={{fontFamily: "'Manrope', sans-serif", fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 10, borderBottom: '1px solid #F1F5F9'}}><i className='pi pi-id-card' style={{color: '#64748B'}}></i>Identité</h4>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12}}>
+                  <div className='lt-engin-section'>
+                    <div className='lt-engin-section-head'>
+                      <span className='lt-engin-section-ico' style={{background: '#EFF6FF', color: '#1D4ED8'}}>
+                        <i className='pi pi-id-card' />
+                      </span>
+                      <div>
+                        <h4 className='lt-engin-section-title'>Identité</h4>
+                        <span className='lt-engin-section-sub'>Informations principales de l'engin</span>
+                      </div>
+                    </div>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 14}}>
                       <div className='lt-form-field' style={{gridColumn: '1 / -1'}}>
                         {imageChange ? (
                           <div>
@@ -435,9 +451,17 @@ const EnginDetail = () => {
                     </div>
                   </div>
 
-                  <div style={{marginBottom: 20}}>
-                    <h4 style={{fontFamily: "'Manrope', sans-serif", fontSize: '0.85rem', fontWeight: 800, color: '#0F172A', margin: 0, display: 'flex', alignItems: 'center', gap: 6, paddingBottom: 10, borderBottom: '1px solid #F1F5F9'}}><i className='pi pi-car' style={{color: '#64748B'}}></i>Véhicule</h4>
-                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 12}}>
+                  <div className='lt-engin-section'>
+                    <div className='lt-engin-section-head'>
+                      <span className='lt-engin-section-ico' style={{background: '#F0FDF4', color: '#16A34A'}}>
+                        <i className='pi pi-car' />
+                      </span>
+                      <div>
+                        <h4 className='lt-engin-section-title'>Véhicule</h4>
+                        <span className='lt-engin-section-sub'>Caractéristiques techniques</span>
+                      </div>
+                    </div>
+                    <div style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 14}}>
                       <div style={{display: 'flex', flexDirection: 'column', gap: 4}}>
                         <label style={{fontSize: '0.78rem', fontWeight: 700, color: '#475569'}}>Marque{_brandValidator?.isRequired == 1 && <span style={{color: '#EF4444', marginLeft: 2}}>*</span>}</label>
                         <InputText name='brand' value={selectedEngin?.brand} onChange={onInputChange} style={{borderRadius: 8, border: '1px solid #E2E8F0', fontSize: '0.85rem', padding: '8px 12px'}} />
