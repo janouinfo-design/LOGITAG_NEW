@@ -1,8 +1,7 @@
-import React, {useState} from 'react'
+import React from 'react'
 import clsx from 'clsx'
 import {useLocation} from 'react-router'
-import {checkIsActive, KTIcon, WithChildren} from '../../../../../_metronic/helpers'
-import {useLayout} from '../../../core'
+import {checkIsActive, WithChildren} from '../../../../../_metronic/helpers'
 import {OlangItem} from '../../../../../components/shared/Olang/user-interface/OlangItem/OlangItem'
 
 type Props = {
@@ -25,47 +24,29 @@ const SidebarMenuItemWithSub: React.FC<Props & WithChildren> = ({
 }) => {
   const {pathname} = useLocation()
   const isActive = checkIsActive(pathname, to)
-  const {config} = useLayout()
-  const {app} = config
-  const [isHovered, setIsHovered] = useState<boolean>(false)
-
-  console.log('icons from isActive', to)
+  const iconClass = fontIcon || icon || 'fa-solid fa-folder'
 
   return (
     <div
-      className={clsx('menu-item ', {'bg-gray-500': isActive}, 'menu-accordion')}
+      className={clsx('menu-item menu-accordion lt-sidebar-item lt-sidebar-item-sub', {
+        active: isActive,
+        here: isActive,
+      })}
       data-kt-menu-trigger='click'
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      data-testid={`sidebar-parent-${(title || '').toLowerCase().replace(/\s+/g, '-')}`}
     >
-      <span className={`menu-link border-round-md ${isHovered ? 'bg-gray-500' : ''}`}>
-        {hasBullet && (
-          <span className='menu-bullet'>
-            <span className='bullet bullet-dot'></span>
-          </span>
-        )}
-        {!fontIcon && icon && (
-          <span className='menu-icon'>
-            <KTIcon iconName={icon} className='fs-2' />
-          </span>
-        )}
-        {fontIcon && (
-          <i
-            className={clsx(
-              `font-bold text-3xl ${isHovered ? 'text-white' : 'text-gray-600'}`,
-              fontIcon
-            )}
-            style={{marginRight: '0.8rem', marginLeft: '0.3rem'}}
-          ></i>
-        )}
-        <span
-          className={`menu-title text-base font-semibold ${isHovered ? 'text-white' : 'text-700'}`}
-        >
+      <span className='menu-link lt-sidebar-link' title={title} data-tooltip={title}>
+        <span className='lt-sidebar-ico' aria-hidden='true'>
+          <i className={iconClass}></i>
+        </span>
+        <span className='lt-sidebar-txt'>
           {olang ? <OlangItem olang={olang} /> : title}
         </span>
-        <span className='menu-arrow'></span>
+        <span className='lt-sidebar-arrow' aria-hidden='true'>
+          <i className='fa-solid fa-chevron-right'></i>
+        </span>
       </span>
-      <div className={clsx('menu-sub menu-sub-accordion', {'menu-active-bg': isActive})}>
+      <div className={clsx('menu-sub menu-sub-accordion lt-sidebar-sub', {'menu-active-bg': isActive})}>
         {children}
       </div>
     </div>

@@ -34,6 +34,25 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-04-21]** Liste engins Map : s'étire sur toute la hauteur de la carte (flex column, `asset-panel-body` : `flex:1; overflow:auto`)
 - **[2026-04-21]** P1 validé : le zoom niveau rue (z17) en mode single-engin ne casse pas le layout
 - **[2026-04-21]** P2 : Toggle "Compact / Détaillé" dans le header de la liste (persisté dans `localStorage`). Mode détaillé affiche une 2e ligne avec statut + batterie + dernière activité humanisée.
+- **[2026-04-21]** Session précédente : Login premium, Calendrier Gantt, Modals Users/Teams, Module Rapports "Navixy" (export PDF/Excel + Planification), refonte Dépôts + Stepper 3 étapes.
+- **[2026-04-21] SIDEBAR REFONTE PREMIUM** — Style Notion/Stripe/Linear :
+  - 5 groupes structurés : Dashboard · GESTION · ORGANISATION · CONFIGURATION · ANALYSE
+  - Mapping normalisé (accents/casse) sur les titres backend réels (Timeline→Calendrier, Maps→Map, Equipes→Utilisateurs, Paramettres→Paramètres)
+  - Icônes FontAwesome modernes (truck-fast, tags, calendar-days, warehouse, users, gear, chart-column, etc.)
+  - États : hover (gris-bleu léger), **actif** (fond `#EFF4FF`, left-bar bleu 3px `#1D4ED8`, texte + icône bleu, font-weight 600)
+  - **Mode rétractable** 252px ↔ 68px avec bouton "Replier/Déplier" en bas, état persisté dans `localStorage` (`lt_sidebar_collapsed`)
+  - Tooltips natifs (HTML `title`) en mode compact
+  - Séparateurs de groupe (barre grise fine) en mode compact
+  - Haute spécificité CSS pour écraser Metronic (`#kt_app_sidebar.lt-sidebar` …)
+
+## Files Modified — Sidebar Refonte
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/Sidebar.tsx` (ajout état collapsed + toggle btn)
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/SidebarLogo.tsx` (ancien toggle Metronic caché)
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/sidebar-menu/SidebarMenu.tsx` (cleanup scroll wrapper)
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/sidebar-menu/SidebarMenuMain.js` (mapping groupes + icônes, normalisation accents)
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/sidebar-menu/SidebarMenuItem.tsx` (rendu propre icon + title + tooltip)
+- `/app/frontend/src/components/Layout/user-interface/Sidebar/sidebar-menu/SidebarMenuItemWithSub.tsx` (rendu propre accordéon)
+- `/app/frontend/src/logitag-saas.css` (bloc "SIDEBAR PREMIUM" ~200 lignes, lignes ~2446-2660)
 
 ## Roadmap / Backlog
 ### P2

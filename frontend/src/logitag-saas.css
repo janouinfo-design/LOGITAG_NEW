@@ -2442,81 +2442,383 @@
   }
 }
 
-/* ══════ SIDEBAR MODERN OVERRIDES ══════ */
-#kt_app_sidebar.app-sidebar {
-  background: #FAFBFC !important;
-  border-right: 1px solid #E8ECF0 !important;
+/* ══════════════════════════════════════════════════════════════
+   SIDEBAR PREMIUM — Notion / Stripe / Linear inspired
+   (Strict frontend, high specificity to beat Metronic/PrimeReact)
+   ══════════════════════════════════════════════════════════════ */
+
+/* ---- Shell ----------------------------------------------------- */
+#kt_app_sidebar.app-sidebar.lt-sidebar {
+  background: #FFFFFF !important;
+  border-right: 1px solid #EAEDF1 !important;
   box-shadow: none !important;
+  width: 252px !important;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  display: flex !important;
+  flex-direction: column !important;
+  position: relative !important;
 }
 
-/* Sidebar Section Groups */
+body[data-lt-sidebar-collapsed='1'] .app-wrapper,
+body[data-lt-sidebar-collapsed='1'] #kt_app_wrapper {
+  padding-inline-start: 68px !important;
+}
+
+#kt_app_sidebar.lt-sidebar.lt-sidebar-collapsed {
+  width: 68px !important;
+}
+
+/* Default Metronic wrapper offset respect */
+body[data-lt-sidebar-collapsed='0'] .app-wrapper,
+body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
+  padding-inline-start: 252px !important;
+}
+
+/* ---- Logo block ----------------------------------------------- */
+#kt_app_sidebar .app-sidebar-logo {
+  padding: 14px 16px !important;
+  border-bottom: 1px solid #EEF1F5 !important;
+  height: 60px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  overflow: hidden !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .app-sidebar-logo {
+  padding: 14px 10px !important;
+  justify-content: center !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-brand-txt {
+  display: none !important;
+}
+
+/* ---- Scroll area ---------------------------------------------- */
+#kt_app_sidebar .app-sidebar-menu {
+  flex: 1 1 auto !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  padding: 6px 0 12px !important;
+  max-height: calc(100vh - 120px) !important;
+  scrollbar-width: thin !important;
+}
+#kt_app_sidebar .app-sidebar-menu::-webkit-scrollbar { width: 4px; }
+#kt_app_sidebar .app-sidebar-menu::-webkit-scrollbar-thumb {
+  background: #E2E8F0; border-radius: 4px;
+}
+
+#kt_app_sidebar .app-sidebar-wrapper {
+  margin: 0 !important;
+}
+
+/* ---- Section groups ------------------------------------------- */
+.lt-sidebar-group {
+  padding: 0 8px;
+  margin-bottom: 4px;
+}
+
+.lt-sidebar-group-dashboard {
+  padding-top: 10px;
+}
+
 .lt-sidebar-section {
-  padding: 16px 18px 4px;
+  padding: 14px 12px 6px !important;
+  display: flex;
+  align-items: center;
 }
 
 .lt-sidebar-section-label {
-  font-family: 'Inter', -apple-system, sans-serif;
-  font-size: 0.65rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: #94A3B8;
-}
-
-#kt_app_sidebar .app-sidebar-logo {
-  padding: 12px 14px !important;
-  border-bottom: 1px solid #E8ECF0;
-}
-
-#kt_app_sidebar .app-sidebar-logo img {
-  max-height: 38px !important;
-  transition: all 0.25s;
-}
-
-#kt_app_sidebar .menu-item .menu-link {
-  border-radius: 10px !important;
-  margin: 2px 8px !important;
-  padding: 8px 12px !important;
-  transition: all 0.15s !important;
   font-family: 'Inter', -apple-system, sans-serif !important;
-  font-size: 0.82rem !important;
-  font-weight: 500 !important;
-  color: #475569 !important;
-}
-
-#kt_app_sidebar .menu-item .menu-link:hover {
-  background: #EFF6FF !important;
-  color: #2563EB !important;
-}
-
-#kt_app_sidebar .menu-item .menu-link.active,
-#kt_app_sidebar .menu-item.here > .menu-link {
-  background: #EFF6FF !important;
-  color: #2563EB !important;
+  font-size: 0.65rem !important;
   font-weight: 700 !important;
-}
-
-#kt_app_sidebar .menu-item .menu-link .menu-icon {
+  text-transform: uppercase !important;
+  letter-spacing: 0.09em !important;
   color: #94A3B8 !important;
-  font-size: 1rem !important;
-  min-width: 24px !important;
+  line-height: 1 !important;
 }
 
-#kt_app_sidebar .menu-item .menu-link:hover .menu-icon,
-#kt_app_sidebar .menu-item.here > .menu-link .menu-icon {
-  color: #3B82F6 !important;
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-section {
+  height: 14px !important;
+  padding: 10px 0 4px !important;
+  justify-content: center !important;
+}
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-section-label {
+  width: 26px !important;
+  height: 1px !important;
+  background: #E2E8F0 !important;
+  color: transparent !important;
+  font-size: 0 !important;
+  border-radius: 1px !important;
 }
 
-#kt_app_sidebar .menu-sub {
-  margin-left: 16px !important;
-  border-left: 2px solid #E8ECF0 !important;
+/* ---- Menu items ----------------------------------------------- */
+#kt_app_sidebar .menu-item.lt-sidebar-item {
+  margin: 0 !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link {
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  height: 38px !important;
+  padding: 0 10px !important;
+  margin: 1px 4px !important;
+  border-radius: 8px !important;
+  color: #475569 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+  transition: background 0.12s ease, color 0.12s ease !important;
+  cursor: pointer !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link:hover {
+  background: #F4F6FA !important;
+  color: #0F172A !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-sidebar-ico {
+  width: 22px !important;
+  height: 22px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 0.95rem !important;
+  color: #94A3B8 !important;
+  flex-shrink: 0 !important;
+  transition: color 0.12s ease !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link:hover .lt-sidebar-ico {
+  color: #1D4ED8 !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-sidebar-ico i {
+  font-size: 0.95rem !important;
+  line-height: 1 !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-sidebar-ico-bullet {
+  width: 22px !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-bullet {
+  width: 4px !important;
+  height: 4px !important;
+  border-radius: 50% !important;
+  background: #CBD5E1 !important;
+  display: inline-block !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link:hover .lt-bullet {
+  background: #1D4ED8 !important;
+}
+
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-sidebar-txt {
+  flex: 1 1 auto !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.005em !important;
+}
+
+/* Arrow for sub menus */
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link .lt-sidebar-arrow {
+  width: 14px !important;
+  height: 14px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #CBD5E1 !important;
+  font-size: 0.65rem !important;
+  transition: transform 0.2s ease, color 0.15s ease !important;
+  flex-shrink: 0 !important;
+}
+
+#kt_app_sidebar .menu-item.lt-sidebar-item-sub[data-kt-menu-trigger].show > .menu-link .lt-sidebar-arrow,
+#kt_app_sidebar .menu-item.lt-sidebar-item-sub.show > .menu-link .lt-sidebar-arrow {
+  transform: rotate(90deg) !important;
+  color: #1D4ED8 !important;
+}
+
+/* Active state — Notion/Stripe style */
+#kt_app_sidebar .menu-item.active > .menu-link.lt-sidebar-link,
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link.active,
+#kt_app_sidebar .menu-item.here > .menu-link.lt-sidebar-link {
+  background: #EFF4FF !important;
+  color: #1D4ED8 !important;
+  font-weight: 600 !important;
+}
+
+#kt_app_sidebar .menu-item.active > .menu-link.lt-sidebar-link::before,
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link.active::before,
+#kt_app_sidebar .menu-item.here > .menu-link.lt-sidebar-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: #1D4ED8;
+  box-shadow: 0 0 8px rgba(29, 78, 216, 0.35);
+}
+
+#kt_app_sidebar .menu-item.active > .menu-link.lt-sidebar-link .lt-sidebar-ico,
+#kt_app_sidebar .menu-item .menu-link.lt-sidebar-link.active .lt-sidebar-ico,
+#kt_app_sidebar .menu-item.here > .menu-link.lt-sidebar-link .lt-sidebar-ico {
+  color: #1D4ED8 !important;
+}
+
+/* ---- Sub menu (accordion) ------------------------------------- */
+#kt_app_sidebar .menu-sub.lt-sidebar-sub {
+  margin: 2px 0 4px 22px !important;
   padding-left: 0 !important;
+  border-left: 1px solid #EEF1F5 !important;
 }
 
-#kt_app_sidebar .menu-sub .menu-item .menu-link {
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item .menu-link.lt-sidebar-link {
+  height: 32px !important;
+  margin: 1px 4px 1px 6px !important;
   font-size: 0.78rem !important;
-  padding: 6px 10px !important;
   color: #64748B !important;
+}
+
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item .menu-link.lt-sidebar-link .lt-sidebar-ico {
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 0.72rem !important;
+}
+
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item .menu-link.lt-sidebar-link:hover {
+  color: #0F172A !important;
+  background: #F4F6FA !important;
+}
+
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item.active > .menu-link.lt-sidebar-link,
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item.here > .menu-link.lt-sidebar-link {
+  background: #EFF4FF !important;
+  color: #1D4ED8 !important;
+  font-weight: 600 !important;
+}
+
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item.active > .menu-link.lt-sidebar-link::before,
+#kt_app_sidebar .menu-sub.lt-sidebar-sub .menu-item.here > .menu-link.lt-sidebar-link::before {
+  display: none !important;
+}
+
+/* ---- Collapsed mode ------------------------------------------- */
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item .menu-link.lt-sidebar-link .lt-sidebar-txt,
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item .menu-link.lt-sidebar-link .lt-sidebar-arrow,
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-toggle-label {
+  display: none !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .menu-sub.lt-sidebar-sub {
+  display: none !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .app-sidebar-wrapper,
+#kt_app_sidebar.lt-sidebar-collapsed .menu.menu-column,
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-group {
+  width: 68px !important;
+  max-width: 68px !important;
+  padding: 0 !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item .menu-link.lt-sidebar-link {
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 2px 8px !important;
+  height: 38px !important;
+  width: auto !important;
+  max-width: calc(68px - 16px) !important;
+  gap: 0 !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item .menu-link.lt-sidebar-link .lt-sidebar-ico {
+  width: 100% !important;
+  font-size: 1rem !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item.active > .menu-link.lt-sidebar-link::before,
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item .menu-link.lt-sidebar-link.active::before,
+#kt_app_sidebar.lt-sidebar-collapsed .menu-item.here > .menu-link.lt-sidebar-link::before {
+  left: 0 !important;
+}
+
+/* Native browser tooltip via HTML `title` attribute is used in collapsed mode */
+
+/* ---- Toggle button (bottom) ----------------------------------- */
+.lt-sidebar-toggle-btn {
+  flex: 0 0 auto;
+  margin: 8px 10px 12px !important;
+  height: 34px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 0 12px !important;
+  background: #F8FAFC !important;
+  border: 1px solid #EAEDF1 !important;
+  border-radius: 8px !important;
+  color: #64748B !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.14s ease !important;
+  justify-content: flex-start !important;
+}
+
+.lt-sidebar-toggle-btn:hover {
+  background: #EFF4FF !important;
+  border-color: #DBEAFE !important;
+  color: #1D4ED8 !important;
+}
+
+.lt-sidebar-toggle-btn i {
+  font-size: 0.72rem !important;
+  line-height: 1 !important;
+}
+
+#kt_app_sidebar.lt-sidebar-collapsed .lt-sidebar-toggle-btn {
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 8px 10px 12px !important;
+  width: auto !important;
+}
+
+/* ---- Responsive mobile ---------------------------------------- */
+@media (max-width: 991px) {
+  #kt_app_sidebar.lt-sidebar,
+  #kt_app_sidebar.lt-sidebar.lt-sidebar-collapsed {
+    width: 252px !important;
+  }
+  body[data-lt-sidebar-collapsed='1'] .app-wrapper,
+  body[data-lt-sidebar-collapsed='0'] .app-wrapper,
+  body[data-lt-sidebar-collapsed='1'] #kt_app_wrapper,
+  body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
+    padding-inline-start: 0 !important;
+  }
+}
+
+/* ---- Kill Metronic default spacings we don't need ------------- */
+#kt_app_sidebar .menu-item + .menu-item {
+  margin-top: 0 !important;
+}
+#kt_app_sidebar .menu-content,
+#kt_app_sidebar .menu-section {
+  display: none !important;
 }
 
 /* App header bar - make it minimal */

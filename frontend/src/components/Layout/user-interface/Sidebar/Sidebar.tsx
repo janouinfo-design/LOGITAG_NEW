@@ -2,34 +2,49 @@ import clsx from 'clsx'
 import {useEffect, useRef, useState} from 'react'
 import {ILayout, useLayout} from '../../core'
 import {SidebarMenu} from './sidebar-menu/SidebarMenu'
-import {SidebarFooter} from './SidebarFooter'
 import {SidebarLogo} from './SidebarLogo'
-import { Link } from 'react-router-dom'
+import {Link} from 'react-router-dom'
+
+const COLLAPSE_KEY = 'lt_sidebar_collapsed'
 
 const Sidebar = () => {
   const {config} = useLayout()
   const sidebarRef = useRef<HTMLDivElement>(null)
   const linkRef = useRef()
+  const [collapsed, setCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(COLLAPSE_KEY) === '1'
+    } catch {
+      return false
+    }
+  })
 
   useEffect(() => {
     updateDOM(config)
   }, [config])
 
-  useEffect(()=>{
-    setTimeout(()=>{
+  useEffect(() => {
+    setTimeout(() => {
       let it = document.getElementById('default-link')
-      it?.setAttribute('href', localStorage.getItem('next-page') || "")
-      if(it?.click) it.click();
-    },3000)
-  },[linkRef])
+      it?.setAttribute('href', localStorage.getItem('next-page') || '')
+      if (it?.click) it.click()
+    }, 3000)
+  }, [linkRef])
 
+  useEffect(() => {
+    // Persist + apply to body so other layout elements can react
+    try {
+      localStorage.setItem(COLLAPSE_KEY, collapsed ? '1' : '0')
+    } catch {}
+    document.body.setAttribute('data-lt-sidebar-collapsed', collapsed ? '1' : '0')
+  }, [collapsed])
 
   if (!config.app?.sidebar?.display) {
     return null
   }
 
   const gradientStyle = {
-    background: '#F9F9F9',
+    background: '#FFFFFF',
   }
 
   return (
@@ -38,13 +53,30 @@ const Sidebar = () => {
         <div
           ref={sidebarRef}
           id='kt_app_sidebar'
-          className={clsx('app-sidebar', config.app?.sidebar?.default?.class)}
+          className={clsx(
+            'app-sidebar lt-sidebar',
+            config.app?.sidebar?.default?.class,
+            {'lt-sidebar-collapsed': collapsed}
+          )}
           style={gradientStyle}
+          data-testid='app-sidebar'
         >
-          <Link to="/tagdashboard/index" id='default-link' style={{display: 'none'}} />
+          <Link to='/tagdashboard/index' id='default-link' style={{display: 'none'}} />
           <SidebarLogo sidebarRef={sidebarRef} />
           <SidebarMenu />
-          {/* <SidebarFooter /> */}
+          <button
+            type='button'
+            className='lt-sidebar-toggle-btn'
+            onClick={() => setCollapsed((p) => !p)}
+            aria-label={collapsed ? 'Déplier la sidebar' : 'Replier la sidebar'}
+            title={collapsed ? 'Déplier' : 'Replier'}
+            data-testid='sidebar-toggle-btn'
+          >
+            <i className={`fa-solid ${collapsed ? 'fa-angles-right' : 'fa-angles-left'}`}></i>
+            <span className='lt-sidebar-toggle-label'>
+              {collapsed ? 'Déplier' : 'Replier'}
+            </span>
+          </button>
         </div>
       )}
     </>

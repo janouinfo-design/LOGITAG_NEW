@@ -1,9 +1,8 @@
-import {FC, useState} from 'react'
+import {FC} from 'react'
 import clsx from 'clsx'
 import {Link} from 'react-router-dom'
 import {useLocation} from 'react-router'
-import {checkIsActive, KTIcon, WithChildren} from '../../../../../_metronic/helpers'
-import {useLayout} from '../../../core'
+import {checkIsActive, WithChildren} from '../../../../../_metronic/helpers'
 import {OlangItem} from '../../../../../components/shared/Olang/user-interface/OlangItem/OlangItem'
 
 type Props = {
@@ -26,42 +25,29 @@ const SidebarMenuItem: FC<Props & WithChildren> = ({
 }) => {
   const {pathname} = useLocation()
   const isActive = checkIsActive(pathname, to)
-  const {config} = useLayout()
-  const {app} = config
-  const [isHovered, setIsHovered] = useState<boolean>(false)
-  console.log('icons from sidebar', icon, fontIcon)
+  const iconClass = fontIcon || icon || 'fa-solid fa-circle-dot'
 
   return (
-    <div className='menu-item p-2 border-round-md hover-elevate-up hover:bg-blue-100'>
+    <div
+      className={clsx('menu-item lt-sidebar-item', {active: isActive})}
+      data-testid={`sidebar-item-${(title || '').toLowerCase().replace(/\s+/g, '-')}`}
+    >
       <Link
-        className={clsx('menu-link without-sub', {'bg-blue-500': isActive})}
+        className={clsx('menu-link lt-sidebar-link', {active: isActive})}
         to={to}
-        onMouseEnter={() => setIsHovered(true)}
-        onMouseLeave={() => setIsHovered(false)}
+        title={title}
+        data-tooltip={title}
       >
-        {hasBullet && (
-          <span className='menu-bullet'>
-            <span className='bullet bullet-dot'></span>
+        {hasBullet ? (
+          <span className='lt-sidebar-ico lt-sidebar-ico-bullet' aria-hidden='true'>
+            <span className='lt-bullet' />
+          </span>
+        ) : (
+          <span className='lt-sidebar-ico' aria-hidden='true'>
+            <i className={iconClass}></i>
           </span>
         )}
-        {!fontIcon && icon && (
-          <span>
-            <i className={fontIcon}></i>
-          </span>
-        )}
-        {fontIcon && (
-          <i
-            className={clsx(`text-2xl ${isHovered ? 'text-blue-500' : 'text-700'}`, fontIcon, {
-              'text-white': isActive,
-            })}
-            style={{marginRight: '0.8rem', marginLeft: '0.3rem'}}
-          ></i>
-        )}
-        <span
-          className={`menu-title text-base ${
-            isHovered ? 'text-blue-500' : 'text-700'
-          } font-semibold ${isActive ? 'text-white' : null}`}
-        >
+        <span className='lt-sidebar-txt'>
           {olang ? <OlangItem olang={olang} /> : title}
         </span>
       </Link>
@@ -69,5 +55,5 @@ const SidebarMenuItem: FC<Props & WithChildren> = ({
     </div>
   )
 }
-//&& app?.sidebar?.default?.menu?.iconType === 'font'
+
 export {SidebarMenuItem}
