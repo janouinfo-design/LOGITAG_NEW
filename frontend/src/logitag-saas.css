@@ -5730,3 +5730,136 @@ input.lt-form-input,
 }
 .lt-login-dialog .p-dialog-content { padding: 22px !important; }
 
+
+/* ═══════════════════════════════════════════════════════════
+   CALENDAR — Premium Gantt SaaS v2 (Option B)
+   ═══════════════════════════════════════════════════════════ */
+
+/* View toggle in header (Jour / Semaine / Mois) */
+.lt-cal-view-toggle {
+  display: inline-flex;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  padding: 3px;
+  gap: 2px;
+}
+.lt-cal-view-btn {
+  padding: 6px 14px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #64748B;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  font-family: 'Inter', sans-serif;
+}
+.lt-cal-view-btn:hover { color: #1D4ED8; }
+.lt-cal-view-btn.is-active {
+  background: #0F172A;
+  color: #FFFFFF;
+}
+
+/* Mini-stats row — Gantt SaaS premium */
+.lt-cal-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.lt-cal-stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.lt-cal-stat:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
+}
+.lt-cal-stat-ico {
+  width: 40px; height: 40px;
+  border-radius: 10px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.lt-cal-stat-ico--blue { background: #DBEAFE; color: #1D4ED8; }
+.lt-cal-stat-ico--red { background: #FEE2E2; color: #DC2626; }
+.lt-cal-stat-ico--green { background: #DCFCE7; color: #16A34A; }
+.lt-cal-stat-ico--amber { background: #FEF3C7; color: #D97706; }
+.lt-cal-stat-val {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  color: #0F172A;
+}
+.lt-cal-stat-lbl {
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 600;
+  margin-top: 4px;
+  letter-spacing: 0.01em;
+}
+
+/* Legend */
+.lt-cal-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 12px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 9px;
+  font-size: 0.74rem;
+  margin-left: auto;
+}
+.lt-cal-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #475569;
+  font-weight: 500;
+}
+.lt-cal-legend-dot {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.9);
+}
+
+/* FullCalendar events — style as premium Gantt bars */
+.fc-timeline-event,
+.fc-timeline-event .fc-event-main {
+  padding: 0 !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+}
+.fc-timeline-event {
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1) !important;
+  border: none !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
+}
+.fc-timeline-event:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15) !important;
+}
+
+/* Stats responsive */
+@media (max-width: 960px) {
+  .lt-cal-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 540px) {
+  .lt-cal-stats { grid-template-columns: 1fr; }
+  .lt-cal-view-toggle { flex-wrap: wrap; }
+}
+

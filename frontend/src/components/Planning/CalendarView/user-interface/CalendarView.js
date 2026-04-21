@@ -196,6 +196,20 @@ function CalendarView() {
   let events = option === 'engin' ? engineevents : updatedWorksiteListEvents
   let ressources = option === 'engin' ? engines : sitesRes
 
+  // ── Computed mini-stats for premium Gantt header ──
+  const calendarStats = (() => {
+    const list = Array.isArray(events) ? events : []
+    let enter = 0, exit = 0
+    list.forEach((ev) => {
+      const t = (ev?.extendedProps?.etatenginname || ev?.etatenginname || '').toLowerCase()
+      if (t === 'reception' || t.includes('enter')) enter++
+      else if (t === 'exit' || t.includes('sort')) exit++
+    })
+    const total = list.length
+    const positions = Math.max(0, total - enter - exit)
+    return {total, enter, exit, positions}
+  })()
+
   const handlePrevClick = (wait) => {
     const calendarApi = calendarRef.current.getApi()
     calendarApi.prev()
@@ -572,7 +586,7 @@ function CalendarView() {
       {/* SaaS Page Header */}
       <div className="lt-page-header" data-testid="calendar-page-header">
         <div className="lt-page-header-left">
-          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #1D4ED8)'}}>
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)'}}>
             <i className="pi pi-calendar"></i>
           </div>
           <div>
@@ -581,12 +595,61 @@ function CalendarView() {
           </div>
         </div>
         <div className="lt-page-header-right">
+          <div className="lt-cal-view-toggle" data-testid="calendar-view-toggle">
+            <button
+              className={`lt-cal-view-btn ${daysDisplay === 1 ? 'is-active' : ''}`}
+              onClick={() => displayTheDay(1)}
+              data-testid="calendar-view-day"
+            >Jour</button>
+            <button
+              className={`lt-cal-view-btn ${daysDisplay === 5 ? 'is-active' : ''}`}
+              onClick={() => displayTheDay(5)}
+              data-testid="calendar-view-week"
+            >Semaine</button>
+            <button
+              className={`lt-cal-view-btn ${daysDisplay === 10 ? 'is-active' : ''}`}
+              onClick={() => displayTheDay(10)}
+              data-testid="calendar-view-month"
+            >10 jours</button>
+          </div>
           {totalRecords > 0 && (
             <div className="lt-count-badge" data-testid="calendar-total-count">
               <i className="pi pi-box" style={{fontSize: '0.75rem'}}></i>
               <strong>{totalRecords}</strong> assets
             </div>
           )}
+        </div>
+      </div>
+
+      {/* Premium mini-stats — Gantt style */}
+      <div className="lt-cal-stats" data-testid="calendar-stats">
+        <div className="lt-cal-stat">
+          <span className="lt-cal-stat-ico lt-cal-stat-ico--blue"><i className="pi pi-map-marker"></i></span>
+          <div>
+            <div className="lt-cal-stat-val">{calendarStats.positions}</div>
+            <div className="lt-cal-stat-lbl">Positions</div>
+          </div>
+        </div>
+        <div className="lt-cal-stat">
+          <span className="lt-cal-stat-ico lt-cal-stat-ico--red"><i className="pi pi-arrow-up-right"></i></span>
+          <div>
+            <div className="lt-cal-stat-val">{calendarStats.exit}</div>
+            <div className="lt-cal-stat-lbl">Sorties</div>
+          </div>
+        </div>
+        <div className="lt-cal-stat">
+          <span className="lt-cal-stat-ico lt-cal-stat-ico--green"><i className="pi pi-arrow-down-left"></i></span>
+          <div>
+            <div className="lt-cal-stat-val">{calendarStats.enter}</div>
+            <div className="lt-cal-stat-lbl">Entrées</div>
+          </div>
+        </div>
+        <div className="lt-cal-stat">
+          <span className="lt-cal-stat-ico lt-cal-stat-ico--amber"><i className="pi pi-clock"></i></span>
+          <div>
+            <div className="lt-cal-stat-val">{calendarStats.total}</div>
+            <div className="lt-cal-stat-lbl">Événements ({daysDisplay}j)</div>
+          </div>
         </div>
       </div>
 
@@ -666,6 +729,11 @@ function CalendarView() {
               className='lt-calendar-paginator'
             />
           )}
+          <div className="lt-cal-legend" data-testid="calendar-legend">
+            <span className="lt-cal-legend-item"><span className="lt-cal-legend-dot" style={{background:'#EF4444'}} />Sortie</span>
+            <span className="lt-cal-legend-item"><span className="lt-cal-legend-dot" style={{background:'#10B981'}} />Entrée</span>
+            <span className="lt-cal-legend-item"><span className="lt-cal-legend-dot" style={{background:'#1D4ED8'}} />Position</span>
+          </div>
         </div>
 
         {/* Navigation Row */}
