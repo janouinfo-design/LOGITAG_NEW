@@ -4626,20 +4626,25 @@ input.lt-form-input,
   border-radius: 16px;
   overflow: hidden;
   margin-bottom: 16px;
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+}
+.lt-engin-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px;
+  background: linear-gradient(90deg, #1D4ED8 0%, #3B82F6 35%, #10B981 70%, #F59E0B 100%);
+  z-index: 1;
 }
 .lt-engin-hero-bg {
   position: absolute; inset: 0;
   background:
-    radial-gradient(ellipse 520px 220px at 15% -10%, rgba(59, 130, 246, 0.12) 0%, transparent 65%),
-    radial-gradient(ellipse 420px 220px at 95% 100%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
-    #FFFFFF;
+    radial-gradient(ellipse 600px 280px at 10% -10%, rgba(29, 78, 216, 0.09) 0%, transparent 65%),
+    radial-gradient(ellipse 500px 260px at 95% 110%, rgba(16, 185, 129, 0.08) 0%, transparent 60%),
+    linear-gradient(180deg, #FAFBFF 0%, #FFFFFF 100%);
   pointer-events: none;
 }
 .lt-engin-hero-inner {
   position: relative;
-  display: flex; align-items: center; gap: 16px;
-  padding: 20px 24px;
+  display: flex; align-items: center; gap: 18px;
+  padding: 28px 28px 24px;
   flex-wrap: wrap;
 }
 .lt-engin-back {
@@ -4795,4 +4800,40 @@ input.lt-form-input,
   .lt-engin-avatar { width: 60px; height: 60px; }
   .lt-engin-title { font-size: 1.3rem; }
   .lt-engin-actions { width: 100%; justify-content: flex-end; }
+}
+
+/* Hero stats row — premium dashboard feel */
+.lt-engin-hero-stats {
+  position: relative;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: #E2E8F0;
+  border-top: 1px solid #E2E8F0;
+}
+.lt-engin-hero-stat {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 20px;
+  background: #FFFFFF;
+  transition: background 0.15s;
+}
+.lt-engin-hero-stat:hover { background: #FAFBFC; }
+.lt-engin-hero-stat-ico {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.lt-engin-hero-stat-ico i { font-size: 0.92rem; }
+.lt-engin-hero-stat-lbl {
+  font-size: 0.66rem; color: #94A3B8;
+  font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; margin-bottom: 2px;
+}
+.lt-engin-hero-stat-val {
+  font-size: 0.88rem; font-weight: 700;
+  color: #0F172A; letter-spacing: -0.005em;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .lt-engin-hero-stats { grid-template-columns: repeat(2, 1fr); }
 }

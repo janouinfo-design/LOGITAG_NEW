@@ -45,6 +45,7 @@ import MapComponent from '../EnginDetail/MapComponent'
 import 'leaflet/dist/leaflet.css'
 import 'leaflet-draw/dist/leaflet.draw.css'
 import L, {Icon} from 'leaflet'
+import moment from 'moment'
 import logoBlack from '../assets/LOGITAGBLACK.png'
 import logoColor from '../assets/LOGITAGCMYK.png'
 import {fetchFamilles, getFamilles} from '../../Famillies/slice/famille.slice'
@@ -405,6 +406,37 @@ const EnginDetail = () => {
               <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
               <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
               <PrimaryActionButton type="edit" onClick={onSave} />
+            </div>
+          </div>
+          {/* Hero stats row */}
+          <div className='lt-engin-hero-stats'>
+            <div className='lt-engin-hero-stat'>
+              <div className='lt-engin-hero-stat-ico' style={{background: '#EFF6FF', color: '#1D4ED8'}}><i className='pi pi-map-marker' /></div>
+              <div>
+                <div className='lt-engin-hero-stat-lbl'>Position</div>
+                <div className='lt-engin-hero-stat-val'>{selectedEngin?.LocationObjectname || selectedEngin?.enginAddress || '—'}</div>
+              </div>
+            </div>
+            <div className='lt-engin-hero-stat'>
+              <div className='lt-engin-hero-stat-ico' style={{background: '#F0FDF4', color: '#16A34A'}}><i className='pi pi-bolt' /></div>
+              <div>
+                <div className='lt-engin-hero-stat-lbl'>Batterie</div>
+                <div className='lt-engin-hero-stat-val'>{selectedEngin?.batteries != null ? `${Math.round(Number(selectedEngin.batteries))}%` : '—'}</div>
+              </div>
+            </div>
+            <div className='lt-engin-hero-stat'>
+              <div className='lt-engin-hero-stat-ico' style={{background: '#FEF3C7', color: '#D97706'}}><i className='pi pi-clock' /></div>
+              <div>
+                <div className='lt-engin-hero-stat-lbl'>Dernier signal</div>
+                <div className='lt-engin-hero-stat-val'>{selectedEngin?.lastSeenAt ? moment.utc(selectedEngin.lastSeenAt).local().fromNow() : '—'}</div>
+              </div>
+            </div>
+            <div className='lt-engin-hero-stat'>
+              <div className='lt-engin-hero-stat-ico' style={{background: '#DBEAFE', color: '#1D4ED8'}}><i className='pi pi-tag' /></div>
+              <div>
+                <div className='lt-engin-hero-stat-lbl'>Tag associé</div>
+                <div className='lt-engin-hero-stat-val' style={{fontFamily: "'JetBrains Mono', monospace", fontSize: '0.82rem'}}>{selectedEngin?.tagname || '—'}</div>
+              </div>
             </div>
           </div>
         </div>
