@@ -497,7 +497,7 @@ function NavixyReport() {
                     <ResumeCard isAlert={isAlertReport} />
                   </div>
                 )}
-                <div className='nvx-sect-note'>Kilométrage à la fin de la période sélectionnée.</div>
+                <div className='nvx-sect-note'>Données basées sur la période sélectionnée.</div>
               </>
             )}
           </div>
@@ -515,21 +515,15 @@ function TripsTable({isZone}) {
         <tr>
           <th>Départ</th>
           <th>Arrivée</th>
-          {isZone && <th>Temps sur site</th>}
-          {!isZone && <>
-            <th>Distance, km</th>
-            <th>Temps de trajet</th>
-            <th>Vitesse moyenne,<br/>km/h</th>
-            <th>V. max., km/h</th>
-            <th>Temps d&apos;inactivité</th>
-          </>}
+          <th>Temps sur site</th>
+          {!isZone && <th>Temps d&apos;inactivité</th>}
         </tr>
       </thead>
       <tbody>
         {MOCK_RESULT_DAYS.map((day) => (
           <React.Fragment key={day.date}>
             <tr className='nvx-tbl-day'>
-              <td colSpan={isZone ? 3 : 7}>
+              <td colSpan={isZone ? 3 : 4}>
                 <i className='pi pi-minus' /> {day.date} : {day.rows.length}
               </td>
             </tr>
@@ -537,27 +531,15 @@ function TripsTable({isZone}) {
               <tr key={i}>
                 <td className='nvx-tbl-dp'>{r.depart}</td>
                 <td className='nvx-tbl-dp'>{r.arrivee}</td>
-                {isZone && <td>{r.duree}</td>}
-                {!isZone && <>
-                  <td className='nvx-tbl-num'>{[93.86, 192.11, 238.21, 107.72][i] ?? '—'}</td>
-                  <td className='nvx-tbl-num'>{r.temps}</td>
-                  <td className='nvx-tbl-num'>{[90, 117, 122, 81][i] ?? '—'}</td>
-                  <td className='nvx-tbl-num'>{[133, 153, 171, 135][i] ?? '—'}</td>
-                  <td className='nvx-tbl-num'>{['00:11', '00:13', '00:06', '00:33'][i] ?? '—'}</td>
-                </>}
+                <td className='nvx-tbl-num'>{r.temps}</td>
+                {!isZone && <td className='nvx-tbl-num'>{['00:11', '00:13', '00:06', '00:33'][i] ?? '—'}</td>}
               </tr>
             ))}
             <tr className='nvx-tbl-total'>
               <td />
               <td style={{textAlign:'right', fontWeight:700}}>Au total :</td>
-              {isZone && <td className='nvx-tbl-num'>05:57</td>}
-              {!isZone && <>
-                <td className='nvx-tbl-num'>631.9</td>
-                <td className='nvx-tbl-num'>05:57</td>
-                <td className='nvx-tbl-num'>106</td>
-                <td className='nvx-tbl-num'>171</td>
-                <td className='nvx-tbl-num'>11:34</td>
-              </>}
+              <td className='nvx-tbl-num'>05:57</td>
+              {!isZone && <td className='nvx-tbl-num'>11:34</td>}
             </tr>
           </React.Fragment>
         ))}
@@ -607,12 +589,9 @@ function ResumeCard({isAlert}) {
       ]
     : [
         ['Trajets', '4'],
-        ['Distance, km', '631.9'],
-        ['Temps de trajet', '05:57'],
-        ['Vitesse moyenne, km/h', '106'],
-        ['V. max., km/h', '171'],
+        ['Temps sur site total', '05:57'],
         ['Temps d\u2019inactivité', '11:34'],
-        ['Valeur "GPS" du compteur kilométrique, km', '49599.3'],
+        ['Dernière adresse', 'Place de Catalogne, Barcelone'],
       ]
   return (
     <table className='nvx-tbl nvx-tbl--resume'>
@@ -638,7 +617,7 @@ function SummaryPanel({isAlert, isZone, trackers}) {
             ) : isZone ? (
               <><th>Visites</th><th>Temps total</th><th>Zones</th></>
             ) : (
-              <><th>Trajets</th><th>Distance, km</th><th>Temps de trajet</th><th>Vitesse moy. km/h</th></>
+              <><th>Trajets</th><th>Temps sur site</th><th>Temps inactivité</th></>
             )}
           </tr>
         </thead>
@@ -661,9 +640,8 @@ function SummaryPanel({isAlert, isZone, trackers}) {
               ) : (
                 <>
                   <td className='nvx-tbl-num'>{4 + (i % 3)}</td>
-                  <td className='nvx-tbl-num'>{(420 + i * 37).toFixed(1)}</td>
                   <td className='nvx-tbl-num'>{`0${(i % 3) + 4}:${10 + (i * 7) % 50}`}</td>
-                  <td className='nvx-tbl-num'>{90 + i * 3}</td>
+                  <td className='nvx-tbl-num'>{`${10 + (i % 3)}:${20 + (i * 3) % 40}`}</td>
                 </>
               )}
             </tr>
