@@ -169,7 +169,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
               )}
             </div>
             <div className='lt-cp-stats' style={{marginTop: 16}}>
-              <div className='lt-cp-stat'>
+              <div className='lt-cp-stat' style={{'--lt-cp-stat-accent': meta.color}}>
                 <div className='lt-cp-stat-ico' style={{background: `${meta.color}1A`, color: meta.color}}>
                   <i className={`pi ${meta.icon}`} />
                 </div>
@@ -178,7 +178,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                   <div className='lt-cp-stat-lbl'>Dernier signal</div>
                 </div>
               </div>
-              <div className='lt-cp-stat'>
+              <div className='lt-cp-stat' style={{'--lt-cp-stat-accent': bat.color}}>
                 <div className='lt-cp-stat-ico' style={{background: `${bat.color}1A`, color: bat.color}}>
                   <i className='pi pi-bolt' />
                 </div>
@@ -187,12 +187,12 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                   <div className='lt-cp-stat-lbl'>Batterie</div>
                 </div>
               </div>
-              <div className='lt-cp-stat' style={{gridColumn: 'span 2'}}>
+              <div className='lt-cp-stat' style={{gridColumn: 'span 2', '--lt-cp-stat-accent': COLORS.special}}>
                 <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
                   <i className='pi pi-map-marker' />
                 </div>
                 <div className='lt-cp-stat-body'>
-                  <div className='lt-cp-stat-val' style={{fontSize: '0.85rem'}}>
+                  <div className='lt-cp-stat-val' style={{fontSize: '1rem'}}>
                     {it.LocationObjectname || it.enginAddress || '—'}
                   </div>
                   <div className='lt-cp-stat-lbl'>Zone actuelle</div>
@@ -326,7 +326,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
           )}
           {/* Stat row */}
           <div className='lt-cp-stats'>
-            <div className='lt-cp-stat' data-testid='cluster-stat-onsite'>
+            <div className='lt-cp-stat' data-testid='cluster-stat-onsite' style={{'--lt-cp-stat-accent': COLORS.present}}>
               <div className='lt-cp-stat-ico' style={{background: '#DCFCE7', color: COLORS.present}}>
                 <i className='pi pi-check-circle' />
               </div>
@@ -335,7 +335,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                 <div className='lt-cp-stat-lbl'>Sur site</div>
               </div>
             </div>
-            <div className='lt-cp-stat' data-testid='cluster-stat-arrived'>
+            <div className='lt-cp-stat' data-testid='cluster-stat-arrived' style={{'--lt-cp-stat-accent': COLORS.arrived}}>
               <div className='lt-cp-stat-ico' style={{background: '#FEF3C7', color: COLORS.arrived}}>
                 <i className='pi pi-arrow-down-right' />
               </div>
@@ -344,7 +344,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                 <div className='lt-cp-stat-lbl'>Arrivés 1h</div>
               </div>
             </div>
-            <div className='lt-cp-stat' data-testid='cluster-stat-exited'>
+            <div className='lt-cp-stat' data-testid='cluster-stat-exited' style={{'--lt-cp-stat-accent': COLORS.exited}}>
               <div className='lt-cp-stat-ico' style={{background: '#FEE2E2', color: COLORS.exited}}>
                 <i className='pi pi-arrow-up-right' />
               </div>
@@ -353,7 +353,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                 <div className='lt-cp-stat-lbl'>Sortis</div>
               </div>
             </div>
-            <div className='lt-cp-stat' data-testid='cluster-stat-avg'>
+            <div className='lt-cp-stat' data-testid='cluster-stat-avg' style={{'--lt-cp-stat-accent': COLORS.special}}>
               <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
                 <i className='pi pi-clock' />
               </div>
