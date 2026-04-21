@@ -689,13 +689,13 @@ const STYLES = `
 
 /* KPI info button + popover (Navixy-style) */
 .dbn-kpi-info-btn {
-  width: 22px; height: 22px; border: 0; background: transparent;
-  color: #94A3B8; border-radius: 6px; cursor: pointer;
+  width: 30px; height: 30px; border: 0; background: transparent;
+  color: #94A3B8; border-radius: 8px; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center;
   transition: background 0.15s ease, color 0.15s ease;
 }
-.dbn-kpi-info-btn:hover { background: #F1F5F9; color: #1D4ED8; }
-.dbn-kpi-info-btn i { font-size: 0.8rem; }
+.dbn-kpi-info-btn:hover { background: #EFF6FF; color: #1D4ED8; }
+.dbn-kpi-info-btn i { font-size: 1.05rem; }
 
 .kpi-info-pop {
   position: fixed; z-index: 10000;
@@ -843,11 +843,11 @@ const STYLES = `
 .dbn-kpi-accent { position: absolute; bottom: 0; left: 0; right: 0; height: 3px; }
 .dbn-kpi-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 10px; }
 .dbn-kpi-ico { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 0.95rem; }
-.dbn-kpi-trend { font-size: 0.7rem; font-weight: 700; padding: 2px 8px; border-radius: 6px; display: flex; align-items: center; gap: 2px; }
+.dbn-kpi-trend { font-size: 0.85rem; font-weight: 700; padding: 4px 10px; border-radius: 8px; display: flex; align-items: center; gap: 4px; }
 .dbn-kpi-trend--up { background: #F0FDF4; color: #166534; }
 .dbn-kpi-trend--dn { background: #FEF2F2; color: #991B1B; }
-.dbn-kpi-val { font-family: 'Manrope', sans-serif; font-size: 1.7rem; font-weight: 800; color: #0F172A; line-height: 1; }
-.dbn-kpi-label { font-size: 0.75rem; color: #64748B; font-weight: 500; margin: 4px 0 10px; }
+.dbn-kpi-val { font-family: 'Manrope', sans-serif; font-size: 2rem; font-weight: 800; color: #0F172A; line-height: 1; letter-spacing: -0.03em; }
+.dbn-kpi-label { font-size: 0.95rem; color: #475569; font-weight: 600; margin: 8px 0 14px; letter-spacing: -0.005em; }
 .dbn-kpi-bar { height: 5px; border-radius: 3px; background: #F1F5F9; overflow: hidden; }
 .dbn-kpi-fill { height: 100%; border-radius: 3px; transition: width 0.8s cubic-bezier(0.34,1.56,0.64,1); }
 .dbn-kpi-spin { position: absolute; top: 16px; right: 16px; }
