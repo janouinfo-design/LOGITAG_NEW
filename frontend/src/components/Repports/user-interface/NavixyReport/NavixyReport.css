@@ -359,6 +359,61 @@
   transition: filter 0.15s;
 }
 .nvx-action:hover { filter: brightness(1.1); }
+
+/* Export dropdown menu */
+.nvx-export-menu {
+  position: absolute;
+  top: 40px;
+  left: 0;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 10px;
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.15);
+  min-width: 240px;
+  padding: 6px;
+  z-index: 20;
+  animation: nvx-fade-in 0.15s ease;
+}
+@keyframes nvx-fade-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.nvx-export-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+  color: #0F172A;
+  transition: background 0.15s;
+}
+.nvx-export-menu button:hover { background: #F8FAFC; }
+.nvx-export-menu button + button { margin-top: 2px; }
+.nvx-export-ico {
+  width: 34px; height: 34px;
+  border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+}
+.nvx-export-title {
+  display: block;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.005em;
+}
+.nvx-export-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748B;
+  margin-top: 1px;
+}
 .nvx-result-title {
   font-size: 1.05rem;
   font-weight: 700;

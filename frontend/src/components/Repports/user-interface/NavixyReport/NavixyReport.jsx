@@ -1,6 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react'
 import {useAppDispatch, useAppSelector} from '../../../../hooks'
 import {fetchEngines, getEngines} from '../../../Engin/slice/engin.slice'
+import jsPDF from 'jspdf'
+import 'jspdf-autotable'
+import * as XLSX from 'xlsx'
+import {saveAs} from 'file-saver'
 import './NavixyReport.css'
 
 /**
@@ -204,6 +208,108 @@ function NavixyReport() {
 
   const onBuild = () => setShowResult(true)
   const onClose = () => setShowResult(false)
+
+  const [exportOpen, setExportOpen] = useState(false)
+
+  // ── Build rows to export based on current view ──
+  const buildExportRows = () => {
+    if (isAlertReport) {
+      return {
+        headers: ['Heure', 'Adresse', 'Statut', 'Durée'],
+        rows: MOCK_ALERT_ROWS.map((r) => [r.time, r.address, r.status, r.duration]),
+      }
+    }
+    const headers = isZoneReport
+      ? ['Départ', 'Arrivée', 'Temps sur site']
+      : ['Départ', 'Arrivée', 'Temps sur site', 'Temps d\u2019inactivité']
+    const rows = []
+    MOCK_RESULT_DAYS.forEach((day) => {
+      rows.push([`── ${day.date} ──`, '', '', ''])
+      day.rows.forEach((r, i) => {
+        const row = [r.depart, r.arrivee, r.temps]
+        if (!isZoneReport) row.push(['00:11', '00:13', '00:06', '00:33'][i] ?? '—')
+        rows.push(row)
+      })
+    })
+    return {headers, rows}
+  }
+
+  const exportPDF = () => {
+    const {headers, rows} = buildExportRows()
+    const doc = new jsPDF({orientation: 'landscape', unit: 'pt', format: 'a4'})
+    const pageWidth = doc.internal.pageSize.getWidth()
+
+    // Branded header
+    doc.setFillColor(29, 78, 216)
+    doc.rect(0, 0, pageWidth, 48, 'F')
+    doc.setTextColor(255, 255, 255)
+    doc.setFontSize(16).setFont('helvetica', 'bold')
+    doc.text('LOGITAG', 40, 22)
+    doc.setFontSize(9).setFont('helvetica', 'normal')
+    doc.text('Assets Tracking', 40, 36)
+    doc.setFontSize(11).setFont('helvetica', 'bold')
+    doc.text(reportTitle, pageWidth / 2, 30, {align: 'center'})
+    doc.setTextColor(255, 255, 255).setFontSize(9).setFont('helvetica', 'normal')
+    doc.text(`${dateRange.from} → ${dateRange.to}`, pageWidth - 40, 30, {align: 'right'})
+
+    doc.setTextColor(15, 23, 42).setFontSize(10).setFont('helvetica', 'bold')
+    doc.text(`Engin : ${activeTab === 'summary' ? 'Résumé (tous)' : (selectedTrackerLabels.find((t) => t.id === activeTab)?.label || '—')}`, 40, 70)
+
+    doc.autoTable({
+      startY: 82,
+      head: [headers],
+      body: rows,
+      theme: 'grid',
+      headStyles: {fillColor: [241, 245, 249], textColor: [71, 85, 105], fontSize: 9, fontStyle: 'bold'},
+      bodyStyles: {fontSize: 8, textColor: [51, 65, 85]},
+      alternateRowStyles: {fillColor: [250, 251, 252]},
+      margin: {left: 40, right: 40},
+      didParseCell: (data) => {
+        if (typeof data.cell.raw === 'string' && data.cell.raw.startsWith('── ')) {
+          data.cell.styles.fillColor = [241, 245, 249]
+          data.cell.styles.fontStyle = 'bold'
+          data.cell.styles.textColor = [71, 85, 105]
+        }
+      },
+    })
+
+    const y = doc.lastAutoTable.finalY || 90
+    doc.setFontSize(8).setTextColor(100, 116, 139)
+    doc.text(`Généré le ${new Date().toLocaleString('fr-FR')} · Logitag Fleet Intelligence Platform`, 40, y + 20)
+
+    const filename = `${reportTitle.replace(/\s+/g, '_')}_${Date.now()}.pdf`
+    doc.save(filename)
+    setExportOpen(false)
+  }
+
+  const exportExcel = () => {
+    const {headers, rows} = buildExportRows()
+    const wb = XLSX.utils.book_new()
+    const meta = [
+      ['LOGITAG — Assets Tracking'],
+      [reportTitle],
+      [`Période : ${dateRange.from} → ${dateRange.to}`],
+      [`Engin : ${activeTab === 'summary' ? 'Résumé (tous)' : (selectedTrackerLabels.find((t) => t.id === activeTab)?.label || '—')}`],
+      [],
+      headers,
+      ...rows,
+    ]
+    const ws = XLSX.utils.aoa_to_sheet(meta)
+    ws['!cols'] = headers.map(() => ({wch: 40}))
+    // Style header row (row 6)
+    const range = XLSX.utils.decode_range(ws['!ref'])
+    for (let C = range.s.c; C <= range.e.c; ++C) {
+      const addr = XLSX.utils.encode_cell({r: 5, c: C})
+      if (!ws[addr]) continue
+      ws[addr].s = {font: {bold: true}, fill: {fgColor: {rgb: 'F1F5F9'}}}
+    }
+    XLSX.utils.book_append_sheet(wb, ws, 'Rapport')
+    const blob = new Blob([XLSX.write(wb, {bookType: 'xlsx', type: 'array'})], {type: 'application/octet-stream'})
+    saveAs(blob, `${reportTitle.replace(/\s+/g, '_')}_${Date.now()}.xlsx`)
+    setExportOpen(false)
+  }
+
+  const printReport = () => { window.print() }
 
   const selectedTrackerLabels = useMemo(() => {
     const list = []
@@ -436,14 +542,37 @@ function NavixyReport() {
         /* ─────────────────── RESULT VIEW ─────────────────── */
         <div className='nvx-result' data-testid='nvx-result-view'>
           <div className='nvx-result-top'>
-            <div className='nvx-result-actions'>
-              <button className='nvx-action' title='Exporter' data-testid='nvx-action-export'>
+            <div className='nvx-result-actions' style={{position: 'relative'}}>
+              <button
+                className='nvx-action'
+                title='Exporter'
+                onClick={() => setExportOpen((v) => !v)}
+                data-testid='nvx-action-export'
+              >
                 <i className='pi pi-download' />
               </button>
+              {exportOpen && (
+                <div className='nvx-export-menu' data-testid='nvx-export-menu'>
+                  <button onClick={exportPDF} data-testid='nvx-export-pdf'>
+                    <span className='nvx-export-ico' style={{background: '#FEE2E2', color: '#DC2626'}}><i className='pi pi-file-pdf' /></span>
+                    <span>
+                      <span className='nvx-export-title'>PDF</span>
+                      <span className='nvx-export-sub'>Document à imprimer</span>
+                    </span>
+                  </button>
+                  <button onClick={exportExcel} data-testid='nvx-export-excel'>
+                    <span className='nvx-export-ico' style={{background: '#DCFCE7', color: '#16A34A'}}><i className='pi pi-file-excel' /></span>
+                    <span>
+                      <span className='nvx-export-title'>Excel (.xlsx)</span>
+                      <span className='nvx-export-sub'>Feuille modifiable</span>
+                    </span>
+                  </button>
+                </div>
+              )}
               <button className='nvx-action' title='Supprimer' data-testid='nvx-action-delete' onClick={onClose}>
                 <i className='pi pi-trash' />
               </button>
-              <button className='nvx-action' title='Imprimer' data-testid='nvx-action-print'>
+              <button className='nvx-action' title='Imprimer' data-testid='nvx-action-print' onClick={printReport}>
                 <i className='pi pi-print' />
               </button>
             </div>
