@@ -577,13 +577,66 @@ const DashboardListCards = () => {
 
             <div className="dbn-alert-grid" data-testid="om-alert-cards">
               {[
-                {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j`},
-                {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`},
-                {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j`},
-                {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags off', count: alerts.inactiveTags.length, desc: 'Inactifs'},
+                {key: 'immobilized', icon: 'pi pi-clock', color: '#EF4444', label: 'Immobilisés', count: alerts.immobilized.length, desc: `>${alertThresholds.immobilized}j`,
+                  info: {
+                    title: 'Immobilisés — Engins inactifs',
+                    description: `Engins n'ayant émis aucun signal GPS ou balise sur une période prolongée. Peut indiquer : engin hors service, batterie morte, tag arraché, ou asset oublié sur site client.`,
+                    formula: `Immobilisés = Engins avec\n  lastSeenAt > ${alertThresholds.immobilized} jours`,
+                    composition: [
+                      {color: '#EF4444', label: 'Immobilisés détectés', value: String(alerts.immobilized.length), valueColor: '#DC2626'},
+                      {color: '#94A3B8', label: `Seuil d'alerte`, value: `> ${alertThresholds.immobilized} jours`},
+                    ],
+                    thresholdNote: `Vérifier physiquement les engins listés. Contacter le client si l'engin est resté sur site > 60j.`,
+                  }},
+                {key: 'lowBattery', icon: 'pi pi-bolt', color: '#F59E0B', label: 'Batterie', count: alerts.lowBattery.length, desc: `<${alertThresholds.battery}%`,
+                  info: {
+                    title: 'Batterie — Charge faible',
+                    description: `Tags IoT dont la batterie est critique. Sans intervention, l'asset sera invisible dans les prochaines 24-72h.`,
+                    formula: `Batterie faible = Tags avec\n  niveau batterie < ${alertThresholds.battery}%`,
+                    composition: [
+                      {color: '#F59E0B', label: 'Tags à remplacer', value: String(alerts.lowBattery.length), valueColor: '#D97706'},
+                      {color: '#94A3B8', label: `Seuil d'alerte`, value: `< ${alertThresholds.battery}%`},
+                    ],
+                    thresholdNote: `Prévoir une tournée de remplacement batterie. Sous 10% la perte de signal est imminente.`,
+                  }},
+                {key: 'underUtilized', icon: 'pi pi-ban', color: '#8B5CF6', label: 'Sous-utilisés', count: alerts.underUtilized.length, desc: `>${alertThresholds.inactive}j`,
+                  info: {
+                    title: 'Sous-utilisés — Flotte dormante',
+                    description: `Engins présents dans la flotte mais peu sollicités sur la période (peu de changements de position/statut). Optimisation possible.`,
+                    formula: `Sous-utilisés = Engins avec\n  inactivité > ${alertThresholds.inactive} jours`,
+                    composition: [
+                      {color: '#8B5CF6', label: 'Engins dormants', value: String(alerts.underUtilized.length), valueColor: '#7C3AED'},
+                      {color: '#94A3B8', label: `Seuil d'alerte`, value: `> ${alertThresholds.inactive} jours`},
+                    ],
+                    thresholdNote: `Envisager de redéployer ces engins sur d'autres sites ou de réduire la flotte.`,
+                  }},
+                {key: 'inactiveTags', icon: 'pi pi-wifi', color: '#64748B', label: 'Tags off', count: alerts.inactiveTags.length, desc: 'Inactifs',
+                  info: {
+                    title: 'Tags off — Connectivité perdue',
+                    description: `Tags IoT n'ayant plus émis depuis une période anormalement longue. Causes possibles : panne matérielle, tag détruit, hors couverture réseau.`,
+                    formula: `Tags off = Tags avec\n  dernière émission > 14j`,
+                    composition: [
+                      {color: '#64748B', label: 'Tags inactifs', value: String(alerts.inactiveTags.length), valueColor: '#475569'},
+                      {color: '#94A3B8', label: `Seuil`, value: `> 14 jours`},
+                    ],
+                    thresholdNote: `Contrôler physiquement le tag. Couverture réseau ≠ batterie → vérifier les 2.`,
+                  }},
               ].map(a => (
                 <div key={a.key} className={`dbn-alert-item ${selectedAlert === a.key ? 'dbn-alert-item--on' : ''} ${a.count > 0 ? 'dbn-alert-item--warn' : ''}`}
-                  style={{'--ac': a.color}} onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)} data-testid={`alert-card-${a.key}`}>
+                  style={{'--ac': a.color, position: 'relative'}} onClick={() => setSelectedAlert(selectedAlert === a.key ? null : a.key)} data-testid={`alert-card-${a.key}`}>
+                  <button
+                    type='button'
+                    className='dbn-alert-info-btn'
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      const rect = e.currentTarget.getBoundingClientRect()
+                      setKpiInfo({info: a.info, anchorRect: rect})
+                    }}
+                    aria-label='Explication'
+                    data-testid={`alert-info-btn-${a.key}`}
+                  >
+                    <i className='pi pi-info-circle' />
+                  </button>
                   <div className="dbn-alert-ico" style={{background: `${a.color}12`, color: a.color}}><i className={a.icon}></i></div>
                   <div className="dbn-alert-num" style={{color: a.count > 0 ? a.color : '#CBD5E1'}}>{a.count}</div>
                   <div className="dbn-alert-lbl">{a.label}</div>
@@ -905,11 +958,21 @@ const STYLES = `
 .dbn-alert-item:hover { background: #FAFBFC; }
 .dbn-alert-item--on { background: #F8FAFC; }
 .dbn-alert-item--on::after { content: ''; display: block; width: 24px; height: 2.5px; border-radius: 2px; background: var(--ac); margin-top: 2px; }
-.dbn-alert-ico { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; }
-.dbn-alert-num { font-family: 'Manrope', sans-serif; font-size: 1.4rem; font-weight: 800; line-height: 1; }
-.dbn-alert-lbl { font-size: 0.7rem; font-weight: 700; color: #0F172A; }
-.dbn-alert-desc { font-size: 0.6rem; color: #94A3B8; }
+.dbn-alert-ico { width: 42px; height: 42px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; }
+.dbn-alert-num { font-family: 'Manrope', sans-serif; font-size: 1.9rem; font-weight: 800; line-height: 1; letter-spacing: -0.03em; margin-top: 4px; }
+.dbn-alert-lbl { font-size: 0.92rem; font-weight: 700; color: #0F172A; letter-spacing: -0.005em; margin-top: 4px; }
+.dbn-alert-desc { font-size: 0.76rem; color: #64748B; font-weight: 500; }
 .dbn-alert-item--warn .dbn-alert-ico { animation: dbnPulse 2.5s infinite; }
+.dbn-alert-info-btn {
+  position: absolute; top: 8px; right: 8px;
+  width: 26px; height: 26px; border: 0; background: transparent;
+  color: #CBD5E1; border-radius: 7px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  z-index: 1;
+}
+.dbn-alert-info-btn:hover { background: #EFF6FF; color: #1D4ED8; }
+.dbn-alert-info-btn i { font-size: 0.95rem; }
 @keyframes dbnPulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
 
 /* Alert List */
