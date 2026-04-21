@@ -6326,3 +6326,90 @@ input.lt-form-input,
   .lt-depot-kpis { grid-template-columns: 1fr; }
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   ADDRESS SEARCH HINT — prominent call to action for address lookup
+   ═══════════════════════════════════════════════════════════ */
+.lt-addr-hint {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(180deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-bottom: 1px solid #BFDBFE;
+  position: relative;
+  overflow: hidden;
+}
+.lt-addr-hint::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: #1D4ED8;
+}
+.lt-addr-hint-ico {
+  width: 34px; height: 34px;
+  border-radius: 9px;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.88rem;
+  flex-shrink: 0;
+  box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.4);
+  animation: lt-addr-pulse 2s ease-in-out infinite;
+}
+@keyframes lt-addr-pulse {
+  0% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.45); }
+  70% { box-shadow: 0 0 0 12px rgba(29, 78, 216, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0); }
+}
+.lt-addr-hint-title {
+  font-size: 0.86rem;
+  font-weight: 800;
+  color: #1D4ED8;
+  letter-spacing: -0.005em;
+  font-family: 'Manrope', 'Inter', sans-serif;
+}
+.lt-addr-hint-sub {
+  font-size: 0.74rem;
+  color: #475569;
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+/* Highlight the Google Places autocomplete input */
+.lt-addr-search-highlight [class*='control'] {
+  border: 2px solid #1D4ED8 !important;
+  box-shadow: 0 4px 16px rgba(29, 78, 216, 0.22), 0 0 0 4px rgba(29, 78, 216, 0.1) !important;
+  border-radius: 10px !important;
+  min-height: 44px !important;
+  transition: all 0.2s ease;
+  animation: lt-addr-input-glow 2.5s ease-in-out infinite;
+}
+.lt-addr-search-highlight [class*='control']:focus-within {
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 6px 20px rgba(29, 78, 216, 0.3), 0 0 0 4px rgba(29, 78, 216, 0.15) !important;
+  animation: none;
+}
+@keyframes lt-addr-input-glow {
+  0%, 100% { box-shadow: 0 4px 16px rgba(29, 78, 216, 0.22), 0 0 0 4px rgba(29, 78, 216, 0.1); }
+  50% { box-shadow: 0 6px 22px rgba(29, 78, 216, 0.32), 0 0 0 6px rgba(29, 78, 216, 0.18); }
+}
+.lt-addr-search-highlight [class*='placeholder'] {
+  color: #1D4ED8 !important;
+  font-weight: 600;
+}
+.lt-addr-search-highlight [class*='control']::before {
+  content: '\f002';
+  font-family: 'primeicons';
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #1D4ED8;
+  font-size: 0.92rem;
+  z-index: 2;
+  pointer-events: none;
+}
+.lt-addr-search-highlight [class*='valueContainer'] {
+  padding-left: 38px !important;
+}
+

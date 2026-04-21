@@ -314,6 +314,9 @@ export const MapSearchComponent = ({
               apiKey={apiKey}
               selectProps={{
                 onChange: onAutocompletPlaceSelected,
+                placeholder: 'Tapez votre adresse…',
+                noOptionsMessage: () => 'Commencez à taper…',
+                loadingMessage: () => 'Recherche…',
               }}
             />
           </div>

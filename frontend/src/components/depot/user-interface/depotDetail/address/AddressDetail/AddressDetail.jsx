@@ -146,7 +146,14 @@ const AddressDetail = ({client, handleSaveAddress}) => {
             <div style={{padding: '12px 16px', fontFamily: "'Manrope', sans-serif", fontSize: '0.76rem', fontWeight: 800, color: '#0F172A', borderBottom: '1px solid #F1F5F9', background: 'linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%)', textTransform: 'uppercase', letterSpacing: '0.08em', display: 'flex', alignItems: 'center', gap: 8}}>
               <i className='pi pi-map' style={{color: '#1D4ED8'}}></i>Localisation
             </div>
-            <div style={{padding: 0, height: 480}}>
+            <div className='lt-addr-hint' data-testid='address-search-hint'>
+              <div className='lt-addr-hint-ico'><i className='pi pi-search' /></div>
+              <div>
+                <div className='lt-addr-hint-title'>Tapez l'adresse ici</div>
+                <div className='lt-addr-hint-sub'>Recherchez par nom de rue ou ville. Les champs à gauche se rempliront automatiquement.</div>
+              </div>
+            </div>
+            <div className='lt-addr-search-highlight' style={{padding: 0, height: 480, position: 'relative'}}>
               <MapSearchComponent
                 style={{height: '480px'}}
                 onAddress={(e) => setAddressMap(e)}
