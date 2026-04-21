@@ -24,6 +24,9 @@ import LastSeenComponent from '../../Engin/EnginDetail/LastSeenComponent'
 const TagMapViewComponent = ({type}) => {
   const [formatedList, setFormatedList] = useState([])
   const [flowFilter, setFlowFilter] = useState('all') // all | onsite | arrived | exited
+  const [zoneFilter, setZoneFilter] = useState([]) // array of LocationID (numbers)
+  const [showZoneDD, setShowZoneDD] = useState(false)
+  const [zoneSearch, setZoneSearch] = useState('')
   const [isLastPage, setIsLastPage] = useState(false)
   const [loading, setLoading] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -400,10 +403,34 @@ const TagMapViewComponent = ({type}) => {
     return {...counts, zones: counts.zones.size}
   }, [formatedList])
 
+  // ── Build zones list (LocationID + name + count) ──
+  const zonesList = React.useMemo(() => {
+    const byZone = {}
+    ;(formatedList || []).forEach((o) => {
+      if (o.LocationID && o.LocationID != 0) {
+        const k = String(o.LocationID)
+        if (!byZone[k]) byZone[k] = {id: o.LocationID, name: o.LocationObjectname || 'Zone #' + o.LocationID, count: 0}
+        byZone[k].count++
+      }
+    })
+    return Object.values(byZone).sort((a, b) => b.count - a.count)
+  }, [formatedList])
+
+  const filteredZonesList = React.useMemo(() => {
+    if (!zoneSearch) return zonesList
+    const q = zoneSearch.toLowerCase()
+    return zonesList.filter((z) => (z.name || '').toLowerCase().includes(q))
+  }, [zonesList, zoneSearch])
+
   const filteredPios = React.useMemo(() => {
-    if (flowFilter === 'all') return formatedList
+    let list = formatedList || []
+    if (zoneFilter && zoneFilter.length > 0) {
+      const set = new Set(zoneFilter.map(String))
+      list = list.filter((o) => o.LocationID && set.has(String(o.LocationID)))
+    }
+    if (flowFilter === 'all') return list
     const now = moment()
-    return (formatedList || []).filter((o) => {
+    return list.filter((o) => {
       if (flowFilter === 'onsite') return o.LocationID && o.LocationID != 0 && o.LocationActif == 7
       if (!o.lastSeenAt) return false
       const diffMin = now.diff(moment.utc(o.lastSeenAt), 'minutes')
@@ -411,7 +438,13 @@ const TagMapViewComponent = ({type}) => {
       if (flowFilter === 'exited') return diffMin > 60 * 24 * 3
       return true
     })
-  }, [formatedList, flowFilter])
+  }, [formatedList, flowFilter, zoneFilter])
+
+  const toggleZone = (id) => {
+    setZoneFilter((prev) => prev.includes(id) ? prev.filter((z) => z !== id) : [...prev, id])
+  }
+  const clearZones = () => setZoneFilter([])
+  const selectAllZones = () => setZoneFilter(filteredZonesList.map((z) => z.id))
 
   return (
     <div className="lt-page" data-testid="map-page">
@@ -458,10 +491,83 @@ const TagMapViewComponent = ({type}) => {
             <i className='pi pi-arrow-up-right' style={{color: '#EF4444', fontSize: '0.75rem'}} />
             <strong>{flowCounts.exited}</strong> Sorties
           </button>
-          <button className='lt-flow-pill lt-flow-pill--info' data-testid='flow-pill-zones'>
-            <i className='pi pi-map-marker' style={{color: '#2563EB', fontSize: '0.75rem'}} />
-            <strong>{flowCounts.zones}</strong> Zones
-          </button>
+          <div className='lt-flow-zone-wrap' style={{position: 'relative'}}>
+            <button
+              className={`lt-flow-pill ${zoneFilter.length > 0 ? 'is-active' : 'lt-flow-pill--info'}`}
+              onClick={() => setShowZoneDD((v) => !v)}
+              data-testid='flow-pill-zones'
+              aria-expanded={showZoneDD}
+            >
+              <i className='pi pi-map-marker' style={{fontSize: '0.75rem'}} />
+              <strong>{zoneFilter.length > 0 ? `${zoneFilter.length}/${flowCounts.zones}` : flowCounts.zones}</strong>
+              Zones
+              <i className={`pi pi-chevron-${showZoneDD ? 'up' : 'down'}`} style={{fontSize: '0.6rem', opacity: 0.7}} />
+            </button>
+            {showZoneDD && (
+              <div className='lt-zone-dd' data-testid='zones-dropdown'>
+                <div className='lt-zone-dd-head'>
+                  <i className='pi pi-search' />
+                  <input
+                    type='text'
+                    placeholder='Rechercher une zone…'
+                    value={zoneSearch}
+                    onChange={(e) => setZoneSearch(e.target.value)}
+                    autoFocus
+                    data-testid='zone-search'
+                  />
+                </div>
+                <div className='lt-zone-dd-toolbar'>
+                  <span className='lt-zone-dd-count'>
+                    {zoneFilter.length} / {zonesList.length} sélectionnée{zoneFilter.length > 1 ? 's' : ''}
+                  </span>
+                  <div style={{display: 'flex', gap: 6}}>
+                    <button
+                      className='lt-zone-dd-quick'
+                      onClick={selectAllZones}
+                      disabled={filteredZonesList.length === 0}
+                      data-testid='zones-select-all'
+                    >Tout</button>
+                    <button
+                      className='lt-zone-dd-quick'
+                      onClick={clearZones}
+                      disabled={zoneFilter.length === 0}
+                      data-testid='zones-clear'
+                    >Effacer</button>
+                  </div>
+                </div>
+                <div className='lt-zone-dd-list'>
+                  {filteredZonesList.length === 0 && (
+                    <div className='lt-zone-dd-empty'>
+                      <i className='pi pi-inbox' /> Aucune zone trouvée
+                    </div>
+                  )}
+                  {filteredZonesList.map((z) => {
+                    const checked = zoneFilter.includes(z.id)
+                    return (
+                      <label key={z.id} className={`lt-zone-dd-row ${checked ? 'is-checked' : ''}`} data-testid={`zone-row-${z.id}`}>
+                        <input
+                          type='checkbox'
+                          checked={checked}
+                          onChange={() => toggleZone(z.id)}
+                        />
+                        <span className='lt-zone-dd-name'>{z.name}</span>
+                        <span className='lt-zone-dd-badge'>{z.count}</span>
+                      </label>
+                    )
+                  })}
+                </div>
+                <div className='lt-zone-dd-footer'>
+                  <button
+                    className='lt-zone-dd-apply'
+                    onClick={() => setShowZoneDD(false)}
+                    data-testid='zones-apply'
+                  >
+                    <i className='pi pi-check' /> Appliquer
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
       <div className="lt-table-wrap" style={{overflow: 'visible', minHeight: '70vh'}} data-testid="map-wrap">

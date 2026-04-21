@@ -11,6 +11,7 @@ import {
 } from '../../slice/dashboard.slice'
 import {useAppDispatch, useAppSelector} from '../../../../hooks'
 import DashboardDetail from '../DashboardDetail/DashboardDetail'
+import KPIInfoPopover from './KPIInfoPopover'
 import Chart from 'react-apexcharts'
 import {_fetchDashboardDetail} from '../../api/index'
 import {MapContainer, TileLayer, Marker, Popup} from 'react-leaflet'
@@ -72,6 +73,68 @@ const fmt = (n) => (n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n ?? 0))
 const KPI_COLORS = ['#3B82F6', '#EF4444', '#22C55E', '#8B5CF6']
 const KPI_ICONS = ['pi pi-box', 'pi pi-exclamation-triangle', 'pi pi-check-circle', 'pi pi-tag']
 
+/* ── Explanations (Navixy-style) for each KPI card.
+   Mapped by index so it works regardless of backend card codes. ── */
+const buildKpiInfo = (item, i, color) => {
+  const label = item.quantityLabel || item.label || item.title || ''
+  const quantity = item.quantity ?? 0
+  const total = item.total ?? item.maxValue ?? '—'
+  const pct = item.value ?? 0
+
+  const baseInfos = [
+    {
+      // Card 0 — total engins
+      title: `${label || 'Engins'} — Indicateur principal`,
+      description: `Ce KPI représente le nombre total d'engins actuellement suivis dans votre flotte, avec un pourcentage de couverture basé sur l'activité récente.`,
+      formula: `Quantité = Engins détectés\nPourcentage = (Actifs ÷ Total) × 100`,
+      composition: [
+        {color: color, label: 'Valeur actuelle', value: String(quantity), valueColor: color},
+        {color: '#94A3B8', label: 'Total référentiel', value: String(total)},
+        {color: '#22C55E', label: 'Taux de couverture', value: `${pct}%`, valueColor: '#16A34A'},
+      ],
+      thresholdNote: `Un taux > 70% indique une flotte saine. Entre 40-70% surveiller l'activité. Sous 40% action corrective recommandée.`,
+    },
+    {
+      // Card 1 — alertes / anomalies
+      title: `${label || 'Alertes'} — Engins en alerte`,
+      description: `Nombre d'engins nécessitant une attention : batterie faible, immobilisation prolongée, perte de signal ou statut anormal.`,
+      formula: `Alertes = Batterie < 20%\n        + Immobilisés > 30j\n        + Tags off > 14j\n        + Sous-utilisés`,
+      composition: [
+        {color: '#EF4444', label: 'Anomalies détectées', value: String(quantity), valueColor: '#DC2626'},
+        {color: '#94A3B8', label: 'Total surveillé', value: String(total)},
+        {color: pct > 20 ? '#EF4444' : '#F59E0B', label: 'Ratio', value: `${pct}%`, valueColor: pct > 20 ? '#DC2626' : '#D97706'},
+      ],
+      thresholdNote: `Un ratio < 5% est optimal. Entre 5-20% gérer les alertes en file. Au-dessus de 20% une revue est recommandée.`,
+    },
+    {
+      // Card 2 — actifs/sur site
+      title: `${label || 'Actifs'} — Engins sur site`,
+      description: `Engins actuellement détectés sur un site client ou dépôt, avec signal récent et statut opérationnel.`,
+      formula: `Sur site = Engins avec LocationID ≠ 0\n          ET dernier signal < 3j`,
+      composition: [
+        {color: '#22C55E', label: 'Engins sur site', value: String(quantity), valueColor: '#16A34A'},
+        {color: '#94A3B8', label: 'Total flotte', value: String(total)},
+        {color: '#3B82F6', label: 'Taux de présence', value: `${pct}%`, valueColor: '#2563EB'},
+      ],
+      thresholdNote: `Un taux de présence élevé (>80%) indique une flotte bien déployée et localisée.`,
+    },
+    {
+      // Card 3 — tags
+      title: `${label || 'Tags'} — Tags actifs`,
+      description: `Tags IoT ayant émis un signal récemment. Indicateur clé de la santé du parc IoT et de la connectivité réseau.`,
+      formula: `Tags actifs = Tags avec signal < 14j\nTaux = (Actifs ÷ Total Tags) × 100`,
+      composition: [
+        {color: '#8B5CF6', label: 'Tags actifs', value: String(quantity), valueColor: '#7C3AED'},
+        {color: '#94A3B8', label: 'Total tags', value: String(total)},
+        {color: pct > 80 ? '#22C55E' : '#F59E0B', label: 'Couverture', value: `${pct}%`, valueColor: pct > 80 ? '#16A34A' : '#D97706'},
+      ],
+      thresholdNote: `Couverture > 90% : excellent. 70-90% : à surveiller. < 70% : vérifier la connectivité réseau.`,
+    },
+  ]
+
+  return baseInfos[i % baseInfos.length]
+}
+
 const DashboardListCards = () => {
   const dashboardData = useAppSelector(getDashboard)
   const dashboardDetail = useAppSelector(getDashboardDetail)
@@ -91,6 +154,7 @@ const DashboardListCards = () => {
   })
   const [showAlertSettings, setShowAlertSettings] = useState(false)
   const [selectedAlert, setSelectedAlert] = useState(null)
+  const [kpiInfo, setKpiInfo] = useState(null) // {info, anchorRect}
 
   /* Clock */
   useEffect(() => {
@@ -431,9 +495,24 @@ const DashboardListCards = () => {
                 onClick={() => handleSelectCard(item)} style={{'--kc': color}} data-testid={`kpi-card-${i}`}>
                 <div className="dbn-kpi-top">
                   <div className="dbn-kpi-ico" style={{background: `${color}12`, color}}><i className={icon}></i></div>
-                  {pct > 0 && <span className={`dbn-kpi-trend ${pct > 50 ? 'dbn-kpi-trend--up' : 'dbn-kpi-trend--dn'}`}>
-                    <i className={`pi ${pct > 50 ? 'pi-arrow-up-right' : 'pi-arrow-down-right'}`}></i>{pct}%
-                  </span>}
+                  <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
+                    {pct > 0 && <span className={`dbn-kpi-trend ${pct > 50 ? 'dbn-kpi-trend--up' : 'dbn-kpi-trend--dn'}`}>
+                      <i className={`pi ${pct > 50 ? 'pi-arrow-up-right' : 'pi-arrow-down-right'}`}></i>{pct}%
+                    </span>}
+                    <button
+                      type='button'
+                      className='dbn-kpi-info-btn'
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        const rect = e.currentTarget.getBoundingClientRect()
+                        setKpiInfo({info: buildKpiInfo(item, i, color), anchorRect: rect})
+                      }}
+                      aria-label='Explication'
+                      data-testid={`kpi-info-btn-${i}`}
+                    >
+                      <i className='pi pi-info-circle' />
+                    </button>
+                  </div>
                 </div>
                 <div className="dbn-kpi-val">{item.quantity ?? 0}</div>
                 <div className="dbn-kpi-label">{item.quantityLabel || item.label || item.title}</div>
@@ -590,13 +669,105 @@ const DashboardListCards = () => {
           </div>
         </div>
       </div>
+      <KPIInfoPopover
+        open={!!kpiInfo}
+        onClose={() => setKpiInfo(null)}
+        anchorRect={kpiInfo?.anchorRect}
+        title={kpiInfo?.info?.title}
+        description={kpiInfo?.info?.description}
+        formula={kpiInfo?.info?.formula}
+        composition={kpiInfo?.info?.composition}
+        thresholdNote={kpiInfo?.info?.thresholdNote}
+      />
     </div>
   )
 }
 
 /* ══════════════ STYLES ══════════════ */
 const STYLES = `
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Manrope:wght@600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+/* KPI info button + popover (Navixy-style) */
+.dbn-kpi-info-btn {
+  width: 22px; height: 22px; border: 0; background: transparent;
+  color: #94A3B8; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dbn-kpi-info-btn:hover { background: #F1F5F9; color: #1D4ED8; }
+.dbn-kpi-info-btn i { font-size: 0.8rem; }
+
+.kpi-info-pop {
+  position: fixed; z-index: 10000;
+  width: 360px; max-width: calc(100vw - 24px);
+  background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.18), 0 4px 8px rgba(15, 23, 42, 0.05);
+  padding: 16px 18px 14px;
+  font-family: 'Inter', sans-serif;
+  animation: kpi-info-pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes kpi-info-pop-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.kpi-info-pop-head {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 12px; margin-bottom: 6px;
+}
+.kpi-info-pop-title {
+  font-family: 'Manrope', sans-serif; font-size: 0.98rem;
+  font-weight: 800; color: #0F172A; letter-spacing: -0.015em;
+  line-height: 1.3; margin: 0; flex: 1;
+}
+.kpi-info-pop-close {
+  width: 24px; height: 24px; border: 0; background: transparent;
+  color: #64748B; border-radius: 6px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease; flex-shrink: 0;
+}
+.kpi-info-pop-close:hover { background: #F1F5F9; color: #0F172A; }
+.kpi-info-pop-close i { font-size: 0.78rem; }
+
+.kpi-info-pop-desc {
+  font-size: 0.84rem; color: #475569; line-height: 1.5;
+  margin: 0 0 12px;
+}
+
+.kpi-info-pop-section { margin-bottom: 10px; }
+.kpi-info-pop-label {
+  font-size: 0.66rem; color: #94A3B8; font-weight: 700;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;
+}
+.kpi-info-pop-formula {
+  font-family: 'JetBrains Mono', 'Menlo', 'Monaco', monospace;
+  font-size: 0.78rem; color: #0F172A; background: #F8FAFC;
+  border: 1px solid #E2E8F0; border-radius: 8px;
+  padding: 10px 12px; margin: 0;
+  white-space: pre-wrap; word-break: break-word; line-height: 1.5;
+}
+
+.kpi-info-pop-comp { list-style: none; margin: 0; padding: 0; }
+.kpi-info-pop-comp-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid #F1F5F9;
+  font-size: 0.82rem;
+}
+.kpi-info-pop-comp-row:last-child { border-bottom: 0; }
+.kpi-info-pop-comp-dot {
+  width: 8px; height: 8px; border-radius: 999px; flex-shrink: 0;
+  box-shadow: 0 0 0 2px rgba(15, 23, 42, 0.04);
+}
+.kpi-info-pop-comp-lbl { flex: 1; color: #334155; font-weight: 500; }
+.kpi-info-pop-comp-val { font-weight: 700; color: #0F172A; font-variant-numeric: tabular-nums; }
+
+.kpi-info-pop-note {
+  display: flex; gap: 8px; align-items: flex-start;
+  background: #EFF6FF; border: 1px solid #BFDBFE;
+  color: #1E40AF; border-radius: 8px;
+  padding: 10px 12px; margin-top: 12px;
+  font-size: 0.78rem; line-height: 1.5;
+}
+.kpi-info-pop-note i { color: #2563EB; flex-shrink: 0; margin-top: 2px; font-size: 0.82rem; }
 
 /* ── Base ── */
 .dbn { font-family: 'Inter', -apple-system, sans-serif; background: #F1F5F9; min-height: 100vh; }
