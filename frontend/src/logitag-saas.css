@@ -4883,8 +4883,8 @@ input.lt-form-input,
   align-items: center;
 }
 .lt-asset-search-inner {
-  flex: 0 1 220px;
-  max-width: 220px;
+  flex: 0 1 140px;
+  max-width: 140px;
   position: relative;
   display: flex; align-items: center;
 }
