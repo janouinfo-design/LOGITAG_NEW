@@ -14,6 +14,92 @@ const MID_COLOR = '#93C5FD'       // blue-300
 const LOW_COLOR = '#CBD5E1'       // slate-300
 const AVG_COLOR = '#EF4444'       // red-500
 
+/* Metadata map to describe each chart with human-readable explanations.
+   Keys are matched by lowercase substring on chart.label/title. */
+const CHART_META = {
+  'fréquence': {
+    icon: 'pi pi-calendar',
+    subtitle: `Nombre moyen de visites d'engins par client sur la période. Plus c'est haut, plus le client est actif.`,
+    tooltipInsight: (item) => {
+      const sorted = [...(item.data.datasets[0].data || [])].map((v, i) => ({v, lbl: item.labels[i]})).sort((a,b) => b.v - a.v)
+      const top = sorted.slice(0, 3).filter((o) => o.v > 0)
+      return {
+        howTo: `Lecture : chaque barre = un client. La hauteur = nombre de visites.`,
+        readings: [
+          top.length ? `Top 3 clients (bleu foncé) : ${top.map(o => o.lbl).join(', ')}` : 'Pas encore de top 3 distinct',
+          `Moyenne : ${item.avg.toFixed(1)} visites/client`,
+          `Objectif : monter les clients sous la moyenne (ligne rouge) vers le haut`,
+        ],
+      }
+    },
+  },
+  'répartition': {
+    icon: 'pi pi-chart-bar',
+    subtitle: `Volume de bouteilles / assets déployés par client. Mesure la couverture commerciale de chaque compte.`,
+    tooltipInsight: (item) => {
+      const sorted = [...(item.data.datasets[0].data || [])].map((v, i) => ({v, lbl: item.labels[i]})).sort((a,b) => b.v - a.v)
+      const top = sorted.slice(0, 3).filter((o) => o.v > 0)
+      return {
+        howTo: `Lecture : chaque barre = volume d'assets chez un client.`,
+        readings: [
+          top.length ? `Top 3 (bleu foncé) : ${top.map(o => `${o.lbl} (${o.v})`).join(', ')}` : 'Données insuffisantes',
+          `Moyenne : ${item.avg.toFixed(1)} assets par client`,
+          `Action : identifier les clients < moyenne pour opportunité d'upsell`,
+        ],
+      }
+    },
+  },
+  'engins par status': {
+    icon: 'pi pi-tags',
+    subtitle: `Distribution du parc selon leur statut opérationnel actuel (Disponible, Livré, Réservé, Panne…).`,
+    tooltipInsight: (item) => ({
+      howTo: `Lecture : chaque barre = nombre d'engins ayant ce statut.`,
+      readings: [
+        `Un pic sur "Disponible" = bonne capacité de déploiement`,
+        `Un pic sur "En panne" ou "Réservé" = goulot d'étranglement`,
+        `Moyenne : ${item.avg.toFixed(1)} engins par statut`,
+      ],
+    }),
+  },
+  'engins par etat': {
+    icon: 'pi pi-sliders-h',
+    subtitle: `Répartition selon l'état physique : neuf, en service, hors service, maintenance…`,
+    tooltipInsight: (item) => ({
+      howTo: `Lecture : chaque barre = nombre d'engins dans cet état physique.`,
+      readings: [
+        `Un pic sur "hors service" = besoin d'intervention maintenance`,
+        `Comparer avec la fréquence des visites pour identifier les engins sous-utilisés`,
+      ],
+    }),
+  },
+  'engins par famille': {
+    icon: 'pi pi-sitemap',
+    subtitle: `Distribution du parc par famille d'engins (Compacteur, Remorque, PC, Tag, etc.).`,
+    tooltipInsight: (item) => ({
+      howTo: `Lecture : chaque barre = nombre d'engins de cette famille.`,
+      readings: [
+        `Identifier les familles sous-représentées pour compléter le parc`,
+        `Moyenne : ${item.avg.toFixed(1)} engins par famille`,
+      ],
+    }),
+  },
+}
+
+const getChartMeta = (title) => {
+  const t = (title || '').toLowerCase()
+  for (const key of Object.keys(CHART_META)) {
+    if (t.includes(key)) return CHART_META[key]
+  }
+  return {
+    icon: 'pi pi-chart-bar',
+    subtitle: 'Visualisation des données selon la période et les filtres appliqués.',
+    tooltipInsight: (item) => ({
+      howTo: `Lecture : chaque barre représente une valeur.`,
+      readings: [`Moyenne : ${item.avg.toFixed(1)}`],
+    }),
+  }
+}
+
 const getBarColors = (values) => {
   if (!Array.isArray(values) || values.length === 0) return []
   const sorted = [...values].map((v, i) => ({v: Number(v) || 0, i})).sort((a, b) => b.v - a.v)
@@ -86,6 +172,8 @@ const averageLinePlugin = {
 }
 
 const ChartGrid = ({charts}) => {
+  const [openInsight, setOpenInsight] = useState(null) // chart id currently showing insight
+
   const formatted = useMemo(() => {
     if (!Array.isArray(charts)) return []
     return charts.map((chart) => {
@@ -150,38 +238,116 @@ const ChartGrid = ({charts}) => {
 
   return (
     <div style={{display: 'flex', flexDirection: 'column', gap: 14, width: '100%'}} data-testid='status-charts'>
-      {formatted.map((item, index) => (
-        <div
-          key={item.id || index}
-          style={{
-            background: '#FFF',
-            border: '1px solid #E2E8F0',
-            borderRadius: 14,
-            padding: 22,
-            boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
-          }}
-        >
-          <div style={{marginBottom: 16}}>
-            <h3 style={{margin: 0, fontSize: '1rem', fontWeight: 800, color: '#0F172A', fontFamily: "'Manrope', sans-serif", letterSpacing: '-0.01em'}}>
-              {item.title}
-            </h3>
-            <div style={{fontSize: '0.76rem', color: '#64748B', marginTop: 4, display: 'flex', alignItems: 'center', gap: 14}}>
-              <span><span style={{display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: TOP_COLOR, marginRight: 6, verticalAlign: 'middle'}}></span>Top 3</span>
-              <span><span style={{display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: MID_COLOR, marginRight: 6, verticalAlign: 'middle'}}></span>Moyen</span>
-              <span><span style={{display: 'inline-block', width: 10, height: 10, borderRadius: 3, background: LOW_COLOR, marginRight: 6, verticalAlign: 'middle'}}></span>Bas</span>
-              <span style={{marginLeft: 'auto'}}><span style={{display: 'inline-block', width: 12, height: 2, background: AVG_COLOR, marginRight: 6, verticalAlign: 'middle'}}></span>Moyenne globale ({item.avg.toFixed(1)})</span>
+      {formatted.map((item, index) => {
+        const meta = getChartMeta(item.title)
+        const insight = meta.tooltipInsight ? meta.tooltipInsight(item) : null
+        const isOpen = openInsight === (item.id || index)
+        return (
+          <div
+            key={item.id || index}
+            style={{
+              background: '#FFF',
+              border: '1px solid #E2E8F0',
+              borderRadius: 14,
+              padding: 22,
+              boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)',
+            }}
+          >
+            {/* ══ Rich header with icon, title, subtitle, info btn ══ */}
+            <div style={{display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 14}}>
+              <div style={{display: 'flex', gap: 14, flex: 1, minWidth: 0}}>
+                <div style={{
+                  width: 42, height: 42, borderRadius: 10,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  background: '#EFF6FF', color: '#1D4ED8',
+                  flexShrink: 0,
+                }}>
+                  <i className={meta.icon} style={{fontSize: '1.1rem'}} />
+                </div>
+                <div style={{flex: 1, minWidth: 0}}>
+                  <h3 style={{margin: 0, fontSize: '1.05rem', fontWeight: 800, color: '#0F172A', fontFamily: "'Manrope', sans-serif", letterSpacing: '-0.015em', lineHeight: 1.25}}>
+                    {item.title}
+                  </h3>
+                  <p style={{margin: '4px 0 0', fontSize: '0.82rem', color: '#64748B', lineHeight: 1.4}}>
+                    {meta.subtitle}
+                  </p>
+                </div>
+              </div>
+              <button
+                type='button'
+                onClick={() => setOpenInsight(isOpen ? null : (item.id || index))}
+                aria-label='Comment lire ce graphique ?'
+                style={{
+                  width: 32, height: 32, borderRadius: 8,
+                  background: isOpen ? '#EFF6FF' : 'transparent',
+                  color: isOpen ? '#1D4ED8' : '#94A3B8',
+                  border: 0, cursor: 'pointer',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  transition: 'background 0.15s, color 0.15s',
+                  flexShrink: 0,
+                }}
+                data-testid={`chart-info-btn-${index}`}
+              >
+                <i className='pi pi-info-circle' style={{fontSize: '1rem'}} />
+              </button>
+            </div>
+
+            {/* ══ Insight panel (toggleable) ══ */}
+            {isOpen && insight && (
+              <div style={{
+                background: '#F0F7FF',
+                border: '1px solid #BFDBFE',
+                borderRadius: 10,
+                padding: '12px 14px',
+                marginBottom: 14,
+                fontSize: '0.82rem',
+                color: '#1E3A8A',
+                lineHeight: 1.55,
+              }} data-testid={`chart-insight-${index}`}>
+                <div style={{display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 6, color: '#1D4ED8', fontSize: '0.72rem', textTransform: 'uppercase', letterSpacing: '0.06em'}}>
+                  <i className='pi pi-lightbulb' /> Comment interpréter
+                </div>
+                <div style={{color: '#334155', marginBottom: 8}}>{insight.howTo}</div>
+                <ul style={{margin: 0, paddingLeft: 18}}>
+                  {insight.readings.map((r, i) => (
+                    <li key={i} style={{marginBottom: 3, color: '#334155'}}>{r}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {/* ══ Legend ══ */}
+            <div style={{fontSize: '0.78rem', color: '#475569', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 14, flexWrap: 'wrap'}}>
+              <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <span style={{display: 'inline-block', width: 11, height: 11, borderRadius: 3, background: TOP_COLOR}}></span>
+                <strong style={{color: '#0F172A', fontWeight: 700}}>Top 3</strong>
+                <span style={{color: '#94A3B8', fontSize: '0.72rem'}}>(meilleurs)</span>
+              </span>
+              <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <span style={{display: 'inline-block', width: 11, height: 11, borderRadius: 3, background: MID_COLOR}}></span>
+                <strong style={{color: '#0F172A', fontWeight: 700}}>Moyen</strong>
+              </span>
+              <span style={{display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <span style={{display: 'inline-block', width: 11, height: 11, borderRadius: 3, background: LOW_COLOR}}></span>
+                <strong style={{color: '#0F172A', fontWeight: 700}}>Bas</strong>
+              </span>
+              <span style={{marginLeft: 'auto', display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <span style={{display: 'inline-block', width: 14, height: 2, background: AVG_COLOR, borderRadius: 2}}></span>
+                <span style={{color: '#64748B'}}>Moyenne&nbsp;:&nbsp;</span>
+                <strong style={{color: '#0F172A', fontWeight: 800}}>{item.avg.toFixed(1)}</strong>
+              </span>
+            </div>
+            <div style={{height: 280}}>
+              <Chart
+                type='bar'
+                data={item.data}
+                options={buildOptions(item.avg)}
+                plugins={[averageLinePlugin]}
+              />
             </div>
           </div>
-          <div style={{height: 280}}>
-            <Chart
-              type='bar'
-              data={item.data}
-              options={buildOptions(item.avg)}
-              plugins={[averageLinePlugin]}
-            />
-          </div>
-        </div>
-      ))}
+        )
+      })}
     </div>
   )
 }
