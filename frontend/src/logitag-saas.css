@@ -3414,13 +3414,18 @@
   padding: 14px 18px; background: #FFF; border-radius: 12px;
   border: 1px solid var(--lt-border); margin-bottom: 14px; gap: 12px; flex-wrap: wrap;
 }
-.lt-detail-header-left { display: flex; align-items: center; gap: 12px; }
+.lt-detail-header-left { display: flex; align-items: center; gap: 14px; }
 .lt-detail-header-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .lt-back-btn {
-  width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--lt-border);
-  background: #FFF; display: flex; align-items: center; justify-content: center;
-  color: #64748B; cursor: pointer; font-size: 0.85rem; transition: all 0.12s;
+  width: auto; min-width: 34px; height: 34px; padding: 0 12px;
+  border-radius: 8px; border: 1px solid var(--lt-border);
+  background: #FFF; display: inline-flex; align-items: center; gap: 6px;
+  justify-content: center; color: #64748B; cursor: pointer;
+  font-size: 0.85rem; font-family: 'Inter', sans-serif;
+  transition: all 0.12s;
+  flex-shrink: 0; white-space: nowrap;
 }
+.lt-back-btn > span { white-space: nowrap; }
 .lt-back-btn:hover { border-color: #3B82F6; color: #3B82F6; background: #EFF6FF; }
 .lt-detail-avatar { width: 52px; height: 52px; border-radius: 12px; overflow: hidden; flex-shrink: 0; }
 .lt-detail-avatar-ph {
