@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Calendrier — Mockups</title>
+<link rel="stylesheet" href="https://unpkg.com/primeicons/primeicons.css">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #F6F8FB;
+    color: #0F172A;
+  }
+  .section {
+    max-width: 1680px;
+    margin: 40px auto;
+    padding: 0 24px;
+  }
+  .section-label {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+  }
+  .lbl-a { background: #DBEAFE; color: #1D4ED8; }
+  .lbl-b { background: #FEF3C7; color: #B45309; }
+  .lbl-c { background: #DCFCE7; color: #166534; }
+  .section-title {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 6px;
+    letter-spacing: -0.02em;
+  }
+  .section-desc {
+    font-size: 0.9rem;
+    color: #64748B;
+    margin: 0 0 20px;
+    max-width: 760px;
+  }
+  .card {
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(15,23,42,0.04);
+  }
+  /* ═══════════════ Shared ═══════════════ */
+  .page-head {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .page-ico {
+    width: 42px; height: 42px; border-radius: 11px;
+    background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+    color: #FFF; display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1.1rem;
+    box-shadow: 0 4px 12px rgba(29,78,216,0.18);
+  }
+  .page-title-main {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .page-subtitle {
+    font-size: 0.8rem; color: #64748B; margin: 2px 0 0;
+  }
+  .badge-assets {
+    margin-left: auto;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    background: #F1F5F9;
+    border-radius: 999px;
+    font-size: 0.78rem;
+  }
+  .badge-assets strong { color: #0F172A; }
+
+  /* toolbar */
+  .toolbar {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #FAFBFC;
+    flex-wrap: wrap;
+  }
+  .pills {
+    display: inline-flex;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 10px;
+    padding: 3px;
+    gap: 2px;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    border-radius: 8px;
+    cursor: pointer;
+    border: 0;
+    background: transparent;
+  }
+  .pill.active { background: #1D4ED8; color: #FFF; }
+  .input-search {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    min-width: 240px;
+    color: #94A3B8;
+    font-size: 0.82rem;
+  }
+  .input-search i { color: #94A3B8; font-size: 0.78rem; }
+  .dropdown {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 7px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    font-size: 0.82rem;
+    color: #334155;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .dropdown i { font-size: 0.65rem; color: #94A3B8; }
+  .spacer { flex: 1; }
+  .pager {
+    display: inline-flex; align-items: center; gap: 4px;
+  }
+  .pager-btn {
+    width: 30px; height: 30px; border-radius: 8px;
+    border: 1px solid #E2E8F0;
+    background: #FFFFFF;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #64748B;
+    cursor: pointer;
+    font-size: 0.72rem;
+  }
+  .pager-btn.active { background: #1D4ED8; color: #FFF; border-color: #1D4ED8; }
+  .pager-info { font-size: 0.78rem; color: #64748B; margin-left: 6px; }
+  .legend {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 6px 12px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    font-size: 0.74rem;
+  }
+  .legend-item { display: inline-flex; align-items: center; gap: 5px; color: #475569; }
+  .legend-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    display: inline-block;
+  }
+
+  /* date navigator */
+  .date-nav {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 10px 18px;
+    border-bottom: 1px solid #F1F5F9;
+  }
+  .date-nav-left, .date-nav-right { display: inline-flex; align-items: center; gap: 8px; }
+  .today-btn {
+    padding: 7px 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    font-size: 0.8rem; font-weight: 600; color: #334155;
+    cursor: pointer;
+  }
+  .today-btn:hover { background: #F8FAFC; border-color: #1D4ED8; color: #1D4ED8; }
+  .date-range-pill {
+    padding: 7px 16px;
+    background: #EFF6FF;
+    border: 1px solid #BFDBFE;
+    color: #1D4ED8;
+    border-radius: 9px;
+    font-size: 0.82rem; font-weight: 700;
+  }
+  .icon-btn {
+    width: 32px; height: 32px;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    background: #FFFFFF;
+    color: #64748B;
+    cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+  }
+  .icon-btn:hover { border-color: #1D4ED8; color: #1D4ED8; }
+
+  /* timeline grid */
+  .timeline-wrap { overflow-x: auto; }
+  .tl {
+    display: grid;
+    grid-template-columns: 240px repeat(24, 44px);
+    min-width: max-content;
+  }
+  .tl-head {
+    display: contents;
+    font-weight: 700;
+  }
+  .tl-head > * {
+    padding: 8px 10px;
+    background: #F8FAFC;
+    border-bottom: 1px solid #E2E8F0;
+    font-size: 0.7rem;
+    color: #64748B;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tl-head-left {
+    text-align: left !important;
+    position: sticky; left: 0; z-index: 2;
+    background: #F8FAFC !important;
+  }
+  .tl-row {
+    display: contents;
+  }
+  .tl-row:hover .tl-asset { background: #FAFBFF; }
+  .tl-row:hover .tl-cell { background: #FAFBFF; }
+
+  .tl-asset {
+    padding: 10px 12px;
+    border-bottom: 1px solid #F1F5F9;
+    display: flex; align-items: center; gap: 10px;
+    position: sticky; left: 0; z-index: 1;
+    background: #FFFFFF;
+    min-height: 56px;
+  }
+  .tl-avatar {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    background: #F1F5F9;
+    overflow: hidden;
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #64748B;
+  }
+  .tl-avatar img { width: 100%; height: 100%; object-fit: cover; }
+  .tl-asset-txt { min-width: 0; }
+  .tl-asset-name {
+    font-size: 0.82rem; font-weight: 700; color: #0F172A;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    letter-spacing: -0.005em;
+  }
+  .tl-asset-id {
+    font-size: 0.66rem; color: #94A3B8; font-weight: 500;
+    margin-top: 1px;
+  }
+  .tl-cell {
+    border-bottom: 1px solid #F1F5F9;
+    border-left: 1px solid #F8FAFC;
+    min-height: 56px;
+    position: relative;
+  }
+  .tl-cell.zebra { background: #FAFBFC; }
+  .tl-cell.now { background: #EFF6FF; }
+  .tl-cell.now::before {
+    content: '';
+    position: absolute; left: 0; top: 0; bottom: 0;
+    width: 2px; background: #1D4ED8;
+  }
+
+  /* events */
+  .ev {
+    position: absolute;
+    top: 50%; transform: translateY(-50%);
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 8px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    border-radius: 6px;
+    white-space: nowrap;
+    box-shadow: 0 2px 6px rgba(15,23,42,0.08);
+    z-index: 1;
+  }
+  .ev i { font-size: 0.62rem; }
+  .ev-exit { background: #FEE2E2; color: #B91C1C; }
+  .ev-enter { background: #DCFCE7; color: #166534; }
+  .ev-pos { background: #DBEAFE; color: #1D4ED8; }
+
+  /* Gantt bar (option B) */
+  .gantt-bar {
+    position: absolute;
+    top: 14px; bottom: 14px;
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 10px;
+    font-size: 0.7rem; font-weight: 700;
+    color: #FFF;
+    box-shadow: 0 3px 8px rgba(15,23,42,0.12);
+    overflow: hidden;
+  }
+  .gantt-bar.use { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+  .gantt-bar.maint { background: linear-gradient(135deg, #F59E0B, #D97706); }
+  .gantt-bar.transit { background: linear-gradient(135deg, #94A3B8, #64748B); }
+
+  /* Option C — flèches simples */
+  .arrow-simple {
+    position: absolute;
+    top: 50%; transform: translate(-50%, -50%);
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    color: #FFF;
+    font-size: 0.72rem;
+  }
+  .arrow-simple.exit { background: #EF4444; }
+  .arrow-simple.enter { background: #10B981; }
+
+  /* stats option B */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    padding: 14px 18px;
+    border-bottom: 1px solid #F1F5F9;
+    background: #FAFBFC;
+  }
+  .stat {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+  }
+  .stat-ico {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+  }
+  .stat-ico.blue { background: #DBEAFE; color: #1D4ED8; }
+  .stat-ico.green { background: #DCFCE7; color: #16A34A; }
+  .stat-ico.red { background: #FEE2E2; color: #DC2626; }
+  .stat-ico.amber { background: #FEF3C7; color: #D97706; }
+  .stat-val {
+    font-family: 'Manrope', sans-serif;
+    font-size: 1.3rem; font-weight: 800;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 0.72rem; color: #64748B; font-weight: 600;
+    margin-top: 3px;
+  }
+  .view-toggle {
+    display: inline-flex;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 9px;
+    padding: 2px;
+    gap: 1px;
+  }
+  .view-toggle button {
+    padding: 5px 11px;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #64748B;
+    background: transparent;
+    border: 0;
+    border-radius: 7px;
+    cursor: pointer;
+  }
+  .view-toggle button.active { background: #0F172A; color: #FFF; }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════ OPTION A ═══════════════════════════════ -->
+<div class="section">
+  <span class="section-label lbl-a">Option A — Refonte visuelle premium</span>
+  <h1 class="section-title">Calendrier — Version élégante</h1>
+  <p class="section-desc">Toolbar unifié, avatars normalisés, mouvements en badges colorés, highlight "maintenant", zebra lignes.</p>
+
+  <div class="card">
+    <div class="page-head">
+      <div class="page-ico"><i class="pi pi-calendar"></i></div>
+      <div>
+        <h2 class="page-title-main">Calendrier</h2>
+        <p class="page-subtitle">Planification et suivi des mouvements</p>
+      </div>
+      <div class="badge-assets"><i class="pi pi-database"></i><strong>4 935</strong> assets</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="pills">
+        <button class="pill active"><i class="pi pi-box"></i>Engin</button>
+        <button class="pill"><i class="pi pi-building"></i>Worksite</button>
+      </div>
+      <div class="input-search"><i class="pi pi-search"></i>Rechercher…</div>
+      <div class="dropdown">Tous Status <i class="pi pi-chevron-down"></i></div>
+      <div class="dropdown">Tous Mouvements <i class="pi pi-chevron-down"></i></div>
+      <div class="spacer"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#EF4444"></span>Sortie</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#10B981"></span>Entrée</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#1D4ED8"></span>Position</span>
+      </div>
+    </div>
+
+    <div class="date-nav">
+      <div class="date-nav-left">
+        <button class="today-btn">Aujourd'hui</button>
+        <button class="icon-btn"><i class="pi pi-chevron-left"></i></button>
+        <span class="date-range-pill">avr. 21 – 23, 2026</span>
+        <button class="icon-btn"><i class="pi pi-chevron-right"></i></button>
+      </div>
+      <div class="date-nav-right">
+        <span class="pager-info">1 à 10 sur 4 935</span>
+        <div class="pager">
+          <button class="pager-btn"><i class="pi pi-chevron-left"></i></button>
+          <button class="pager-btn active">1</button>
+          <button class="pager-btn">2</button>
+          <button class="pager-btn">3</button>
+          <button class="pager-btn"><i class="pi pi-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="tl">
+        <div class="tl-head">
+          <div class="tl-head-left">Engins</div>
+          <div>06h</div><div>07h</div><div>08h</div><div>09h</div><div>10h</div><div>11h</div>
+          <div>12h</div><div>13h</div><div>14h</div><div>15h</div><div>16h</div><div>17h</div>
+          <div>18h</div><div>19h</div><div>20h</div><div>21h</div><div>22h</div><div>23h</div>
+          <div>00h</div><div>01h</div><div>02h</div><div>03h</div><div>04h</div><div>05h</div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-desktop"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Pc te</div>
+              <div class="tl-asset-id">BC572902A1A9</div>
+            </div>
+          </div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"><span class="ev ev-exit" style="left:6px;"><i class="pi pi-arrow-up-right"></i>Sortie</span></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell now"><span class="ev ev-pos" style="left:6px;"><i class="pi pi-map-marker"></i>Position</span></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"><span class="ev ev-enter" style="left:6px;"><i class="pi pi-arrow-down-left"></i>Entrée</span></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-box"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Machine à Café1234</div>
+              <div class="tl-asset-id">TAG11092024</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="ev ev-exit" style="left:6px;"><i class="pi pi-arrow-up-right"></i>Sortie</span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell now"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#EFF6FF;color:#1D4ED8"><i class="pi pi-mobile"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Souris</div>
+              <div class="tl-asset-id">BC572900D02A</div>
+            </div>
+          </div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"><span class="ev ev-enter" style="left:6px;"><i class="pi pi-arrow-down-left"></i>Entrée</span></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell now"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#F1F5F9"><i class="pi pi-tag"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Tag 14 Epson</div>
+              <div class="tl-asset-id">BC572903527E</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="ev ev-pos" style="left:6px;"><i class="pi pi-map-marker"></i>Position</span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="ev ev-exit" style="left:6px;"><i class="pi pi-arrow-up-right"></i>Sortie</span></div>
+          <div class="tl-cell"></div><div class="tl-cell now"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="ev ev-enter" style="left:6px;"><i class="pi pi-arrow-down-left"></i>Entrée</span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#FEF3C7;color:#D97706"><i class="pi pi-tag"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Tag 2 PC</div>
+              <div class="tl-asset-id">BC5729028630</div>
+            </div>
+          </div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"><span class="ev ev-exit" style="left:6px;"><i class="pi pi-arrow-up-right"></i>Sortie</span></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell now"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ OPTION B ═══════════════════════════════ -->
+<div class="section">
+  <span class="section-label lbl-b">Option B — Refonte Gantt SaaS</span>
+  <h1 class="section-title">Calendrier — Vision Gantt avec durées</h1>
+  <p class="section-desc">Tout l'Option A + barres horizontales entre Entrée/Sortie, mini-stats en haut, toggle Jour/Semaine/Mois.</p>
+
+  <div class="card">
+    <div class="page-head">
+      <div class="page-ico"><i class="pi pi-calendar"></i></div>
+      <div>
+        <h2 class="page-title-main">Calendrier</h2>
+        <p class="page-subtitle">Planification et suivi des mouvements</p>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:10px;align-items:center;">
+        <div class="view-toggle">
+          <button>Jour</button>
+          <button class="active">Semaine</button>
+          <button>Mois</button>
+        </div>
+        <div class="badge-assets"><i class="pi pi-database"></i><strong>4 935</strong> assets</div>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <span class="stat-ico blue"><i class="pi pi-map-marker"></i></span>
+        <div><div class="stat-val">247</div><div class="stat-lbl">Positions aujourd'hui</div></div>
+      </div>
+      <div class="stat">
+        <span class="stat-ico red"><i class="pi pi-arrow-up-right"></i></span>
+        <div><div class="stat-val">82</div><div class="stat-lbl">Sorties</div></div>
+      </div>
+      <div class="stat">
+        <span class="stat-ico green"><i class="pi pi-arrow-down-left"></i></span>
+        <div><div class="stat-val">68</div><div class="stat-lbl">Entrées</div></div>
+      </div>
+      <div class="stat">
+        <span class="stat-ico amber"><i class="pi pi-clock"></i></span>
+        <div><div class="stat-val">6h 24m</div><div class="stat-lbl">Utilisation moy.</div></div>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="pills">
+        <button class="pill active"><i class="pi pi-box"></i>Engin</button>
+        <button class="pill"><i class="pi pi-building"></i>Worksite</button>
+      </div>
+      <div class="input-search"><i class="pi pi-search"></i>Rechercher…</div>
+      <div class="dropdown">Tous Status <i class="pi pi-chevron-down"></i></div>
+      <div class="dropdown">Tous Mouvements <i class="pi pi-chevron-down"></i></div>
+      <div class="spacer"></div>
+      <div class="legend">
+        <span class="legend-item"><span class="legend-dot" style="background:#1D4ED8"></span>Utilisation</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#F59E0B"></span>Maintenance</span>
+        <span class="legend-item"><span class="legend-dot" style="background:#94A3B8"></span>Transit</span>
+      </div>
+    </div>
+
+    <div class="date-nav">
+      <div class="date-nav-left">
+        <button class="today-btn">Aujourd'hui</button>
+        <button class="icon-btn"><i class="pi pi-chevron-left"></i></button>
+        <span class="date-range-pill">avr. 21 – 23, 2026</span>
+        <button class="icon-btn"><i class="pi pi-chevron-right"></i></button>
+      </div>
+      <div class="date-nav-right">
+        <span class="pager-info">1 à 10 sur 4 935</span>
+        <div class="pager">
+          <button class="pager-btn"><i class="pi pi-chevron-left"></i></button>
+          <button class="pager-btn active">1</button>
+          <button class="pager-btn">2</button>
+          <button class="pager-btn">3</button>
+          <button class="pager-btn"><i class="pi pi-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="tl">
+        <div class="tl-head">
+          <div class="tl-head-left">Engins</div>
+          <div>06h</div><div>07h</div><div>08h</div><div>09h</div><div>10h</div><div>11h</div>
+          <div>12h</div><div>13h</div><div>14h</div><div>15h</div><div>16h</div><div>17h</div>
+          <div>18h</div><div>19h</div><div>20h</div><div>21h</div><div>22h</div><div>23h</div>
+          <div>00h</div><div>01h</div><div>02h</div><div>03h</div><div>04h</div><div>05h</div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-desktop"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Pc te</div>
+              <div class="tl-asset-id">BC572902A1A9 · Site Omniyat</div>
+            </div>
+          </div>
+          <div class="tl-cell zebra" style="grid-column: 2 / span 10; position:relative;">
+            <div class="gantt-bar use"><span>Utilisation</span><span>8h 15m</span></div>
+          </div>
+          <div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra" style="grid-column: 13 / span 3; position:relative;">
+            <div class="gantt-bar transit"><span>Transit</span><span>2h</span></div>
+          </div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-box"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Machine à Café1234</div>
+              <div class="tl-asset-id">TAG11092024 · ClientTaib</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div>
+          <div class="tl-cell" style="grid-column: 3 / span 6; position:relative;">
+            <div class="gantt-bar maint"><span>Maintenance</span><span>6h</span></div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell" style="grid-column: 11 / span 6; position:relative;">
+            <div class="gantt-bar use"><span>Utilisation</span><span>6h</span></div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#EFF6FF;color:#1D4ED8"><i class="pi pi-mobile"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Souris</div>
+              <div class="tl-asset-id">BC572900D02A · surbone</div>
+            </div>
+          </div>
+          <div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra" style="grid-column: 3 / span 14; position:relative;">
+            <div class="gantt-bar use"><span>Utilisation</span><span>14h 30m</span></div>
+          </div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+          <div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div><div class="tl-cell zebra"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#F1F5F9"><i class="pi pi-tag"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Tag 14 Epson</div>
+              <div class="tl-asset-id">BC572903527E · LOGITRAK</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell" style="grid-column: 4 / span 4; position:relative;">
+            <div class="gantt-bar use"><span>Utilisation</span><span>4h</span></div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell" style="grid-column: 10 / span 2; position:relative;">
+            <div class="gantt-bar transit"><span>Transit</span></div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell" style="grid-column: 14 / span 5; position:relative;">
+            <div class="gantt-bar use"><span>Utilisation</span><span>5h</span></div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════ OPTION C ═══════════════════════════════ -->
+<div class="section">
+  <span class="section-label lbl-c">Option C — Fixes rapides</span>
+  <h1 class="section-title">Calendrier — Version améliorée minimale</h1>
+  <p class="section-desc">On garde la structure actuelle, on corrige juste : avatars uniformes, flèches en pastilles colorées, toolbar un peu plus propre.</p>
+
+  <div class="card">
+    <div class="page-head">
+      <div class="page-ico"><i class="pi pi-calendar"></i></div>
+      <div>
+        <h2 class="page-title-main">Calendrier</h2>
+        <p class="page-subtitle">Planification et suivi des mouvements</p>
+      </div>
+      <div class="badge-assets"><i class="pi pi-database"></i><strong>4 935</strong> assets</div>
+    </div>
+
+    <div class="toolbar">
+      <div class="pills">
+        <button class="pill active">Engin</button>
+        <button class="pill">Worksite</button>
+      </div>
+      <div class="input-search"><i class="pi pi-search"></i>Rechercher…</div>
+      <div class="dropdown">Tous Status <i class="pi pi-chevron-down"></i></div>
+      <div class="dropdown">Tous Mouvements <i class="pi pi-chevron-down"></i></div>
+      <div class="spacer"></div>
+      <div class="pager">
+        <button class="pager-btn"><i class="pi pi-chevron-left"></i></button>
+        <button class="pager-btn active">1</button>
+        <button class="pager-btn">2</button>
+        <button class="pager-btn">3</button>
+        <button class="pager-btn"><i class="pi pi-chevron-right"></i></button>
+      </div>
+    </div>
+
+    <div class="date-nav">
+      <div class="date-nav-left">
+        <button class="today-btn">Today</button>
+        <button class="icon-btn"><i class="pi pi-chevron-left"></i></button>
+        <span class="date-range-pill">avr. 21 – 23, 2026</span>
+        <button class="icon-btn"><i class="pi pi-chevron-right"></i></button>
+      </div>
+    </div>
+
+    <div class="timeline-wrap">
+      <div class="tl">
+        <div class="tl-head">
+          <div class="tl-head-left">Engins</div>
+          <div>06h</div><div>07h</div><div>08h</div><div>09h</div><div>10h</div><div>11h</div>
+          <div>12h</div><div>13h</div><div>14h</div><div>15h</div><div>16h</div><div>17h</div>
+          <div>18h</div><div>19h</div><div>20h</div><div>21h</div><div>22h</div><div>23h</div>
+          <div>00h</div><div>01h</div><div>02h</div><div>03h</div><div>04h</div><div>05h</div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-desktop"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Pc te</div>
+              <div class="tl-asset-id">BC572902A1A9</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="arrow-simple exit" style="left:50%"><i class="pi pi-arrow-up"></i></span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="arrow-simple enter" style="left:50%"><i class="pi pi-arrow-down"></i></span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar"><i class="pi pi-box"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Machine à Café1234</div>
+              <div class="tl-asset-id">TAG11092024</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="arrow-simple exit" style="left:50%"><i class="pi pi-arrow-up"></i></span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+        <div class="tl-row">
+          <div class="tl-asset">
+            <div class="tl-avatar" style="background:#EFF6FF;color:#1D4ED8"><i class="pi pi-mobile"></i></div>
+            <div class="tl-asset-txt">
+              <div class="tl-asset-name">Souris</div>
+              <div class="tl-asset-id">BC572900D02A</div>
+            </div>
+          </div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"><span class="arrow-simple enter" style="left:50%"><i class="pi pi-arrow-down"></i></span></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+          <div class="tl-cell"></div><div class="tl-cell"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
