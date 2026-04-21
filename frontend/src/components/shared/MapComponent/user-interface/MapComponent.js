@@ -252,6 +252,9 @@ const MapComponent = ({
   const [listPage, setListPage] = useState(1)
   const [listPageSize, setListPageSize] = useState(10)
   const [showSortMenu, setShowSortMenu] = useState(false)
+  const [listDensity, setListDensity] = useState(() => {
+    try { return localStorage.getItem('lt_map_list_density') || 'compact' } catch { return 'compact' }
+  }) // 'compact' | 'detailed'
   const assetListScrollRef = useRef(null)
   const assetRowRefs = useRef({})
   const assetMarkerRefs = useRef({})
@@ -1633,6 +1636,19 @@ const MapComponent = ({
                         </div>
                       )}
                     </div>
+                    <button
+                      className={`lt-asset-density-btn ${listDensity === 'detailed' ? 'is-detailed' : ''}`}
+                      onClick={() => {
+                        const next = listDensity === 'compact' ? 'detailed' : 'compact'
+                        setListDensity(next)
+                        try { localStorage.setItem('lt_map_list_density', next) } catch {}
+                      }}
+                      aria-label={listDensity === 'compact' ? 'Afficher plus d\u2019infos' : 'Afficher en mode compact'}
+                      title={listDensity === 'compact' ? 'Afficher plus d\u2019infos' : 'Mode compact'}
+                      data-testid='asset-density-toggle'
+                    >
+                      <i className={`pi ${listDensity === 'compact' ? 'pi-list' : 'pi-th-large'}`} />
+                    </button>
                   </div>
 
                   <div className='lt-asset-quick-filters' data-testid='asset-quick-filters'>
@@ -1795,6 +1811,7 @@ const MapComponent = ({
                               'asset-row flex align-items-center rounded-lg pb-4 justify-content-between px-3 py-2 cursor-pointer lt-asset-row-v2',
                               {
                                 'asset-row-selected': isSelected,
+                                'lt-asset-row-detailed': listDensity === 'detailed',
                               }
                             )}
                             style={{'--row-accent': cl.color, position: 'relative'}}
@@ -1833,14 +1850,32 @@ const MapComponent = ({
                                   ? itemTemplate(pio)
                                   : pio.reference || pio.label}
                               </div>
+                              {listDensity === 'detailed' && (
+                                <div className='lt-asset-row-sub' data-testid={`asset-row-sub-${key}`}>
+                                  <span className='lt-asset-row-sub-status' style={{color: cl.color}}>
+                                    <span className='lt-asset-row-sub-dot' style={{background: cl.color}} />
+                                    {cl.label || pio.statuslabel || '\u2014'}
+                                  </span>
+                                  {batLabel && (
+                                    <span className='lt-asset-row-sub-bat' style={{color: batColor}}>
+                                      <i className='pi pi-bolt' />{batLabel}
+                                    </span>
+                                  )}
+                                  {timeFromNow && (
+                                    <span className='lt-asset-row-sub-time' title={pio.lastSeenAt}>
+                                      <i className='pi pi-clock' />{moment.utc(pio.lastSeenAt).fromNow()}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
                             <div className='lt-asset-row-right'>
-                              {timeFromNow && (
+                              {listDensity === 'compact' && timeFromNow && (
                                 <span className='lt-asset-row-compact-time' title={pio.lastSeenAt}>
                                   <i className='pi pi-clock' />{moment.utc(pio.lastSeenAt).fromNow(true)}
                                 </span>
                               )}
-                              {batLabel && (
+                              {listDensity === 'compact' && batLabel && (
                                 <span className='lt-asset-row-bat' style={{color: batColor}}>
                                   <i className='pi pi-bolt' />{batLabel}
                                 </span>

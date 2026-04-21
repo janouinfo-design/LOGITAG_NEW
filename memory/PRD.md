@@ -32,13 +32,12 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - Liste de gauche Map ultra-compacte + pagination client-side
 - **[2026-04-21]** Barre de recherche Map : max-width 220px (au lieu de 100%)
 - **[2026-04-21]** Liste engins Map : s'étire sur toute la hauteur de la carte (flex column, `asset-panel-body` : `flex:1; overflow:auto`)
+- **[2026-04-21]** P1 validé : le zoom niveau rue (z17) en mode single-engin ne casse pas le layout
+- **[2026-04-21]** P2 : Toggle "Compact / Détaillé" dans le header de la liste (persisté dans `localStorage`). Mode détaillé affiche une 2e ligne avec statut + batterie + dernière activité humanisée.
 
 ## Roadmap / Backlog
-### P1
-- Vérifier le mode "single-engin" (zoom niveau rue) ne casse pas le layout avec le panneau d'historique Enter/Exit.
-
 ### P2
-- Toggle "Afficher plus d'infos" dans le header de la liste (compact ↔ détaillé)
+- (si souhaité) Raccourci clavier `/` pour focus instant sur la recherche
 
 ## Known Issues
 - Lenteurs API externe Omniyat (5-15s, parfois 500/timeouts) — hors contrôle
@@ -50,7 +49,6 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - `/app/frontend/src/logitag-saas.css` (styles premium globaux)
 - `/app/frontend/src/components/shared/MapComponent/user-interface/ClusterInsightsPanel.jsx`
 - `/app/frontend/src/components/Engin/EnginDetail/EnginDetail.js`
-- `/app/frontend/src/components/DashboardNew/widgets/KPICardGrid.js`, `ChartGrid.js`
 
 ## Credentials (test)
 - URL: `/auth`
