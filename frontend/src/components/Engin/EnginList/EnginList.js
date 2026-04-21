@@ -1660,9 +1660,9 @@ const EnginList = () => {
                     <i className="pi pi-map-marker"></i>Localiser
                   </button>
                   <div className="lt-vcard-footer">
-                    <div className="lt-vcard-loc">
-                      <i className="pi pi-map-marker"></i>
-                      {item.LocationObjectname || item.enginAddress || '-'}
+                    <div className="lt-vcard-loc" title={item.LocationObjectname || item.enginAddress || ''}>
+                      <span className="lt-vcard-loc-pin"><i className="pi pi-map-marker"></i></span>
+                      <span className="lt-vcard-loc-name">{item.LocationObjectname || item.enginAddress || '—'}</span>
                     </div>
                     <div className="lt-battery" style={{gap: 5}}>
                       <div className="lt-battery-bar-wrap" style={{width: 32, height: 16}}>

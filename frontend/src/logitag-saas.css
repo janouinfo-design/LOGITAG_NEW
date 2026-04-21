@@ -844,15 +844,43 @@
 }
 
 .lt-vcard-loc {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 6px;
+  padding: 5px 10px 5px 6px;
+  background: #EFF6FF;
+  border: 1px solid #BFDBFE;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #1E40AF;
+  overflow: hidden;
+  max-width: 60%;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.lt-vcard-loc:hover {
+  background: #DBEAFE;
+  border-color: #93C5FD;
+}
+.lt-vcard-loc-pin {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  background: #1D4ED8;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+.lt-vcard-loc-pin i {
   font-size: 0.62rem;
-  color: var(--lt-text-muted);
+}
+.lt-vcard-loc-name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 60%;
+  letter-spacing: -0.005em;
 }
 
 .lt-vcard-loc i {
