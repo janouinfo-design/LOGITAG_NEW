@@ -9,9 +9,7 @@ import {useAppDispatch, useAppSelector} from '../../../../hooks'
 import {checkUser, forgetPassword, getCurrentUser, login} from '../../slice/user.slice'
 import SplashScreen from '../../../SplashScreen/SplashScreen'
 
-import {toAbsoluteUrl} from '../../../../_metronic/helpers'
-
-import bgImage from '../../assets/images/network-bg.jpg'
+import logitagLogo from '../../../../assets/images/Logitag Color.png'
 import {getIsMenuReady} from '../../../Layout/slice/layout.slice'
 import {Dialog} from 'primereact/dialog'
 import {InputText} from 'primereact/inputtext'
@@ -106,168 +104,185 @@ export function LoginComponent() {
   if (showSpash) return <SplashScreen />
   return (
     <>
-      <Dialog style={{width: '500px'}} header='Login' visible={visibleReset} onHide={onHide}>
-        <div className='w-full flex flex-column gap-2'>
-          <label className='form-label fs-6 fw-bolder text-dark'>User</label>
+      <Dialog
+        style={{width: '440px'}}
+        header='Mot de passe oublié'
+        visible={visibleReset}
+        onHide={onHide}
+        className='lt-login-dialog'
+      >
+        <div className='w-full flex flex-column gap-3'>
+          <p className='text-sm text-slate-500 m-0'>
+            Entrez votre identifiant. Nous vous enverrons un lien de réinitialisation.
+          </p>
+          <label className='lt-login-label'>Identifiant</label>
           <InputText
             name='user'
             value={user}
             onChange={(e) => setUser(e.target.value)}
-            placeholder='User'
+            placeholder='Votre identifiant'
+            className='lt-login-input'
           />
           <Button
             type='submit'
-            className='btn btn-primary'
-            // disabled={formik.isSubmitting || !formik.isValid}
+            className='lt-login-submit'
             loading={loadingForget}
             disabled={loadingForget}
             onClick={handleForgetPassword}
+            data-testid='forgot-submit-btn'
           >
-            Submit
+            Envoyer le lien
           </Button>
         </div>
       </Dialog>
-      <div
-        className='md:flex flex  justify-center items-center  flex-column-fluid flex-wrap bgi-position-y-bottom position-x-center bgi-no-repeat bgi-size-contain bgi-attachment-fixed'
-        style={{
-          backgroundImage: `url(${toAbsoluteUrl('/media/illstrations/sketchy-1/14.png')})`,
-        }}
-      >
-        <div
-          className='w-12 md:w-5 bg-dark h-20rem md:h-full bgi-no-repeat bgi-size-cover hidden md:block'
-          style={{
-            backgroundImage: `url(${bgImage})`,
-          }}
-        ></div>
-        {/* begin::Content */}
-        <div className='flex d-flex   flex-center flex-column-fluid p-10 pb-lg-20'>
-          {/* begin::Wrapper */}
+      <div className='lt-login-root'>
+        {/* Left: Brand / marketing panel */}
+        <aside className='lt-login-brand' aria-hidden='true'>
+          <div className='lt-login-brand-bg' />
+          <div className='lt-login-brand-grid' />
+          <div className='lt-login-brand-blob lt-login-brand-blob-1' />
+          <div className='lt-login-brand-blob lt-login-brand-blob-2' />
 
-          <div className='w-11 md:w-7 lg:w-6 bg-body rounded shadow-sm p-10 p-lg-15 mx-auto'>
+          <div className='lt-login-brand-inner'>
+            <div className='lt-login-brand-top'>
+              <img src={logitagLogo} alt='Logitag' className='lt-login-brand-logo' />
+              <span className='lt-login-brand-badge'>
+                <i className='pi pi-circle-fill' /> Live Tracking
+              </span>
+            </div>
+
+            <div className='lt-login-brand-hero'>
+              <h1 className='lt-login-brand-title'>
+                Fleet Intelligence<br/>Platform
+              </h1>
+              <p className='lt-login-brand-subtitle'>
+                Pilotez, suivez et optimisez vos assets en temps réel avec la plateforme Logitag — conçue pour les équipes qui ne laissent rien au hasard.
+              </p>
+            </div>
+
+            <ul className='lt-login-brand-features'>
+              {[
+                {icon: 'pi-map-marker', title: 'Suivi GPS temps réel', desc: 'Localisation au mètre près, 24/7.'},
+                {icon: 'pi-bell', title: 'Alertes intelligentes', desc: 'Soyez prévenu avant tout incident.'},
+                {icon: 'pi-chart-bar', title: 'Analytiques avancées', desc: 'Des décisions basées sur vos données.'},
+                {icon: 'pi-building', title: 'Multi-sites', desc: 'Gérez tous vos sites depuis une seule vue.'},
+              ].map((f, i) => (
+                <li key={i} className='lt-login-brand-feat' style={{animationDelay: `${0.15 + i * 0.08}s`}}>
+                  <span className='lt-login-brand-feat-ico'>
+                    <i className={`pi ${f.icon}`} />
+                  </span>
+                  <div>
+                    <div className='lt-login-brand-feat-title'>{f.title}</div>
+                    <div className='lt-login-brand-feat-desc'>{f.desc}</div>
+                  </div>
+                </li>
+              ))}
+            </ul>
+
+            <div className='lt-login-brand-foot'>
+              <span className='lt-login-brand-foot-dot' />
+              <span>4 935 engins suivis · 99,9 % uptime</span>
+            </div>
+          </div>
+        </aside>
+
+        {/* Right: Form panel */}
+        <section className='lt-login-form-wrap'>
+          <div className='lt-login-form-inner'>
+            <div className='lt-login-form-head'>
+              <img src={logitagLogo} alt='Logitag' className='lt-login-form-logo' />
+              <h2 className='lt-login-form-title'>Connexion</h2>
+              <p className='lt-login-form-sub'>
+                Accédez à votre espace de pilotage de flotte.
+              </p>
+            </div>
+
             <form
-              className='form w-100'
+              className='lt-login-form'
               onSubmit={formik.handleSubmit}
               noValidate
               id='kt_login_signin_form'
             >
-              {/* begin::Form group */}
-              <div className='fv-row mb-5'>
-                <label className='form-label fs-6 fw-bolder text-dark'>User</label>
-                {/* <input
-                  placeholder='Email'
-                  {...formik.getFieldProps('email')}
-                  className={clsx(
-                    'form-control bg-transparent',
-                    {'is-invalid': formik.touched.email && formik.errors.email},
-                    {
-                      'is-valid': formik.touched.email && !formik.errors.email,
-                    }
-                  )}
-                  type='email'
-                  name='email'
-                  autoComplete='off'
-                /> */}
+              <div className='lt-login-field'>
+                <label className='lt-login-label' htmlFor='lt-login-email'>Identifiant</label>
                 <InputText
+                  id='lt-login-email'
                   name='email'
-                  placeholder='Email'
+                  placeholder='Votre identifiant'
                   value={formik.values.email}
                   onChange={formik.handleChange}
                   className={clsx(
-                    'form-control',
+                    'lt-login-input',
                     {'is-invalid': formik.touched.email && formik.errors.email},
-                    {
-                      'is-valid': formik.touched.email && !formik.errors.email,
-                    }
                   )}
-                  type='email'
-                  autoComplete='off'
+                  type='text'
+                  autoComplete='username'
+                  data-testid='login-email-input'
                 />
-
                 {formik.touched.email && formik.errors.email && (
-                  <div className='fv-plugins-message-container'>
-                    <span role='alert'>{formik.errors.email}</span>
-                  </div>
+                  <span className='lt-login-error' role='alert'>{formik.errors.email}</span>
                 )}
               </div>
-              {/* end::Form group */}
 
-              {/* begin::Form group */}
-              <div className='flex flex-col mb-3'>
-                <label className='form-label fw-bolder text-dark fs-6 mb-0'>Password</label>
-                {/* <input
-                  type='password'
-                  autoComplete='off'
-                  {...formik.getFieldProps('password')}
-                  className={clsx(
-                    'form-control bg-transparent',
-                    {
-                      'is-invalid': formik.touched.password && formik.errors.password,
-                    },
-                    {
-                      'is-valid': formik.touched.password && !formik.errors.password,
-                    }
-                  )}
-                /> */}
+              <div className='lt-login-field'>
+                <div className='lt-login-label-row'>
+                  <label className='lt-login-label' htmlFor='lt-login-pwd'>Mot de passe</label>
+                  <button
+                    type='button'
+                    onClick={() => setVisibleReset(true)}
+                    className='lt-login-forgot'
+                    data-testid='login-forgot-btn'
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                </div>
                 <Password
+                  inputId='lt-login-pwd'
                   name='password'
                   toggleMask
-                  // className={clsx(
-                  //   'form-control bg-transparent',
-                  //   {
-                  //     'is-invalid': formik.touched.password && formik.errors.password,
-                  //   },
-                  //   {
-                  //     'is-valid': formik.touched.password && !formik.errors.password,
-                  //   }
-                  // )}
+                  placeholder='••••••••'
                   value={formik.values.password}
                   onChange={formik.handleChange}
                   feedback={false}
                   tabIndex={1}
-                  inputClassName='w-full'
+                  inputClassName='lt-login-input'
+                  className='lt-login-password'
+                  data-testid='login-password-input'
                 />
-
                 {formik.touched.password && formik.errors.password && (
-                  <div className='fv-plugins-message-container'>
-                    <div className='fv-help-block'>
-                      <span role='alert'>{formik.errors.password}</span>
-                    </div>
-                  </div>
+                  <span className='lt-login-error' role='alert'>{formik.errors.password}</span>
                 )}
-                <div>
-                  <div
-                    onClick={() => setVisibleReset(true)}
-                    className='link-primary cursor-pointer text-base'
-                  >
-                    Forgot Password ?
-                  </div>
-                </div>
               </div>
-              {/* end::Form group */}
 
-              {/* begin::Action */}
-              <div className='d-grid mb-10 mt-6'>
-                <button
-                  type='submit'
-                  id='kt_sign_in_submit'
-                  className='btn btn-primary'
-                  disabled={formik.isSubmitting || !formik.isValid}
-                >
-                  {!loading && <span className='indicator-label'>Continue</span>}
-                  {loading && (
-                    <span className='indicator-progress' style={{display: 'block'}}>
-                      Please wait...
-                      <span className='spinner-border spinner-border-sm align-middle ms-2'></span>
-                    </span>
-                  )}
-                </button>
+              <button
+                type='submit'
+                id='kt_sign_in_submit'
+                className='lt-login-submit'
+                disabled={formik.isSubmitting || !formik.isValid}
+                data-testid='login-submit-btn'
+              >
+                {!loading && <span>Se connecter</span>}
+                {loading && (
+                  <span className='lt-login-submit-loading'>
+                    <span className='spinner-border spinner-border-sm' />
+                    Connexion…
+                  </span>
+                )}
+              </button>
+
+              <div className='lt-login-foot'>
+                <span>Besoin d'aide ?</span>
+                <a href='mailto:support@logitag.ch' className='lt-login-foot-link'>
+                  support@logitag.ch
+                </a>
               </div>
-              {/* end::Action */}
             </form>
           </div>
-          {/* end::Wrapper */}
-        </div>
-        {/* end::Content */}
+
+          <div className='lt-login-legal'>
+            © {new Date().getFullYear()} Logitag · Fleet Intelligence Platform
+          </div>
+        </section>
       </div>
     </>
   )
