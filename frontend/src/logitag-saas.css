@@ -4074,10 +4074,10 @@ input.lt-form-input,
    ═══════════════════════════════════════════════════════════ */
 .lt-cluster-backdrop {
   position: fixed; inset: 0;
-  background: rgba(15, 23, 42, 0.28);
-  backdrop-filter: blur(2px);
+  background: transparent;
   z-index: 9998;
   animation: lt-cp-fade 0.18s ease-out;
+  pointer-events: auto;
 }
 @keyframes lt-cp-fade { from { opacity: 0; } to { opacity: 1; } }
 
