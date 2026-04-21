@@ -1597,13 +1597,13 @@ const MapComponent = ({
                   </div>
 
                   <div className='lt-asset-searchbar'>
-                    <span className='lt-asset-search-inner'>
-                      <i className='pi pi-search' />
+                    <span className='lt-asset-search-inner lt-asset-search-navixy'>
                       <InputText
                         onChange={(e) => onFilter(e.target.value)}
-                        placeholder='Rechercher un engin…'
+                        placeholder='Recherche rapide'
                         data-testid='asset-search'
                       />
+                      <i className='pi pi-search' />
                     </span>
                     <div className='lt-asset-sort-wrap' ref={sortMenuRef}>
                       <button
