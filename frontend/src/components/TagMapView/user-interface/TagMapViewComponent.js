@@ -23,6 +23,7 @@ import LastSeenComponent from '../../Engin/EnginDetail/LastSeenComponent'
 
 const TagMapViewComponent = ({type}) => {
   const [formatedList, setFormatedList] = useState([])
+  const [flowFilter, setFlowFilter] = useState('all') // all | onsite | arrived | exited
   const [isLastPage, setIsLastPage] = useState(false)
   const [loading, setLoading] = useState(false)
   const [totalRecords, setTotalRecords] = useState(0)
@@ -382,6 +383,36 @@ const TagMapViewComponent = ({type}) => {
     }
   }, [list])
 
+  // ── Flow filter counts & filtered list ──
+  const flowCounts = React.useMemo(() => {
+    const now = moment()
+    const counts = {all: 0, onsite: 0, arrived: 0, exited: 0, zones: new Set()}
+    ;(formatedList || []).forEach((o) => {
+      counts.all++
+      if (o.LocationID && o.LocationID != 0 && o.LocationActif == 7) counts.onsite++
+      if (o.LocationID) counts.zones.add(o.LocationID)
+      if (o.lastSeenAt) {
+        const diffMin = now.diff(moment.utc(o.lastSeenAt), 'minutes')
+        if (diffMin <= 60) counts.arrived++
+        else if (diffMin > 60 * 24 * 3) counts.exited++
+      }
+    })
+    return {...counts, zones: counts.zones.size}
+  }, [formatedList])
+
+  const filteredPios = React.useMemo(() => {
+    if (flowFilter === 'all') return formatedList
+    const now = moment()
+    return (formatedList || []).filter((o) => {
+      if (flowFilter === 'onsite') return o.LocationID && o.LocationID != 0 && o.LocationActif == 7
+      if (!o.lastSeenAt) return false
+      const diffMin = now.diff(moment.utc(o.lastSeenAt), 'minutes')
+      if (flowFilter === 'arrived') return diffMin <= 60
+      if (flowFilter === 'exited') return diffMin > 60 * 24 * 3
+      return true
+    })
+  }, [formatedList, flowFilter])
+
   return (
     <div className="lt-page" data-testid="map-page">
       <div className="lt-page-header" data-testid="map-page-header">
@@ -394,13 +425,43 @@ const TagMapViewComponent = ({type}) => {
             <p className="lt-page-subtitle">Localisation GPS en temps réel</p>
           </div>
         </div>
-        <div className="lt-page-header-right">
-          {totalRecords > 0 && (
-            <div className="lt-count-badge" data-testid="map-total-count">
-              <i className="pi pi-map-marker" style={{fontSize: '0.75rem'}}></i>
-              <strong>{totalRecords}</strong> positions
-            </div>
-          )}
+        <div className="lt-page-header-right" style={{display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap'}}>
+          <button
+            className={`lt-flow-pill ${flowFilter === 'all' ? 'is-active' : ''}`}
+            onClick={() => setFlowFilter('all')}
+            data-testid='flow-pill-all'
+          >
+            <span className='lt-flow-dot' style={{background: '#0F172A'}} />
+            <strong>{flowCounts.all}</strong> Tous
+          </button>
+          <button
+            className={`lt-flow-pill ${flowFilter === 'onsite' ? 'is-active' : ''}`}
+            onClick={() => setFlowFilter('onsite')}
+            data-testid='flow-pill-onsite'
+          >
+            <span className='lt-flow-dot' style={{background: '#10B981'}} />
+            <strong>{flowCounts.onsite}</strong> Sur site
+          </button>
+          <button
+            className={`lt-flow-pill ${flowFilter === 'arrived' ? 'is-active' : ''}`}
+            onClick={() => setFlowFilter('arrived')}
+            data-testid='flow-pill-arrived'
+          >
+            <i className='pi pi-arrow-down-right' style={{color: '#F59E0B', fontSize: '0.75rem'}} />
+            <strong>{flowCounts.arrived}</strong> Entrées 1h
+          </button>
+          <button
+            className={`lt-flow-pill ${flowFilter === 'exited' ? 'is-active' : ''}`}
+            onClick={() => setFlowFilter('exited')}
+            data-testid='flow-pill-exited'
+          >
+            <i className='pi pi-arrow-up-right' style={{color: '#EF4444', fontSize: '0.75rem'}} />
+            <strong>{flowCounts.exited}</strong> Sorties
+          </button>
+          <button className='lt-flow-pill lt-flow-pill--info' data-testid='flow-pill-zones'>
+            <i className='pi pi-map-marker' style={{color: '#2563EB', fontSize: '0.75rem'}} />
+            <strong>{flowCounts.zones}</strong> Zones
+          </button>
         </div>
       </div>
       <div className="lt-table-wrap" style={{overflow: 'visible', minHeight: '70vh'}} data-testid="map-wrap">
@@ -409,7 +470,7 @@ const TagMapViewComponent = ({type}) => {
           groups={['famille', {label: 'Zone', value: 'LocationObjectname'}]}
           groupPioBy={'status'}
           piosPosition={'topleft'}
-          pios={formatedList}
+          pios={filteredPios}
           itemTemplate={itemTemplate}
           pioPopupTemplate={pioPopupTemplate}
           groupsEnter={groupEnter}

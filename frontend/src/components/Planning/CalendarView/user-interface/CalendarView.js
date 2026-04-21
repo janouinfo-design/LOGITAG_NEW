@@ -572,7 +572,7 @@ function CalendarView() {
       {/* SaaS Page Header */}
       <div className="lt-page-header" data-testid="calendar-page-header">
         <div className="lt-page-header-left">
-          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'}}>
+          <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #1D4ED8)'}}>
             <i className="pi pi-calendar"></i>
           </div>
           <div>

@@ -417,7 +417,7 @@ const DashboardContent = ({activeTab, setActiveTab, kpiData, isAIConfigured, err
             {heroInsights?.insights && heroInsights.insights.length > 0 && (
               <div data-testid='status-insights' style={{marginTop: 8}}>
                 <div style={{fontSize: '0.78rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', color: '#64748B', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6}}>
-                  <i className='pi pi-sparkles' style={{color: '#7C3AED'}}></i>
+                  <i className='pi pi-sparkles' style={{color: '#2563EB'}}></i>
                   Insights automatiques
                 </div>
                 <div style={{display: 'grid', gridTemplateColumns: `repeat(${heroInsights.insights.length}, 1fr)`, gap: 12}}>

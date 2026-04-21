@@ -216,7 +216,7 @@ const TeamDetail = () => {
               {selectedTeam?.image ? (
                 <Image src={`${API_BASE_URL_IMAGE}${selectedTeam.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
               ) : (
-                <div className='lt-detail-avatar-ph' style={{background: '#F3E8FF', color: '#7C3AED'}}><i className='pi pi-user'></i></div>
+                <div className='lt-detail-avatar-ph' style={{background: '#F3E8FF', color: '#2563EB'}}><i className='pi pi-user'></i></div>
               )}
             </div>
             <div className='lt-detail-info'>

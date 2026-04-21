@@ -195,7 +195,7 @@ const TagVCard = ({item}) => {
   return (
     <div className="lt-vcard" data-testid={`dd-vcard-${item.id || ''}`}>
       {/* Icon */}
-      <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#6D28D9', color: '#FFF'}}>
+      <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#1D4ED8', color: '#FFF'}}>
         <i className={item.familleIcon || 'pi pi-tag'}></i>
       </div>
 
@@ -300,7 +300,7 @@ const TagLineCard = ({item}) => {
 
   return (
     <div className="dd-line-card" data-testid={`dd-line-${item.id || ''}`}>
-      <div className="lt-vcard-img-ph" style={{width: 48, height: 48, borderRadius: 10, background: item.familleBgcolor || '#6D28D9', color: '#FFF', fontSize: '1rem'}}>
+      <div className="lt-vcard-img-ph" style={{width: 48, height: 48, borderRadius: 10, background: item.familleBgcolor || '#1D4ED8', color: '#FFF', fontSize: '1rem'}}>
         <i className={item.familleIcon || 'pi pi-tag'}></i>
       </div>
       <div style={{flex: 1, minWidth: 0}}>

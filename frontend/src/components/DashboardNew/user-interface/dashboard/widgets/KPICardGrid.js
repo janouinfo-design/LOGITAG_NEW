@@ -18,11 +18,11 @@ const buildSparklinePath = (seed, width = 80, height = 32) => {
 }
 
 const ICON_STYLES = {
-  default:  {bg: '#F5F3FF', color: '#7C3AED'},
+  default:  {bg: '#EFF6FF', color: '#2563EB'},
   red:      {bg: '#FEE2E2', color: '#DC2626'},
   blue:     {bg: '#DBEAFE', color: '#2563EB'},
   green:    {bg: '#DCFCE7', color: '#16A34A'},
-  violet:   {bg: '#F5F3FF', color: '#7C3AED'},
+  violet:   {bg: '#EFF6FF', color: '#2563EB'},
   orange:   {bg: '#FFEDD5', color: '#EA580C'},
 }
 
@@ -34,7 +34,7 @@ const resolveIconStyle = (iconColor) => {
   if (k.includes('green') || k === '#16a34a') return ICON_STYLES.green
   if (k.includes('violet') || k.includes('purple') || k === '#7c3aed') return ICON_STYLES.violet
   if (k.includes('orange') || k === '#ea580c') return ICON_STYLES.orange
-  return {bg: '#F5F3FF', color: iconColor}
+  return {bg: '#EFF6FF', color: iconColor}
 }
 
 const parseDelta = (change) => {

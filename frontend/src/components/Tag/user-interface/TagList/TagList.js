@@ -388,7 +388,7 @@ const TagList = ({titleShow, detailView, tags}) => {
         {/* Modern SaaS Header */}
         <div className="lt-page-header" data-testid="tag-page-header">
           <div className="lt-page-header-left">
-            <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)'}}>
+            <div className="lt-page-icon" style={{background: 'linear-gradient(135deg, #8B5CF6, #1D4ED8)'}}>
               <i className="pi pi-tag"></i>
             </div>
             <div>
@@ -462,7 +462,7 @@ const TagList = ({titleShow, detailView, tags}) => {
                 const statusColor = item.statusbgColor || '#94A3B8'
                 return (
                   <div key={item.id || i} className="lt-vcard" data-testid={`tag-vcard-${i}`}>
-                    <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#6D28D9', color: '#FFF'}}>
+                    <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#1D4ED8', color: '#FFF'}}>
                       <i className={item.familleIcon || 'pi pi-tag'}></i>
                     </div>
                     <div className="lt-vcard-name">{item.name || item.label || '-'}</div>

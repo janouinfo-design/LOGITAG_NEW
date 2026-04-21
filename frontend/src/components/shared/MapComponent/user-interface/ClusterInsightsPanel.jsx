@@ -13,7 +13,7 @@ const COLORS = {
   present: '#10B981',   // vert — sur site
   arrived: '#F59E0B',   // orange — arrivé récemment
   exited: '#EF4444',    // rouge — sorti récemment / anomalie
-  special: '#7C3AED',   // violet — zone spéciale / accent
+  special: '#2563EB',   // violet — zone spéciale / accent
   muted: '#94A3B8',
   text: '#0F172A',
   subtext: '#64748B',
@@ -188,7 +188,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
                 </div>
               </div>
               <div className='lt-cp-stat' style={{gridColumn: 'span 2', '--lt-cp-stat-accent': COLORS.special}}>
-                <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
+                <div className='lt-cp-stat-ico' style={{background: '#DBEAFE', color: COLORS.special}}>
                   <i className='pi pi-map-marker' />
                 </div>
                 <div className='lt-cp-stat-body'>
@@ -354,7 +354,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
               </div>
             </div>
             <div className='lt-cp-stat' data-testid='cluster-stat-avg' style={{'--lt-cp-stat-accent': COLORS.special}}>
-              <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
+              <div className='lt-cp-stat-ico' style={{background: '#DBEAFE', color: COLORS.special}}>
                 <i className='pi pi-clock' />
               </div>
               <div className='lt-cp-stat-body'>

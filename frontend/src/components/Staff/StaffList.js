@@ -397,7 +397,7 @@ const StaffList = () => {
     <div className='lt-page' data-testid="staff-list-page">
       <div className='lt-page-header'>
         <div className='lt-page-header-left'>
-          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #8B5CF6, #7C3AED)'}}>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #8B5CF6, #2563EB)'}}>
             <i className='pi pi-users'></i>
           </div>
           <div>

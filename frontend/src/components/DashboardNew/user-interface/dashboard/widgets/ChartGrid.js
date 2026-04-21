@@ -8,7 +8,7 @@ import {Chart} from 'primereact/chart'
  * - Clean premium card wrapper (no PrimeReact Card, no legacy gradients)
  */
 
-const TOP_COLOR = '#7C3AED'       // violet-600
+const TOP_COLOR = '#2563EB'       // violet-600
 const TOP_COLOR_END = '#4F46E5'   // indigo-600
 const MID_COLOR = '#93C5FD'       // blue-300
 const LOW_COLOR = '#CBD5E1'       // slate-300

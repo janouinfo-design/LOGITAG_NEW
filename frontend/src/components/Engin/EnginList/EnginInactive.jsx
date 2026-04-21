@@ -59,7 +59,7 @@ const SortIcon = () => (<span style={{marginLeft: 4, color: '#CBD5E1', fontSize:
 
 const TABLE_STYLES = {
   engin:    {label: 'Engin',    bg: '#DBEAFE', color: '#2563EB', icon: 'pi pi-truck'},
-  tag:      {label: 'Tag',      bg: '#F5F3FF', color: '#6D28D9', icon: 'pi pi-tag'},
+  tag:      {label: 'Tag',      bg: '#EFF6FF', color: '#1D4ED8', icon: 'pi pi-tag'},
   customer: {label: 'Client',   bg: '#DCFCE7', color: '#16A34A', icon: 'pi pi-briefcase'},
   worksite: {label: 'Site',     bg: '#FEF3C7', color: '#D97706', icon: 'pi pi-map-marker'},
   depot:    {label: 'Dépôt',    bg: '#FFE4E6', color: '#E11D48', icon: 'pi pi-home'},
@@ -148,7 +148,7 @@ const EnginInactive = () => {
               const s = t === 'all' ? {label: 'Tous', icon: 'pi pi-th-large'} : getStyle(t)
               return (
                 <button key={t} onClick={() => { setFilterType(t); setPage(1) }} data-testid={`inactive-tab-${t}`}
-                  style={{display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 10, border: isActive ? '1px solid #C4B5FD' : '1px solid #E2E8F0', background: isActive ? '#F5F3FF' : '#FFF', color: isActive ? '#6D28D9' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.15s'}}>
+                  style={{display: 'inline-flex', alignItems: 'center', gap: 7, padding: '10px 18px', borderRadius: 10, border: isActive ? '1px solid #C4B5FD' : '1px solid #E2E8F0', background: isActive ? '#EFF6FF' : '#FFF', color: isActive ? '#1D4ED8' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.82rem', transition: 'all 0.15s'}}>
                   <i className={s.icon} style={{fontSize: '0.75rem'}}></i>
                   {s.label}
                 </button>
@@ -169,7 +169,7 @@ const EnginInactive = () => {
               <input type='text' data-testid='inactive-search' placeholder='Rechercher un objet...' value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 style={{width: '100%', padding: '9px 12px 9px 36px', borderRadius: 10, border: '1px solid #E2E8F0', fontSize: '0.82rem', outline: 'none', background: '#FFF', color: '#0F172A'}} />
             </div>
-            <button style={{width: 38, height: 38, borderRadius: 10, border: '1px solid #C4B5FD', background: '#F5F3FF', color: '#6D28D9', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <button style={{width: 38, height: 38, borderRadius: 10, border: '1px solid #C4B5FD', background: '#EFF6FF', color: '#1D4ED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
               <i className='pi pi-cog' style={{fontSize: '0.95rem'}}></i>
             </button>
           </div>
@@ -250,7 +250,7 @@ const EnginInactive = () => {
           <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
             <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} style={{width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', color: '#64748B', cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.5 : 1}}><i className='pi pi-chevron-left' style={{fontSize: '0.7rem'}}></i></button>
             {Array.from({length: Math.min(totalPages, 5)}, (_, i) => i + 1).map((p) => (
-              <button key={p} onClick={() => setPage(p)} style={{minWidth: 32, height: 32, borderRadius: 8, border: 'none', background: p === page ? 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)' : '#FFF', color: p === page ? '#FFF' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', boxShadow: p === page ? '0 4px 10px rgba(124, 58, 237, 0.3)' : 'none'}}>{p}</button>
+              <button key={p} onClick={() => setPage(p)} style={{minWidth: 32, height: 32, borderRadius: 8, border: 'none', background: p === page ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : '#FFF', color: p === page ? '#FFF' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', boxShadow: p === page ? '0 4px 10px rgba(37, 99, 235, 0.3)' : 'none'}}>{p}</button>
             ))}
             <button disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} style={{width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', color: '#64748B', cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.5 : 1}}><i className='pi pi-chevron-right' style={{fontSize: '0.7rem'}}></i></button>
           </div>

@@ -128,9 +128,9 @@ const StatutList = () => {
             <span style={{color: '#475569', fontWeight: 600}}>Statuts</span>
           </div>
         </div>
-        <button data-testid='statut-create-btn' onClick={onCreate} style={{display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 22px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)', color: '#FFF', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 6px 16px rgba(124, 58, 237, 0.35)', transition: 'all 0.18s'}}
-          onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(124, 58, 237, 0.45)'}}
-          onMouseLeave={(e) => {e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(124, 58, 237, 0.35)'}}>
+        <button data-testid='statut-create-btn' onClick={onCreate} style={{display: 'inline-flex', alignItems: 'center', gap: 8, padding: '12px 22px', borderRadius: 12, border: 'none', background: 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)', color: '#FFF', cursor: 'pointer', fontWeight: 700, fontSize: '0.85rem', boxShadow: '0 6px 16px rgba(37, 99, 235, 0.35)', transition: 'all 0.18s'}}
+          onMouseEnter={(e) => {e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 8px 20px rgba(37, 99, 235, 0.45)'}}
+          onMouseLeave={(e) => {e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 6px 16px rgba(37, 99, 235, 0.35)'}}>
           <i className='pi pi-plus' style={{fontSize: '0.8rem'}}></i>Nouveau statut
         </button>
       </div>
@@ -140,7 +140,7 @@ const StatutList = () => {
           {tabs.map((tab) => {
             const isActive = selectedObject?.uid === tab.uid
             return (
-              <button key={tab.uid} onClick={() => activateTab(tab)} data-testid={`statut-tab-${tab.code}`} disabled={loading} style={{padding: '10px 22px', borderRadius: 10, border: isActive ? '1px solid #C4B5FD' : '1px solid #E2E8F0', background: isActive ? '#F5F3FF' : '#FFF', color: isActive ? '#6D28D9' : '#475569', cursor: loading ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.15s'}}>
+              <button key={tab.uid} onClick={() => activateTab(tab)} data-testid={`statut-tab-${tab.code}`} disabled={loading} style={{padding: '10px 22px', borderRadius: 10, border: isActive ? '1px solid #C4B5FD' : '1px solid #E2E8F0', background: isActive ? '#EFF6FF' : '#FFF', color: isActive ? '#1D4ED8' : '#475569', cursor: loading ? 'wait' : 'pointer', fontWeight: 700, fontSize: '0.85rem', transition: 'all 0.15s'}}>
                 {tab.label}
               </button>
             )
@@ -159,7 +159,7 @@ const StatutList = () => {
               <input type='text' data-testid='statut-search' placeholder='Rechercher un statut...' value={search} onChange={(e) => { setSearch(e.target.value); setPage(1) }}
                 style={{width: '100%', padding: '9px 12px 9px 36px', borderRadius: 10, border: '1px solid #E2E8F0', fontSize: '0.82rem', outline: 'none', background: '#FFF', color: '#0F172A'}} />
             </div>
-            <button style={{width: 38, height: 38, borderRadius: 10, border: '1px solid #C4B5FD', background: '#F5F3FF', color: '#6D28D9', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+            <button style={{width: 38, height: 38, borderRadius: 10, border: '1px solid #C4B5FD', background: '#EFF6FF', color: '#1D4ED8', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
               <i className='pi pi-cog' style={{fontSize: '0.95rem'}}></i>
             </button>
           </div>
@@ -204,7 +204,7 @@ const StatutList = () => {
                     </td>
                     <td style={{...tdStyle, fontWeight: 600, color: '#0F172A'}}>{row.label || '—'}</td>
                     <td style={tdStyle}>
-                      <span style={{display: 'inline-flex', padding: '4px 12px', borderRadius: 8, background: '#F5F3FF', color: '#6D28D9', fontSize: '0.74rem', fontWeight: 700}}>{tabLabel}</span>
+                      <span style={{display: 'inline-flex', padding: '4px 12px', borderRadius: 8, background: '#EFF6FF', color: '#1D4ED8', fontSize: '0.74rem', fontWeight: 700}}>{tabLabel}</span>
                     </td>
                     <td style={tdStyle}>
                       <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '4px 11px', borderRadius: 999, fontSize: '0.72rem', fontWeight: 700, background: isActive ? '#DCFCE7' : '#F1F5F9', color: isActive ? '#16A34A' : '#64748B'}}>
@@ -234,7 +234,7 @@ const StatutList = () => {
           <div style={{display: 'flex', alignItems: 'center', gap: 6}}>
             <button disabled={page <= 1} onClick={() => setPage((p) => Math.max(1, p - 1))} style={{width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', color: '#64748B', cursor: page <= 1 ? 'not-allowed' : 'pointer', opacity: page <= 1 ? 0.5 : 1}}><i className='pi pi-chevron-left' style={{fontSize: '0.7rem'}}></i></button>
             {Array.from({length: Math.min(totalPages, 5)}, (_, i) => i + 1).map((p) => (
-              <button key={p} onClick={() => setPage(p)} style={{minWidth: 32, height: 32, borderRadius: 8, border: 'none', background: p === page ? 'linear-gradient(135deg, #7C3AED 0%, #6D28D9 100%)' : '#FFF', color: p === page ? '#FFF' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', boxShadow: p === page ? '0 4px 10px rgba(124, 58, 237, 0.3)' : 'none'}}>{p}</button>
+              <button key={p} onClick={() => setPage(p)} style={{minWidth: 32, height: 32, borderRadius: 8, border: 'none', background: p === page ? 'linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%)' : '#FFF', color: p === page ? '#FFF' : '#475569', cursor: 'pointer', fontWeight: 700, fontSize: '0.78rem', boxShadow: p === page ? '0 4px 10px rgba(37, 99, 235, 0.3)' : 'none'}}>{p}</button>
             ))}
             <button disabled={page >= totalPages} onClick={() => setPage((p) => Math.min(totalPages, p + 1))} style={{width: 32, height: 32, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', color: '#64748B', cursor: page >= totalPages ? 'not-allowed' : 'pointer', opacity: page >= totalPages ? 0.5 : 1}}><i className='pi pi-chevron-right' style={{fontSize: '0.7rem'}}></i></button>
           </div>

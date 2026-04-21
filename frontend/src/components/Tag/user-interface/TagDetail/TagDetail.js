@@ -199,11 +199,11 @@ const TagDetail = () => {
             <button onClick={() => dispatch(setShow(true))} data-testid="tag-back-btn" style={{width: 34, height: 34, borderRadius: 8, border: '1px solid #E2E8F0', background: '#FFF', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#64748B', cursor: 'pointer', fontSize: '0.85rem'}}>
               <i className='pi pi-arrow-left'></i>
             </button>
-            <div style={{width: 52, height: 52, borderRadius: 12, background: '#F3E8FF', color: '#7C3AED', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem'}}><i className='pi pi-tag'></i></div>
+            <div style={{width: 52, height: 52, borderRadius: 12, background: '#F3E8FF', color: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.3rem'}}><i className='pi pi-tag'></i></div>
             <div>
               <h2 style={{fontFamily: "'Manrope', sans-serif", fontSize: '1.15rem', fontWeight: 800, color: '#0F172A', margin: 0}}>{selectedTag?.name || selectedTag?.label || '-'}</h2>
               <div style={{display: 'flex', alignItems: 'center', gap: 6, marginTop: 4}}>
-                {selectedTag?.familleTag && <span style={{display: 'inline-flex', padding: '2px 10px', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, background: selectedTag.familleTagIconBgcolor || '#7C3AED', color: '#FFF'}}>{selectedTag.familleTag}</span>}
+                {selectedTag?.familleTag && <span style={{display: 'inline-flex', padding: '2px 10px', borderRadius: 20, fontSize: '0.68rem', fontWeight: 700, background: selectedTag.familleTagIconBgcolor || '#2563EB', color: '#FFF'}}>{selectedTag.familleTag}</span>}
                 <span style={{display: 'inline-flex', alignItems: 'center', gap: 5, padding: '2px 10px', borderRadius: 20, fontSize: '0.72rem', fontWeight: 700, background: selectedTag?.active ? '#F0FDF4' : '#F1F5F9', color: selectedTag?.active ? '#16A34A' : '#64748B'}}>
                   <span style={{width: 6, height: 6, borderRadius: '50%', background: selectedTag?.active ? '#16A34A' : '#94A3B8'}}></span>
                   {selectedTag?.active ? 'Actif' : 'Inactif'}

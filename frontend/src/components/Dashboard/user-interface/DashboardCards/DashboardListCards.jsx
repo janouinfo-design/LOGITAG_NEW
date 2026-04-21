@@ -626,11 +626,11 @@ const STYLES = `
 .dbn-filter:hover:not(.dbn-filter--on) { color: #0F172A; background: rgba(255,255,255,0.65); }
 .dbn-filter--on {
   background: #FFFFFF;
-  color: #6D28D9;
-  box-shadow: 0 2px 6px rgba(109, 40, 217, 0.14), 0 0 0 1.5px rgba(109, 40, 217, 0.35);
+  color: #1D4ED8;
+  box-shadow: 0 2px 6px rgba(29, 78, 216, 0.14), 0 0 0 1.5px rgba(29, 78, 216, 0.35);
   font-weight: 700;
 }
-.dbn-filter--on i { color: #6D28D9; }
+.dbn-filter--on i { color: #1D4ED8; }
 .dbn-dates {
   display: flex; align-items: center; gap: 6px;
   padding: 4px 8px;
@@ -646,17 +646,17 @@ const STYLES = `
   transition: border-color 0.15s ease, background 0.15s ease;
 }
 .dbn-dates input:hover { background: #F1F5F9; }
-.dbn-dates input:focus { outline: none; border-color: #6D28D9; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(109, 40, 217, 0.10); }
+.dbn-dates input:focus { outline: none; border-color: #1D4ED8; background: #FFFFFF; box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.10); }
 .dbn-dates span { color: #94A3B8; font-size: 0.72rem; font-weight: 600; }
 .dbn-refresh {
   display: inline-flex; align-items: center; gap: 7px; padding: 9px 16px; border-radius: 10px;
-  border: 0; background: #6D28D9; font-family: 'Inter', sans-serif;
+  border: 0; background: #1D4ED8; font-family: 'Inter', sans-serif;
   font-size: 0.8rem; font-weight: 600; color: #FFFFFF; cursor: pointer; height: 38px;
-  box-shadow: 0 1px 3px rgba(109, 40, 217, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06);
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06);
   transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
   letter-spacing: -0.005em;
 }
-.dbn-refresh:hover { background: #5B21B6; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(109, 40, 217, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06); }
+.dbn-refresh:hover { background: #1E40AF; transform: translateY(-1px); box-shadow: 0 4px 10px rgba(29, 78, 216, 0.35), 0 1px 2px rgba(15, 23, 42, 0.06); }
 .dbn-refresh:active { transform: translateY(0); }
 .dbn-refresh i { font-size: 0.78rem; }
 
