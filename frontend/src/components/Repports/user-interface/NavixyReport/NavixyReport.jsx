@@ -17,7 +17,6 @@ const REPORT_CATALOG = [
     items: [
       {id: 'engin-trips', title: 'Rapport engin', desc: "Heure de départ, arrivée, temps sur site, adresse."},
       {id: 'engin-stops', title: 'Détail des arrêts', desc: 'Historique détaillé des arrêts par engin.'},
-      {id: 'engin-mov', title: 'Trajets et arrêts par mouvements', desc: 'Répartition des déplacements et arrêts.'},
     ],
   },
   {
@@ -225,7 +224,7 @@ function NavixyReport() {
             {/* ─────────── COL 2: Trackers ─────────── */}
             <section className='nvx-col nvx-col--mid' data-testid='nvx-col-trackers'>
               <div className='nvx-col-head'>
-                <span><i className='pi pi-send' style={{marginRight:8, color:'#1D4ED8'}} />Traqueurs</span>
+                <span><i className='pi pi-tag' style={{marginRight:8, color:'#1D4ED8'}} />Tags</span>
               </div>
               <div className='nvx-col-search'>
                 <i className='pi pi-search' />
