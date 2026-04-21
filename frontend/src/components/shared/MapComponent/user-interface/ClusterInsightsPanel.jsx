@@ -170,23 +170,29 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
             </div>
             <div className='lt-cp-stats' style={{marginTop: 16}}>
               <div className='lt-cp-stat'>
-                <span className='lt-cp-stat-dot' style={{background: meta.color}} />
-                <div>
+                <div className='lt-cp-stat-ico' style={{background: `${meta.color}1A`, color: meta.color}}>
+                  <i className={`pi ${meta.icon}`} />
+                </div>
+                <div className='lt-cp-stat-body'>
                   <div className='lt-cp-stat-val'>{humanize(timing.minutes)}</div>
                   <div className='lt-cp-stat-lbl'>Dernier signal</div>
                 </div>
               </div>
               <div className='lt-cp-stat'>
-                <span className='lt-cp-stat-dot' style={{background: bat.color}} />
-                <div>
+                <div className='lt-cp-stat-ico' style={{background: `${bat.color}1A`, color: bat.color}}>
+                  <i className='pi pi-bolt' />
+                </div>
+                <div className='lt-cp-stat-body'>
                   <div className='lt-cp-stat-val'>{bat.label}</div>
                   <div className='lt-cp-stat-lbl'>Batterie</div>
                 </div>
               </div>
               <div className='lt-cp-stat' style={{gridColumn: 'span 2'}}>
-                <span className='lt-cp-stat-dot' style={{background: COLORS.special}} />
-                <div>
-                  <div className='lt-cp-stat-val' style={{fontSize: '0.8rem'}}>
+                <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
+                  <i className='pi pi-map-marker' />
+                </div>
+                <div className='lt-cp-stat-body'>
+                  <div className='lt-cp-stat-val' style={{fontSize: '0.85rem'}}>
                     {it.LocationObjectname || it.enginAddress || '—'}
                   </div>
                   <div className='lt-cp-stat-lbl'>Zone actuelle</div>
@@ -320,30 +326,38 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
           )}
           {/* Stat row */}
           <div className='lt-cp-stats'>
-            <div className='lt-cp-stat'>
-              <span className='lt-cp-stat-dot' style={{background: COLORS.present}} />
-              <div>
+            <div className='lt-cp-stat' data-testid='cluster-stat-onsite'>
+              <div className='lt-cp-stat-ico' style={{background: '#DCFCE7', color: COLORS.present}}>
+                <i className='pi pi-check-circle' />
+              </div>
+              <div className='lt-cp-stat-body'>
                 <div className='lt-cp-stat-val'>{zoneInfo.counts.present}</div>
                 <div className='lt-cp-stat-lbl'>Sur site</div>
               </div>
             </div>
-            <div className='lt-cp-stat'>
-              <span className='lt-cp-stat-dot' style={{background: COLORS.arrived}} />
-              <div>
+            <div className='lt-cp-stat' data-testid='cluster-stat-arrived'>
+              <div className='lt-cp-stat-ico' style={{background: '#FEF3C7', color: COLORS.arrived}}>
+                <i className='pi pi-arrow-down-right' />
+              </div>
+              <div className='lt-cp-stat-body'>
                 <div className='lt-cp-stat-val'>{zoneInfo.counts.arrived}</div>
                 <div className='lt-cp-stat-lbl'>Arrivés 1h</div>
               </div>
             </div>
-            <div className='lt-cp-stat'>
-              <span className='lt-cp-stat-dot' style={{background: COLORS.exited}} />
-              <div>
+            <div className='lt-cp-stat' data-testid='cluster-stat-exited'>
+              <div className='lt-cp-stat-ico' style={{background: '#FEE2E2', color: COLORS.exited}}>
+                <i className='pi pi-arrow-up-right' />
+              </div>
+              <div className='lt-cp-stat-body'>
                 <div className='lt-cp-stat-val'>{zoneInfo.counts.exited}</div>
-                <div className='lt-cp-stat-lbl'>Sortis récents</div>
+                <div className='lt-cp-stat-lbl'>Sortis</div>
               </div>
             </div>
-            <div className='lt-cp-stat'>
-              <span className='lt-cp-stat-dot' style={{background: COLORS.special}} />
-              <div>
+            <div className='lt-cp-stat' data-testid='cluster-stat-avg'>
+              <div className='lt-cp-stat-ico' style={{background: '#EDE9FE', color: COLORS.special}}>
+                <i className='pi pi-clock' />
+              </div>
+              <div className='lt-cp-stat-body'>
                 <div className='lt-cp-stat-val'>{humanize(zoneInfo.avgMinutes)}</div>
                 <div className='lt-cp-stat-lbl'>Durée moy.</div>
               </div>
