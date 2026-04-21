@@ -48,6 +48,7 @@ import RfTag from './RFTag/user-interface/RFTagComponent'
 import NewRapportUser from './Repports/user-interface/NewRapport/NewRapportUser'
 import NewRepportComponent from './Repports/user-interface/NewRepportComponent'
 import RapportComponent from './Repports/user-interface/RapportComponent'
+import NavixyReport from './Repports/user-interface/NavixyReport/NavixyReport'
 import RapportDisplayed from './Repports/user-interface/RapportDisplayed'
 import SetupInfo from './Setup_Info/user-interface/Setup.info'
 import SiteComponent from './Site/user-interface/SiteComponent'
@@ -97,7 +98,7 @@ const components = {
   'inventory/index': InventoryComponent,
   'vehicule/index': VehComponent,
   'deposit/index': DepotComponent,
-  'rapports/index': RapportComponent,
+  'rapports/index': NavixyReport,
   'EnginNoActive/index': EnginInactive,
   'LOGS/index': LogsTrackingList,
   'gateway/index': GatewayComponent,
