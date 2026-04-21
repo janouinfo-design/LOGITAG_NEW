@@ -6398,3 +6398,141 @@ input.lt-form-input,
   font-weight: 600;
 }
 
+
+/* ═══════════════════════════════════════════════════════════
+   DEPOT STEPPER — 3-step guided configuration
+   ═══════════════════════════════════════════════════════════ */
+.lt-depot-stepper {
+  background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFC 100%);
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 14px 18px 16px;
+  margin: 0 0 14px;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+}
+.lt-depot-stepper-head {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.lt-depot-stepper-title {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 0.96rem;
+  font-weight: 800;
+  color: #0F172A;
+  letter-spacing: -0.015em;
+}
+.lt-depot-stepper-sub {
+  font-size: 0.8rem;
+  color: #64748B;
+  font-weight: 500;
+}
+.lt-depot-stepper-track {
+  display: flex; align-items: stretch; gap: 8px;
+}
+.lt-depot-step {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #F8FAFC;
+  border: 1.5px solid #E2E8F0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: left;
+  font-family: 'Inter', sans-serif;
+  min-width: 0;
+}
+.lt-depot-step:hover { border-color: #CBD5E1; background: #F1F5F9; }
+.lt-depot-step.is-active {
+  background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+  border-color: #1D4ED8;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.15);
+}
+.lt-depot-step.is-next:not(.is-active) {
+  border-color: #BFDBFE;
+  border-style: dashed;
+  background: #FFFFFF;
+  animation: lt-depot-step-glow 2.2s ease-in-out infinite;
+}
+@keyframes lt-depot-step-glow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(29, 78, 216, 0.2); }
+  50% { box-shadow: 0 0 0 6px rgba(29, 78, 216, 0); }
+}
+.lt-depot-step.is-done {
+  background: #F0FDF4;
+  border-color: #BBF7D0;
+}
+.lt-depot-step-num {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: #E2E8F0;
+  color: #64748B;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 800;
+  font-family: 'Manrope', sans-serif;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+.lt-depot-step.is-active .lt-depot-step-num {
+  background: #1D4ED8;
+  color: #FFFFFF;
+  box-shadow: 0 4px 10px rgba(29, 78, 216, 0.3);
+}
+.lt-depot-step.is-done .lt-depot-step-num {
+  background: #16A34A;
+  color: #FFFFFF;
+  box-shadow: 0 3px 8px rgba(22, 163, 74, 0.25);
+}
+.lt-depot-step-num i { font-size: 0.82rem; }
+.lt-depot-step-txt {
+  display: flex; flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.lt-depot-step-lbl {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.005em;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lt-depot-step-desc {
+  font-size: 0.7rem;
+  color: #64748B;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lt-depot-step-ico {
+  color: #94A3B8;
+  font-size: 0.92rem;
+  flex-shrink: 0;
+}
+.lt-depot-step.is-active .lt-depot-step-ico { color: #1D4ED8; }
+.lt-depot-step.is-done .lt-depot-step-ico { color: #16A34A; }
+
+.lt-depot-step-sep {
+  flex-shrink: 0;
+  align-self: center;
+  width: 24px; height: 2px;
+  background: #E2E8F0;
+  border-radius: 2px;
+  transition: background 0.2s;
+}
+.lt-depot-step-sep.is-done { background: #16A34A; }
+
+@media (max-width: 880px) {
+  .lt-depot-stepper-track { flex-direction: column; }
+  .lt-depot-step-sep { width: 2px; height: 16px; align-self: center; }
+}
+
