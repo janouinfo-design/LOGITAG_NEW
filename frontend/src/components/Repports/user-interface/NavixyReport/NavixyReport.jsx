@@ -311,6 +311,42 @@ function NavixyReport() {
 
   const printReport = () => { window.print() }
 
+  // ─── Scheduling (frontend-only, persisted in localStorage) ───
+  const [scheduled, setScheduled] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('lt_scheduled_reports') || '[]') } catch { return [] }
+  })
+  const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [scheduleForm, setScheduleForm] = useState({
+    frequency: 'weekly', // daily | weekly | monthly
+    day: 'Mo', // week day code
+    time: '08:00',
+    recipients: '',
+    format: 'pdf',
+  })
+  const [topTab, setTopTab] = useState('reports') // reports | scheduled
+
+  const saveSchedule = () => {
+    const item = {
+      id: `sch_${Date.now()}`,
+      reportId: activeReport,
+      reportLabel: currentReportMeta?.title || activeReport,
+      title: reportTitle,
+      trackers: selectedTrackerLabels.length,
+      dateRange: `${dateRange.from} → ${dateRange.to}`,
+      ...scheduleForm,
+      createdAt: new Date().toISOString(),
+    }
+    const next = [item, ...scheduled]
+    setScheduled(next)
+    localStorage.setItem('lt_scheduled_reports', JSON.stringify(next))
+    setScheduleOpen(false)
+  }
+  const removeSchedule = (id) => {
+    const next = scheduled.filter((s) => s.id !== id)
+    setScheduled(next)
+    localStorage.setItem('lt_scheduled_reports', JSON.stringify(next))
+  }
+
   const selectedTrackerLabels = useMemo(() => {
     const list = []
     trackerGroups.forEach((g) => g.items.forEach((t) => selectedTrackers.has(t.id) && list.push(t)))
@@ -323,10 +359,22 @@ function NavixyReport() {
       {!showResult ? (
         <>
           <div className='nvx-top-tabs'>
-            <button className='nvx-top-tab nvx-top-tab--active'>Rapports</button>
-            <button className='nvx-top-tab'>Rapports planifiés</button>
+            <button
+              className={`nvx-top-tab ${topTab === 'reports' ? 'nvx-top-tab--active' : ''}`}
+              onClick={() => setTopTab('reports')}
+              data-testid='nvx-top-tab-reports'
+            >Rapports</button>
+            <button
+              className={`nvx-top-tab ${topTab === 'scheduled' ? 'nvx-top-tab--active' : ''}`}
+              onClick={() => setTopTab('scheduled')}
+              data-testid='nvx-top-tab-scheduled'
+            >
+              Rapports planifiés
+              {scheduled.length > 0 && <span className='nvx-top-tab-badge'>{scheduled.length}</span>}
+            </button>
           </div>
 
+          {topTab === 'reports' ? (
           <div className='nvx-cols'>
             {/* ─────────── COL 1: Reports catalog ─────────── */}
             <aside className='nvx-col nvx-col--left' data-testid='nvx-col-catalog'>
@@ -524,7 +572,15 @@ function NavixyReport() {
                 </button>
 
                 <div className='nvx-params-foot'>
-                  <button className='nvx-btn nvx-btn--ghost' data-testid='nvx-cancel-btn'>Annuler</button>
+                  <button
+                    className='nvx-btn nvx-btn--ghost'
+                    onClick={() => setScheduleOpen(true)}
+                    disabled={selectedTrackers.size === 0}
+                    data-testid='nvx-schedule-btn'
+                  >
+                    <i className='pi pi-clock' style={{marginRight: 6}} />
+                    Planifier
+                  </button>
                   <button
                     className='nvx-btn nvx-btn--primary'
                     disabled={selectedTrackers.size === 0}
@@ -537,6 +593,20 @@ function NavixyReport() {
               </div>
             </aside>
           </div>
+          ) : (
+            <ScheduledList items={scheduled} onRemove={removeSchedule} onGoReports={() => setTopTab('reports')} />
+          )}
+
+          {scheduleOpen && (
+            <ScheduleDialog
+              form={scheduleForm}
+              setForm={setScheduleForm}
+              onCancel={() => setScheduleOpen(false)}
+              onSave={saveSchedule}
+              reportTitle={reportTitle}
+              trackersCount={selectedTrackerLabels.length}
+            />
+          )}
         </>
       ) : (
         /* ─────────────────── RESULT VIEW ─────────────────── */
@@ -780,5 +850,189 @@ function SummaryPanel({isAlert, isZone, trackers}) {
     </div>
   )
 }
+
+function ScheduledList({items, onRemove, onGoReports}) {
+  if (!items || items.length === 0) {
+    return (
+      <div className='nvx-scheduled-empty' data-testid='nvx-scheduled-empty'>
+        <div className='nvx-scheduled-empty-ico'><i className='pi pi-clock' /></div>
+        <div className='nvx-scheduled-empty-title'>Aucun rapport planifié</div>
+        <div className='nvx-scheduled-empty-desc'>
+          Planifiez un rapport récurrent (quotidien, hebdomadaire ou mensuel) pour recevoir automatiquement les exports par e-mail.
+        </div>
+        <button className='nvx-btn nvx-btn--primary' onClick={onGoReports} data-testid='nvx-scheduled-goto'>
+          <i className='pi pi-plus' style={{marginRight: 6}} />
+          Créer un rapport planifié
+        </button>
+      </div>
+    )
+  }
+  const freqLabel = (f) => ({daily: 'Quotidien', weekly: 'Hebdomadaire', monthly: 'Mensuel'}[f] || f)
+  const dayLabel = (d) => ({Mo: 'Lundi', Tu: 'Mardi', We: 'Mercredi', Th: 'Jeudi', Fr: 'Vendredi', Sa: 'Samedi', Su: 'Dimanche'}[d] || d)
+  return (
+    <div className='nvx-scheduled' data-testid='nvx-scheduled-list'>
+      <div className='nvx-scheduled-head'>
+        <div>
+          <div className='nvx-scheduled-title'>Rapports planifiés</div>
+          <div className='nvx-scheduled-sub'>{items.length} rapport{items.length > 1 ? 's' : ''} programmé{items.length > 1 ? 's' : ''}.</div>
+        </div>
+        <button className='nvx-btn nvx-btn--primary' onClick={onGoReports} data-testid='nvx-scheduled-new'>
+          <i className='pi pi-plus' style={{marginRight: 6}} />Nouveau
+        </button>
+      </div>
+      <div className='nvx-scheduled-grid'>
+        {items.map((it) => (
+          <div key={it.id} className='nvx-scheduled-card' data-testid={`nvx-sch-${it.id}`}>
+            <div className='nvx-scheduled-card-top'>
+              <div className='nvx-scheduled-card-ico'>
+                <i className={`pi pi-${it.format === 'excel' ? 'file-excel' : 'file-pdf'}`} />
+              </div>
+              <div style={{flex: 1, minWidth: 0}}>
+                <div className='nvx-scheduled-card-title'>{it.title}</div>
+                <div className='nvx-scheduled-card-report'>{it.reportLabel}</div>
+              </div>
+              <button
+                className='nvx-scheduled-del'
+                onClick={() => onRemove(it.id)}
+                title='Supprimer'
+                data-testid={`nvx-sch-del-${it.id}`}
+              ><i className='pi pi-trash' /></button>
+            </div>
+            <div className='nvx-scheduled-card-meta'>
+              <span className='nvx-scheduled-chip nvx-scheduled-chip--blue'>
+                <i className='pi pi-refresh' />{freqLabel(it.frequency)}
+                {it.frequency === 'weekly' && ` · ${dayLabel(it.day)}`}
+              </span>
+              <span className='nvx-scheduled-chip'>
+                <i className='pi pi-clock' />{it.time}
+              </span>
+              <span className='nvx-scheduled-chip'>
+                <i className='pi pi-tag' />{it.trackers} tag{it.trackers > 1 ? 's' : ''}
+              </span>
+              <span className='nvx-scheduled-chip'>
+                <i className='pi pi-envelope' />{(it.recipients || '—').split(',').length} dest.
+              </span>
+            </div>
+            {it.recipients && (
+              <div className='nvx-scheduled-recip'>
+                {it.recipients.split(',').map((e) => e.trim()).filter(Boolean).map((e, i) => (
+                  <span key={i} className='nvx-scheduled-email'>{e}</span>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function ScheduleDialog({form, setForm, onCancel, onSave, reportTitle, trackersCount}) {
+  const days = [
+    {k: 'Mo', l: 'Lu'}, {k: 'Tu', l: 'Ma'}, {k: 'We', l: 'Me'},
+    {k: 'Th', l: 'Je'}, {k: 'Fr', l: 'Ve'}, {k: 'Sa', l: 'Sa'}, {k: 'Su', l: 'Di'},
+  ]
+  const update = (key, val) => setForm((f) => ({...f, [key]: val}))
+  return (
+    <div className='nvx-dialog-backdrop' onClick={onCancel} data-testid='nvx-sch-dialog'>
+      <div className='nvx-dialog' onClick={(e) => e.stopPropagation()}>
+        <div className='nvx-dialog-head'>
+          <div className='nvx-dialog-ico'><i className='pi pi-clock' /></div>
+          <div>
+            <div className='nvx-dialog-title'>Planifier le rapport</div>
+            <div className='nvx-dialog-sub'>« {reportTitle} » · {trackersCount} tag{trackersCount > 1 ? 's' : ''} sélectionné{trackersCount > 1 ? 's' : ''}</div>
+          </div>
+          <button className='nvx-dialog-close' onClick={onCancel}><i className='pi pi-times' /></button>
+        </div>
+        <div className='nvx-dialog-body'>
+          <div className='nvx-field'>
+            <label>Fréquence</label>
+            <div className='nvx-sch-freq'>
+              {[
+                {k: 'daily', l: 'Quotidien', i: 'pi-calendar'},
+                {k: 'weekly', l: 'Hebdomadaire', i: 'pi-calendar-plus'},
+                {k: 'monthly', l: 'Mensuel', i: 'pi-calendar-times'},
+              ].map((f) => (
+                <button
+                  key={f.k}
+                  className={`nvx-sch-freq-btn ${form.frequency === f.k ? 'is-active' : ''}`}
+                  onClick={() => update('frequency', f.k)}
+                  data-testid={`nvx-sch-freq-${f.k}`}
+                >
+                  <i className={`pi ${f.i}`} />
+                  {f.l}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {form.frequency === 'weekly' && (
+            <div className='nvx-field'>
+              <label>Jour de la semaine</label>
+              <div className='nvx-days'>
+                {days.map((d) => (
+                  <button
+                    key={d.k}
+                    className={`nvx-day ${form.day === d.k ? 'is-active' : ''}`}
+                    onClick={() => update('day', d.k)}
+                  >{d.l}</button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div className='nvx-field'>
+            <label>Heure d'envoi</label>
+            <input
+              type='time'
+              value={form.time}
+              onChange={(e) => update('time', e.target.value)}
+              data-testid='nvx-sch-time'
+            />
+          </div>
+
+          <div className='nvx-field'>
+            <label>Destinataires (séparés par virgules)</label>
+            <input
+              type='text'
+              placeholder='contact@client.com, manager@client.com'
+              value={form.recipients}
+              onChange={(e) => update('recipients', e.target.value)}
+              data-testid='nvx-sch-recipients'
+            />
+          </div>
+
+          <div className='nvx-field'>
+            <label>Format</label>
+            <div className='nvx-sch-freq'>
+              <button
+                className={`nvx-sch-freq-btn ${form.format === 'pdf' ? 'is-active' : ''}`}
+                onClick={() => update('format', 'pdf')}
+              ><i className='pi pi-file-pdf' style={{color: '#DC2626'}} />PDF</button>
+              <button
+                className={`nvx-sch-freq-btn ${form.format === 'excel' ? 'is-active' : ''}`}
+                onClick={() => update('format', 'excel')}
+              ><i className='pi pi-file-excel' style={{color: '#16A34A'}} />Excel</button>
+            </div>
+          </div>
+
+          <div className='nvx-sch-note'>
+            <i className='pi pi-info-circle' />
+            Le rapport sera généré et envoyé automatiquement selon la fréquence configurée.
+          </div>
+        </div>
+        <div className='nvx-dialog-foot'>
+          <button className='nvx-btn nvx-btn--ghost' onClick={onCancel} data-testid='nvx-sch-cancel'>Annuler</button>
+          <button className='nvx-btn nvx-btn--primary' onClick={onSave} data-testid='nvx-sch-save'>
+            <i className='pi pi-check' style={{marginRight: 6}} />
+            Planifier
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+
 
 export default NavixyReport
