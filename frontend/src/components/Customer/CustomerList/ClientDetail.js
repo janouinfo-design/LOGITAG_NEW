@@ -21,6 +21,7 @@ import {
   getCustomerTags,
   getEditCustomer,
   getSelectedCustomer,
+  getSelectedSiteClient,
   getSelectedTagClient,
   getTag,
   removeClientTag,
@@ -88,6 +89,8 @@ const ClientDetail = () => {
   const tags = useAppSelector(getCustomerTags)
   const editCustomer = useAppSelector(getEditCustomer)
   const showDetail = useAppSelector(getDetailSite)
+  const sitesClient = useAppSelector(getSelectedSiteClient)
+  const [activeTabIdx, setActiveTabIdx] = useState(0)
 
   const location = useLocation()
 
@@ -289,7 +292,10 @@ const ClientDetail = () => {
         {/* ── Premium Header ── */}
         <div className='lt-detail-header' data-testid="client-detail-header">
           <div className='lt-detail-header-left'>
-            <button className='lt-back-btn' onClick={onHideDetail}><i className='pi pi-arrow-left'></i></button>
+            <button className='lt-back-btn' onClick={onHideDetail}>
+              <i className='pi pi-arrow-left'></i>
+              <span style={{fontSize: '0.78rem', fontWeight: 600, color: '#475569'}}>Retour</span>
+            </button>
             <div className='lt-detail-avatar'>
               {selectedCustomer?.image ? (
                 <Image src={`${API_BASE_URL_IMAGE}${selectedCustomer.image}`} alt='' width="52" height="52" preview imageStyle={{objectFit: 'cover', width: 52, height: 52, borderRadius: 12}} />
@@ -300,7 +306,12 @@ const ClientDetail = () => {
             <div className='lt-detail-info'>
               <h2 className='lt-detail-name'>{selectedCustomer?.label || '-'}</h2>
               <div className='lt-detail-meta'>
-                <span className='lt-badge lt-badge-info'><i className='pi pi-hashtag' style={{fontSize: '0.5rem'}}></i>{selectedCustomer?.code || '-'}</span>
+                <span className={`lt-badge ${selectedCustomer?.active != 0 ? 'lt-badge-success' : 'lt-badge-neutral'}`}>
+                  <span className={`lt-badge-dot ${selectedCustomer?.active != 0 ? 'lt-badge-dot-success' : 'lt-badge-dot-neutral'}`}></span>
+                  {selectedCustomer?.active != 0 ? 'Actif' : 'Inactif'}
+                </span>
+                {selectedCustomer?.code && <span className='lt-badge lt-badge-info' style={{background:'#DBEAFE', color:'#1D4ED8'}}><i className='pi pi-hashtag' style={{fontSize: '0.5rem'}}></i>{selectedCustomer.code}</span>}
+                {Array.isArray(customerAddress) && <span className='lt-badge lt-badge-neutral'><i className='pi pi-map-marker' style={{fontSize: '0.55rem'}}></i>{customerAddress.length} adresse{customerAddress.length > 1 ? 's' : ''}</span>}
               </div>
             </div>
           </div>
@@ -320,10 +331,66 @@ const ClientDetail = () => {
           </div>
         </div>
 
+        {/* ── 3-Step Stepper ── */}
+        {(() => {
+          const hasInfo = !!(selectedCustomer?.label || selectedCustomer?.code)
+          const hasAddress = Array.isArray(customerAddress) && customerAddress.length > 0
+          const hasSites = Array.isArray(sitesClient) && sitesClient.length > 0
+          const steps = [
+            {k: 'info', label: '1. Informations', desc: 'Nom, code et identité du client', done: hasInfo, icon: 'pi-user'},
+            {k: 'address', label: '2. Adresses', desc: "Ajoutez au moins une adresse", done: hasAddress, icon: 'pi-map-marker'},
+            {k: 'sites', label: '3. Sites', desc: 'Rattachez les sites clients', done: hasSites, icon: 'pi-sitemap'},
+          ]
+          const nextStepIdx = steps.findIndex((s) => !s.done)
+          return (
+            <div className='lt-depot-stepper' data-testid='client-stepper'>
+              <div className='lt-depot-stepper-head'>
+                <div className='lt-depot-stepper-title'>Configuration du client en 3 étapes</div>
+                <div className='lt-depot-stepper-sub'>
+                  {nextStepIdx === -1
+                    ? '✓ Configuration complète. Votre client est prêt.'
+                    : `Étape ${nextStepIdx + 1}/3 : ${steps[nextStepIdx].desc}.`}
+                </div>
+              </div>
+              <div className='lt-depot-stepper-track'>
+                {steps.map((s, i) => {
+                  const isActive = activeTabIdx === i
+                  const isNext = nextStepIdx === i
+                  return (
+                    <React.Fragment key={s.k}>
+                      <button
+                        className={`lt-depot-step ${s.done ? 'is-done' : ''} ${isActive ? 'is-active' : ''} ${isNext ? 'is-next' : ''}`}
+                        onClick={() => setActiveTabIdx(i)}
+                        data-testid={`client-step-${s.k}`}
+                      >
+                        <span className='lt-depot-step-num'>
+                          {s.done ? <i className='pi pi-check' /> : (i + 1)}
+                        </span>
+                        <span className='lt-depot-step-txt'>
+                          <span className='lt-depot-step-lbl'>{s.label}</span>
+                          <span className='lt-depot-step-desc'>{s.desc}</span>
+                        </span>
+                        <i className={`pi ${s.icon} lt-depot-step-ico`} />
+                      </button>
+                      {i < steps.length - 1 && (
+                        <span className={`lt-depot-step-sep ${steps[i].done ? 'is-done' : ''}`} />
+                      )}
+                    </React.Fragment>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })()}
+
         {/* ── Tabs ── */}
         <div className='lt-detail-tabs'>
-          <TabView className='lt-tabview'>
-            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>Général</span>}>
+          <TabView
+            className='lt-tabview'
+            activeIndex={activeTabIdx}
+            onTabChange={(e) => setActiveTabIdx(e.index)}
+          >
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-user'></i>1. Informations</span>}>
               <div className='lt-detail-grid' style={{display: 'grid', gridTemplateColumns: '65fr 35fr', gap: '24px', alignItems: 'start'}}>
                 <div className='lt-detail-form'>
                 <div className='lt-form-section'>
@@ -378,7 +445,7 @@ const ClientDetail = () => {
                 </div>
               </div>
             </TabPanel>
-            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i>Adresses</span>}>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-map-marker'></i>2. Adresses</span>}>
               <div>
                 {editAddress == true ? (
                   <AddressDetail client={true} handleSaveAddress={(e) => saveAddress(e)} />
@@ -436,7 +503,7 @@ const ClientDetail = () => {
                 )}
               </div>
             </TabPanel>
-            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-sitemap'></i>Sites</span>}>
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-sitemap'></i>3. Sites</span>}>
               <SiteClientComponent />
             </TabPanel>
           </TabView>
