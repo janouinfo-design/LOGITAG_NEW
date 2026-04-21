@@ -67,6 +67,7 @@ const UserEdit = ({dialogVisible, setDialogVisible}) => {
       pass: '',
       pwd2: '',
       active: true,
+      sendCredentials: false,
     },
     // validationSchema: validationSchema,
     onSubmit: (values) => {
@@ -284,6 +285,44 @@ const UserEdit = ({dialogVisible, setDialogVisible}) => {
             onChange={formik.handleChange}
             data-testid='user-edit-active-switch'
           />
+        </div>
+
+        <div
+          className='lt-user-edit-check-row'
+          data-testid='user-edit-sendmail-row'
+          onClick={() => formik.setFieldValue('sendCredentials', !formik.values.sendCredentials)}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: 12,
+            padding: '14px 16px',
+            marginTop: 10,
+            border: formik.values.sendCredentials ? '1px solid #1D4ED8' : '1px solid #E2E8F0',
+            borderRadius: 12,
+            background: formik.values.sendCredentials ? '#EFF6FF' : '#FFFFFF',
+            cursor: 'pointer',
+            transition: 'all 0.15s',
+          }}
+        >
+          <input
+            type='checkbox'
+            name='sendCredentials'
+            checked={!!formik.values.sendCredentials}
+            onChange={() => {}}
+            onClick={(e) => e.stopPropagation()}
+            className='lt-user-edit-check'
+            data-testid='user-edit-sendmail-checkbox'
+            style={{flexShrink: 0, marginTop: 3, width: 18, height: 18, accentColor: '#1D4ED8', cursor: 'pointer'}}
+          />
+          <div style={{flex: 1, minWidth: 0}}>
+            <div style={{fontSize: '0.86rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center'}}>
+              <i className='pi pi-send' style={{marginRight: 7, color: '#1D4ED8', fontSize: '0.82rem'}} />
+              Envoyer l'identifiant et le mot de passe par e-mail
+            </div>
+            <div style={{fontSize: '0.76rem', color: '#64748B', marginTop: 3, lineHeight: 1.4}}>
+              L'utilisateur recevra ses accès sur l'adresse renseignée ci-dessus.
+            </div>
+          </div>
         </div>
       </div>
     </DialogComponent>

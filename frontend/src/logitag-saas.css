@@ -6023,6 +6023,58 @@ input.lt-form-input,
   background: #1D4ED8 !important;
 }
 
+/* Modern checkbox row — "Envoyer mail" */
+.lt-user-edit-check-row {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  padding: 12px 16px !important;
+  margin: 10px 0 0 !important;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  width: 100%;
+}
+.lt-user-edit-check-row:hover {
+  border-color: #1D4ED8;
+  background: #F8FAFC;
+}
+.lt-user-edit-check-row:has(.lt-user-edit-check:checked) {
+  border-color: #1D4ED8;
+  background: #EFF6FF;
+}
+.lt-user-edit-check {
+  flex-shrink: 0 !important;
+  width: 18px !important;
+  height: 18px !important;
+  margin: 2px 0 0 !important;
+  accent-color: #1D4ED8;
+  cursor: pointer;
+  appearance: auto;
+}
+.lt-user-edit-check-body {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+  min-width: 0;
+  flex: 1;
+}
+.lt-user-edit-check-title {
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: #0F172A;
+  letter-spacing: -0.005em;
+  display: inline-flex;
+  align-items: center;
+}
+.lt-user-edit-check-sub {
+  font-size: 0.74rem;
+  color: #64748B;
+  line-height: 1.4;
+}
+
 .lt-user-edit-foot {
   display: flex; justify-content: flex-end; gap: 10px;
   padding: 16px 24px;
