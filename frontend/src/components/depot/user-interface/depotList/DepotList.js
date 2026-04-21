@@ -35,11 +35,10 @@ const DepotList = () => {
   }
 
   const activeTemplate = (rowData) => (
-    <Chip
-      label={rowData?.active == 1 ? 'Actif' : 'Inactif'}
-      icon={rowData?.active == 1 ? 'pi pi-check' : 'pi pi-times'}
-      style={{backgroundColor: `${rowData?.activeColor}`, color: 'white'}}
-    />
+    <span className={`lt-depot-badge ${rowData?.active == 1 ? 'is-active' : 'is-inactive'}`}>
+      <i className={`pi ${rowData?.active == 1 ? 'pi-check-circle' : 'pi-times-circle'}`} />
+      {rowData?.active == 1 ? 'Actif' : 'Inactif'}
+    </span>
   )
   let actions = [
     {
@@ -73,18 +72,21 @@ const DepotList = () => {
 
   const labelTemplate = (data) => {
     return (
-      <strong className='text-lg'>
-        {data}
-      </strong>
+      <div className='lt-depot-name'>
+        <span className='lt-depot-name-ico'><i className='pi pi-building' /></span>
+        <strong>{data}</strong>
+      </div>
     )
   }
 
-
+  const codeTemplate = (data) => (
+    <span className='lt-depot-code'>{data}</span>
+  )
 
   const columns = [
-    {field: 'label', header: 'Label', body: (data) => labelTemplate(data.label)},
-    {field: 'code', olang: 'deposit.code', body: (data) => labelTemplate(data.code)},
-    {field: 'active', header: <OlangItem olang='status.active' />, body: activeTemplate},
+    {field: 'name', header: 'Nom du dépôt', body: (data) => labelTemplate(data.label || data.code)},
+    {field: 'code', header: 'Code', body: (data) => codeTemplate(data.code)},
+    {field: 'active', header: 'Statut', body: activeTemplate},
   ]
 
   const exportFields = [
@@ -111,25 +113,62 @@ const DepotList = () => {
     dispatch(fetchDepots())
   }, [])
 
+  const total = depots?.length || 0
+  const actives = (depots || []).filter((d) => d?.active == 1).length
+  const inactives = total - actives
+
   return (
-    <>
-      <div className='py-3 flex flex-row align-items-center'>
-        <h1 className='text-700'>
-          <OlangItem olang={'depot.list'} />
-        </h1>
+    <div className='lt-page' data-testid='depot-page'>
+      <div className='lt-page-header'>
+        <div className='lt-page-header-left'>
+          <div className='lt-page-icon' style={{background: 'linear-gradient(135deg, #3B82F6, #1D4ED8)'}}>
+            <i className='pi pi-building' />
+          </div>
+          <div>
+            <h1 className='lt-page-title'>Dépôts</h1>
+            <p className='lt-page-subtitle'>Gérez vos dépôts, entrepôts et points de stockage.</p>
+          </div>
+        </div>
       </div>
-      <DatatableComponent
-        tableId='depot-table'
-        data={depots}
-        columns={columns}
-        exportFields={exportFields}
-        rowGroupTemplates={rowGroupTemplates}
-        allowedGroupFields={allowedGroupFields}
-        rowActions={actions}
-        onNew={create}
-        isLoading={isLoadingButton}
-      />
-    </>
+
+      <div className='lt-depot-kpis' data-testid='depot-kpis'>
+        <div className='lt-depot-kpi'>
+          <span className='lt-depot-kpi-ico lt-depot-kpi-ico--blue'><i className='pi pi-building' /></span>
+          <div>
+            <div className='lt-depot-kpi-val'>{total}</div>
+            <div className='lt-depot-kpi-lbl'>Dépôts au total</div>
+          </div>
+        </div>
+        <div className='lt-depot-kpi'>
+          <span className='lt-depot-kpi-ico lt-depot-kpi-ico--green'><i className='pi pi-check-circle' /></span>
+          <div>
+            <div className='lt-depot-kpi-val'>{actives}</div>
+            <div className='lt-depot-kpi-lbl'>Actifs</div>
+          </div>
+        </div>
+        <div className='lt-depot-kpi'>
+          <span className='lt-depot-kpi-ico lt-depot-kpi-ico--amber'><i className='pi pi-pause' /></span>
+          <div>
+            <div className='lt-depot-kpi-val'>{inactives}</div>
+            <div className='lt-depot-kpi-lbl'>Inactifs</div>
+          </div>
+        </div>
+      </div>
+
+      <div className='lt-table-wrap lt-depot-table'>
+        <DatatableComponent
+          tableId='depot-table'
+          data={depots}
+          columns={columns}
+          exportFields={exportFields}
+          rowGroupTemplates={rowGroupTemplates}
+          allowedGroupFields={allowedGroupFields}
+          rowActions={actions}
+          onNew={create}
+          isLoading={isLoadingButton}
+        />
+      </div>
+    </div>
   )
 }
 
