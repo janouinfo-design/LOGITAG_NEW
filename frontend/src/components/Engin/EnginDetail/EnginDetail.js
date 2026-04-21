@@ -86,9 +86,17 @@ const EnginDetail = () => {
 
   const dispatch = useAppDispatch()
 
-  const customIcon = new Icon({
-    iconUrl: selectedEngin?.tagId != 0 ? logoColor : logoBlack,
-    iconSize: [30, 40],
+  const customIcon = L.divIcon({
+    className: 'lt-gps-pulse-marker',
+    html: `
+      <div class="lt-gps-pulse-ring"></div>
+      <div class="lt-gps-pulse-ring lt-gps-pulse-ring--2"></div>
+      <div class="lt-gps-pulse-dot">
+        <i class="pi pi-map-marker"></i>
+      </div>
+    `,
+    iconSize: [44, 44],
+    iconAnchor: [22, 22],
   })
 
   const validateFields = (validators, old) => {

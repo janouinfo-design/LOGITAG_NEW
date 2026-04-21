@@ -4562,3 +4562,56 @@ input.lt-form-input,
 }
 .lt-zone-dd-apply:hover { background: #1E40AF; transform: translateY(-1px); }
 .lt-zone-dd-apply i { font-size: 0.78rem; }
+
+/* ═══════════════════════════════════════════════════════════
+   PULSE GPS MARKER — Visible animated marker on detail pages
+   ═══════════════════════════════════════════════════════════ */
+.lt-gps-pulse-marker {
+  background: transparent !important;
+  border: 0 !important;
+  pointer-events: auto;
+  position: relative;
+  overflow: visible !important;
+}
+.leaflet-div-icon.lt-gps-pulse-marker { overflow: visible !important; background: transparent !important; border: 0 !important; }
+.lt-gps-pulse-dot {
+  position: absolute;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  width: 28px; height: 28px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 4px 12px rgba(29, 78, 216, 0.45), 0 0 0 1px rgba(29, 78, 216, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  animation: lt-gps-bounce 2s ease-in-out infinite;
+}
+.lt-gps-pulse-dot i {
+  color: #FFFFFF;
+  font-size: 0.78rem;
+  line-height: 1;
+}
+.lt-gps-pulse-ring {
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 44px; height: 44px;
+  border-radius: 999px;
+  background: rgba(37, 99, 235, 0.35);
+  transform: translate(-50%, -50%);
+  animation: lt-gps-pulse 2s ease-out infinite;
+  z-index: 1;
+}
+.lt-gps-pulse-ring--2 {
+  animation-delay: 1s;
+}
+@keyframes lt-gps-pulse {
+  0%   { transform: translate(-50%, -50%) scale(0.5); opacity: 0.75; }
+  100% { transform: translate(-50%, -50%) scale(2.2); opacity: 0; }
+}
+@keyframes lt-gps-bounce {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  50%      { transform: translate(-50%, -50%) scale(1.1); }
+}

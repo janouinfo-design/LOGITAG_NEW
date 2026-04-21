@@ -48,7 +48,7 @@ const MapComponent = forwardRef((props) => {
   const [routeLine, setRouteLine] = useState(null)
   const [timelineFilter, setTimelineFilter] = useState('all')
 
-  const [zoom, setZoom] = useState(14)
+  const [zoom, setZoom] = useState(15)
   const ref = useRef(null)
   const editorRef = useRef(null)
   const routeLayer = useRef(null)
@@ -154,6 +154,21 @@ const MapComponent = forwardRef((props) => {
     displayLastSeen()
   }, [props.onClickLast])
 
+  // Force map to recenter on engin and invalidate size after panel toggles / layout changes
+  useEffect(() => {
+    const id = setTimeout(() => {
+      try {
+        if (ref.current) {
+          ref.current.invalidateSize()
+          if (enginCenter?.lat && enginCenter?.lng) {
+            ref.current.setView([enginCenter.lat, enginCenter.lng], 15, {animate: false})
+          }
+        }
+      } catch (e) {}
+    }, 400)
+    return () => clearTimeout(id)
+  }, [enginCenter])
+
   useEffect(() => {
     displayGeoLog(selectedGeoPos)
   }, [selectedGeoPos])
@@ -237,7 +252,8 @@ const MapComponent = forwardRef((props) => {
         <MapEvents />
         <FeatureGroup positions={[]} ref={routeLayer} />
 
-        {center?.lat != 0 && <Marker position={center} icon={redIcon}></Marker>}
+        {/* Redundant redIcon marker disabled — pulse marker (props.icon) already pinpoints the engin */}
+        {false && center?.lat != 0 && <Marker position={center} icon={redIcon}></Marker>}
         {Array.isArray(polygonCoordinates) && <Polygon positions={polygonCoordinates} />}
       </MapContainer>
       <Toast ref={toast} />
