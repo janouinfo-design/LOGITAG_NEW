@@ -60,15 +60,19 @@ const SidebarLogo = (props: PropsType) => {
           //   src={toAbsoluteUrl('/media/logos/default-dark.svg')}
           //   className='h-25px app-sidebar-logo-default'
           // />
-          <div>
-            <img
-              src={require('../../../../assets/images/Logitag Color.png')}
-              className='h-65px app-sidebar-logo-default '
-              alt='logitag'
-              style={{objectFit: 'contain'}}
-            />
-            {/* <span className='text-3xl text-white'>LOGITAG</span>
-            <span className="text-xs font-light text-white text-center">ASSETS TRACKING</span> */}
+          <div className='lt-sidebar-brand'>
+            <span className='lt-sidebar-brand-ico' aria-hidden='true'>
+              <svg viewBox='0 0 64 64' xmlns='http://www.w3.org/2000/svg'>
+                <path d='M32 4C20.4 4 11 13.4 11 25c0 12.6 15.2 29.2 19.3 33.5a2.4 2.4 0 0 0 3.4 0C37.8 54.2 53 37.6 53 25 53 13.4 43.6 4 32 4z' fill='currentColor' />
+                <path d='M32 12c-3 0-5.8 1.2-7.9 3.2l2.5 2.5A7.5 7.5 0 0 1 32 15.5c2 0 3.9.8 5.3 2.2l2.6-2.5C37.8 13.2 35 12 32 12z' fill='#FFFFFF' />
+                <path d='M32 18.5c-1.7 0-3.3.6-4.5 1.7l2.5 2.5a3 3 0 0 1 4 0l2.5-2.5A6.5 6.5 0 0 0 32 18.5z' fill='#FFFFFF' />
+                <circle cx='32' cy='28' r='5' fill='#FFFFFF' />
+              </svg>
+            </span>
+            <span className='lt-sidebar-brand-txt'>
+              <span className='lt-sidebar-brand-name'>LOGITAG</span>
+              <span className='lt-sidebar-brand-tag'>ASSETS TRACKING</span>
+            </span>
           </div>
         ) : (
           <>

@@ -5234,6 +5234,49 @@ input.lt-form-input,
 .lt-asset-row-sub-time i { font-size: 0.58rem; }
 
 /* Expand panel premium */
+
+/* ═══════════════════════════════════════════════════════════
+   SIDEBAR BRAND — Blue Logitag (matches login page)
+   ═══════════════════════════════════════════════════════════ */
+.lt-sidebar-brand {
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 4px 2px;
+}
+.lt-sidebar-brand-ico {
+  width: 42px; height: 42px;
+  color: #1D4ED8;
+  display: inline-flex; align-items: center; justify-content: center;
+  filter: drop-shadow(0 3px 8px rgba(29, 78, 216, 0.18));
+  flex-shrink: 0;
+}
+.lt-sidebar-brand-ico svg { width: 100%; height: 100%; }
+.lt-sidebar-brand-txt {
+  display: inline-flex; flex-direction: column;
+  gap: 2px; line-height: 1;
+}
+.lt-sidebar-brand-name {
+  font-family: 'Manrope', 'Inter', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  color: #1D4ED8;
+  line-height: 1;
+}
+.lt-sidebar-brand-tag {
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  color: #64748B;
+  text-transform: uppercase;
+  margin-top: 3px;
+}
+
+/* Hide brand when sidebar minimized */
+[data-kt-app-sidebar-minimize='on'] .lt-sidebar-brand-txt,
+.app-sidebar-minimize-active .lt-sidebar-brand-txt {
+  display: none;
+}
+
 .lt-asset-row-expand {
   background: #FAFBFC;
   border-top: 1px solid #E2E8F0;
