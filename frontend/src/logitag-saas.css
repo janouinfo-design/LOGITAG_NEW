@@ -138,8 +138,8 @@
 .lt-table-wrap .p-datatable .p-datatable-thead > tr > th {
   background: #F8FAFC;
   border: none;
-  border-bottom: 1.5px solid var(--lt-border);
-  padding: 14px 16px;
+  border-bottom: none;
+  padding: 10px 16px 4px;
   font-family: var(--lt-font);
   font-size: 0.75rem;
   font-weight: 700;
@@ -192,11 +192,26 @@
   border-radius: 10px;
 }
 
-/* Filter row styling */
+/* Filter row styling — tight under the column title */
 .lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th {
-  background: var(--lt-surface);
-  padding: 8px 16px;
+  background: #F8FAFC;
+  padding: 0 16px 8px;
   border-bottom: 1.5px solid var(--lt-border);
+}
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-column-filter,
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-inputtext,
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-dropdown,
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-calendar {
+  width: 100% !important;
+  min-height: 30px !important;
+}
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-dropdown .p-dropdown-label,
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th .p-inputtext {
+  font-size: 0.78rem !important;
+  padding: 5px 10px !important;
+}
+.lt-table-wrap .p-datatable .p-datatable-thead > tr:nth-child(2) > th > * {
+  margin: 0 !important;
 }
 
 /* ── Badges / Chips ── */
