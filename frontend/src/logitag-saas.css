@@ -2457,22 +2457,24 @@
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
   display: flex !important;
   flex-direction: column !important;
-  position: relative !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  bottom: 0 !important;
+  z-index: 100 !important;
 }
 
-body[data-lt-sidebar-collapsed='1'] .app-wrapper,
+/* Shift wrapper to account for our custom sidebar width (Metronic uses 265px default) */
+body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
+  margin-inline-start: 252px !important;
+}
 body[data-lt-sidebar-collapsed='1'] #kt_app_wrapper {
-  padding-inline-start: 68px !important;
+  margin-inline-start: 68px !important;
+  transition: margin-inline-start 0.22s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 #kt_app_sidebar.lt-sidebar.lt-sidebar-collapsed {
   width: 68px !important;
-}
-
-/* Default Metronic wrapper offset respect */
-body[data-lt-sidebar-collapsed='0'] .app-wrapper,
-body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
-  padding-inline-start: 252px !important;
 }
 
 /* ---- Logo block ----------------------------------------------- */
@@ -2803,12 +2805,6 @@ body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
   #kt_app_sidebar.lt-sidebar,
   #kt_app_sidebar.lt-sidebar.lt-sidebar-collapsed {
     width: 252px !important;
-  }
-  body[data-lt-sidebar-collapsed='1'] .app-wrapper,
-  body[data-lt-sidebar-collapsed='0'] .app-wrapper,
-  body[data-lt-sidebar-collapsed='1'] #kt_app_wrapper,
-  body[data-lt-sidebar-collapsed='0'] #kt_app_wrapper {
-    padding-inline-start: 0 !important;
   }
 }
 
