@@ -91,10 +91,21 @@ const UserEdit = ({dialogVisible, setDialogVisible}) => {
   }
 
   const dialogTemplate = () => {
+    const isEdit = !!selectedUser?.id
     return (
-      <div className='flex'>
-        <div>
-          <p className='text-2xl'>{<OlangItem olang='user.edit' />}</p>
+      <div className='lt-user-edit-head' data-testid='user-edit-header'>
+        <div className='lt-user-edit-head-ico'>
+          <i className={`pi ${isEdit ? 'pi-user-edit' : 'pi-user-plus'}`} />
+        </div>
+        <div className='lt-user-edit-head-txt'>
+          <h2 className='lt-user-edit-head-title'>
+            {isEdit ? "Modifier l'utilisateur" : 'Nouvel utilisateur'}
+          </h2>
+          <p className='lt-user-edit-head-sub'>
+            {isEdit
+              ? 'Mettez à jour les informations et les accès de ce compte.'
+              : 'Créez un compte avec identifiant, e-mail et mot de passe.'}
+          </p>
         </div>
       </div>
     )
@@ -108,9 +119,30 @@ const UserEdit = ({dialogVisible, setDialogVisible}) => {
   }
 
   const footer = (
-    <div>
-      <ButtonComponent label='Annuler' className='p-button-danger' onClick={onHide} />
-      <ButtonComponent loading={loading} label='Enregistrer' onClick={formik.submitForm} />
+    <div className='lt-user-edit-foot' data-testid='user-edit-footer'>
+      <button
+        type='button'
+        className='lt-user-edit-btn lt-user-edit-btn--ghost'
+        onClick={onHide}
+        data-testid='user-edit-cancel-btn'
+      >
+        Annuler
+      </button>
+      <button
+        type='button'
+        className='lt-user-edit-btn lt-user-edit-btn--primary'
+        onClick={formik.submitForm}
+        disabled={loading}
+        data-testid='user-edit-save-btn'
+      >
+        {loading ? (
+          <span className='lt-user-edit-btn-loading'>
+            <i className='pi pi-spin pi-spinner' /> Enregistrement…
+          </span>
+        ) : (
+          <><i className='pi pi-check' /> Enregistrer</>
+        )}
+      </button>
     </div>
   )
 
@@ -141,102 +173,118 @@ const UserEdit = ({dialogVisible, setDialogVisible}) => {
       visible={dialogVisible}
       onHide={onHide}
       position='center'
+      className='lt-user-edit-dialog'
     >
-      <div className='my-4 mt-5'>
-        <label>
-          <OlangItem olang='user.username' />
-          {_loginValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-        </label>
-        <InputText
-          name='firstname'
-          value={formik.values.firstname}
-          onChange={formik.handleChange}
-          className={`w-full font-semibold text-lg ${
-            formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''
-          }`}
-        />
-        {formik.errors.firstname && formik.touched.firstname && (
-          <div className='p-error'>{formik.errors.firstname}</div>
-        )}
-      </div>
-      <div className='my-4 mt-5'>
-        <label>
-          <OlangItem olang='user.email' />
-          {_addrMailValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-        </label>
-        <InputText
-          name='addrMail'
-          value={formik.values.addrMail}
-          onChange={formik.handleChange}
-          className={`w-full font-semibold text-lg ${
-            formik.errors.addrMail && formik.touched.addrMail ? 'p-invalid' : ''
-          }`}
-        />
-        {formik.errors.addrMail && formik.touched.addrMail && (
-          <div className='p-error'>{formik.errors.addrMail}</div>
-        )}
-      </div>
-      <div className='my-4 mt-5'>
-        <label>
-          <OlangItem olang='user.password' />
-          {_passwordValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-        </label>
-        <InputText
-          type='password'
-          name='pass'
-          value={formik.values.pass}
-          onChange={formik.handleChange}
-          className={`w-full font-semibold text-lg ${
-            formik.errors.pass && formik.touched.pass ? 'p-invalid' : ''
-          }`}
-        />
-        {formik.errors.pass && formik.touched.pass && (
-          <div className='p-error'>{formik.errors.pass}</div>
-        )}
-      </div>
-      <div className='my-4 mt-5'>
-        <label>
-          <OlangItem olang='user.confirmation' />
-          {_passwordValidator2?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-        </label>
-        <InputText
-          type='password'
-          name='pwd2'
-          id='pwd2'
-          onChange={formik.handleChange}
-          className={`w-full font-semibold text-lg ${
-            formik.errors.pwd2 && formik.touched.pwd2 ? 'p-invalid' : ''
-          }`}
-          value={formik.values.pwd2}
-        />
-        {formik.errors.pwd2 && formik.touched.pwd2 && (
-          <div className='p-error'>{formik.errors.pwd2}</div>
-        )}
-      </div>
+      <div className='lt-user-edit-body' data-testid='user-edit-body'>
+        <div className='lt-user-edit-grid'>
+          <div className='lt-user-edit-field'>
+            <label className='lt-user-edit-label' htmlFor='lt-ue-firstname'>
+              Identifiant {_loginValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+            </label>
+            <InputText
+              id='lt-ue-firstname'
+              name='firstname'
+              placeholder='ex: admin'
+              value={formik.values.firstname || ''}
+              onChange={formik.handleChange}
+              className={`lt-user-edit-input ${
+                formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''
+              }`}
+              data-testid='user-edit-username'
+            />
+            {formik.errors.firstname && formik.touched.firstname && (
+              <span className='lt-user-edit-err'>{formik.errors.firstname}</span>
+            )}
+          </div>
 
-      {/* <div className='my-5 flex align-items-center gap-2'>
-        <label>
-          <OlangItem olang='user.reset' />
-        </label>
-        <InputSwitch
-          id='rest'
-          name='rest'
-          checked={selectedUser?.rest == 1 ? true : false}
-          disabled={isTyping}
-          onChange={onInputChange}
-        />
-        {disableMessage && <Message severity='info' text={disableMessage} />}
-      </div> */}
+          <div className='lt-user-edit-field'>
+            <label className='lt-user-edit-label' htmlFor='lt-ue-email'>
+              Adresse e-mail {_addrMailValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+            </label>
+            <InputText
+              id='lt-ue-email'
+              name='addrMail'
+              type='email'
+              placeholder='ex: admin@logitag.ch'
+              value={formik.values.addrMail || ''}
+              onChange={formik.handleChange}
+              className={`lt-user-edit-input ${
+                formik.errors.addrMail && formik.touched.addrMail ? 'p-invalid' : ''
+              }`}
+              data-testid='user-edit-email'
+            />
+            {formik.errors.addrMail && formik.touched.addrMail && (
+              <span className='lt-user-edit-err'>{formik.errors.addrMail}</span>
+            )}
+          </div>
+        </div>
 
-      <div className='my-5 flex align-items-center gap-2'>
-        <label>
-          <OlangItem olang='user.active' />
-        </label>
-        <InputSwitch
-          name='active'
-          checked={formik.values.active == 1 ? true : false}
-          onChange={formik.handleChange}
-        />
+        <div className='lt-user-edit-divider'>
+          <span>Sécurité</span>
+        </div>
+
+        <div className='lt-user-edit-grid'>
+          <div className='lt-user-edit-field'>
+            <label className='lt-user-edit-label' htmlFor='lt-ue-pass'>
+              Mot de passe {_passwordValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+            </label>
+            <InputText
+              id='lt-ue-pass'
+              type='password'
+              name='pass'
+              placeholder='••••••••'
+              value={formik.values.pass || ''}
+              onChange={formik.handleChange}
+              className={`lt-user-edit-input ${
+                formik.errors.pass && formik.touched.pass ? 'p-invalid' : ''
+              }`}
+              data-testid='user-edit-password'
+            />
+            {formik.errors.pass && formik.touched.pass && (
+              <span className='lt-user-edit-err'>{formik.errors.pass}</span>
+            )}
+          </div>
+
+          <div className='lt-user-edit-field'>
+            <label className='lt-user-edit-label' htmlFor='lt-ue-pwd2'>
+              Confirmer le mot de passe {_passwordValidator2?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+            </label>
+            <InputText
+              id='lt-ue-pwd2'
+              type='password'
+              name='pwd2'
+              placeholder='••••••••'
+              value={formik.values.pwd2 || ''}
+              onChange={formik.handleChange}
+              className={`lt-user-edit-input ${
+                formik.errors.pwd2 && formik.touched.pwd2 ? 'p-invalid' : ''
+              }`}
+              data-testid='user-edit-pwd2'
+            />
+            {formik.errors.pwd2 && formik.touched.pwd2 && (
+              <span className='lt-user-edit-err'>{formik.errors.pwd2}</span>
+            )}
+          </div>
+        </div>
+
+        <div className='lt-user-edit-divider'>
+          <span>Statut</span>
+        </div>
+
+        <div className='lt-user-edit-toggle-row' data-testid='user-edit-active-row'>
+          <div>
+            <div className='lt-user-edit-toggle-title'>Compte actif</div>
+            <div className='lt-user-edit-toggle-sub'>
+              Si désactivé, l'utilisateur ne pourra plus se connecter.
+            </div>
+          </div>
+          <InputSwitch
+            name='active'
+            checked={formik.values.active == 1 || formik.values.active === true}
+            onChange={formik.handleChange}
+            data-testid='user-edit-active-switch'
+          />
+        </div>
       </div>
     </DialogComponent>
   )
