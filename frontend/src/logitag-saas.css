@@ -6397,19 +6397,4 @@ input.lt-form-input,
   color: #1D4ED8 !important;
   font-weight: 600;
 }
-.lt-addr-search-highlight [class*='control']::before {
-  content: '\f002';
-  font-family: 'primeicons';
-  position: absolute;
-  left: 14px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #1D4ED8;
-  font-size: 0.92rem;
-  z-index: 2;
-  pointer-events: none;
-}
-.lt-addr-search-highlight [class*='valueContainer'] {
-  padding-left: 38px !important;
-}
 
