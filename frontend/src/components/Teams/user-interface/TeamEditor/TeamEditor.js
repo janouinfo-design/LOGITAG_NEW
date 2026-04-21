@@ -137,11 +137,46 @@ function TeamEditor() {
   }
 
   const footer = (
-    <div>
-      <ButtonComponent label='Annuler' className='p-button-danger' onClick={onHide} />
-      <ButtonComponent label='Enregistrer' onClick={formik.submitForm} />
+    <div className='lt-user-edit-foot' data-testid='team-edit-footer'>
+      <button
+        type='button'
+        className='lt-user-edit-btn lt-user-edit-btn--ghost'
+        onClick={onHide}
+        data-testid='team-edit-cancel-btn'
+      >
+        Annuler
+      </button>
+      <button
+        type='button'
+        className='lt-user-edit-btn lt-user-edit-btn--primary'
+        onClick={formik.submitForm}
+        data-testid='team-edit-save-btn'
+      >
+        <i className='pi pi-check' /> Enregistrer
+      </button>
     </div>
   )
+
+  const dialogHeader = () => {
+    const isEdit = !!selectedTeam?.id
+    return (
+      <div className='lt-user-edit-head' data-testid='team-edit-header'>
+        <div className='lt-user-edit-head-ico'>
+          <i className={`pi ${isEdit ? 'pi-user-edit' : 'pi-users'}`} />
+        </div>
+        <div className='lt-user-edit-head-txt'>
+          <h2 className='lt-user-edit-head-title'>
+            {isEdit ? 'Modifier le collaborateur' : 'Nouveau collaborateur'}
+          </h2>
+          <p className='lt-user-edit-head-sub'>
+            {isEdit
+              ? "Mettez à jour les informations de l'employé."
+              : 'Créez une fiche employé avec identité, fonction et dates clés.'}
+          </p>
+        </div>
+      </div>
+    )
+  }
 
   useEffect(() => {
     if (!selectedTeam?.id) {
@@ -186,143 +221,175 @@ function TeamEditor() {
       <DialogComponent
         visible={visible}
         footer={footer}
-        header={`${selectedTeam?.id ? 'Edit team' : 'Create team'}`}
+        header={dialogHeader}
         onHide={onHide}
+        className='lt-user-edit-dialog'
       >
-        <div className='flex justify-content-center'>
+        <div className='lt-user-edit-body' data-testid='team-edit-body'>
           {existItem && (
-            <Message severity='error' text='This Member is already exist' className='w-6' />
+            <div style={{marginBottom: 14}}>
+              <Message severity='error' text='Ce collaborateur existe déjà' className='w-full' />
+            </div>
           )}
-        </div>
-        <div className='my-3'>
-          <label>
-            <OlangItem olang='staff.firstname' />
-            {firstnameValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-          </label>
-          <InputText
-            name='firstname'
-            className={`w-full font-semibold text-lg ${
-              formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''
-            }`}
-            onChange={formik.handleChange}
-            value={formik.values.firstname}
-          />
-          {formik.errors.firstname && formik.touched.firstname && (
-            <div className='p-error'>{formik.errors.firstname}</div>
-          )}
-        </div>
-        <div className='my-3'>
-          <label>
-            <OlangItem olang='staff.lastname' />
-            {lastnameValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-          </label>
-          <InputText
-            name='lastname'
-            className={`w-full font-semibold text-lg ${
-              formik.errors.lastname && formik.touched.lastname ? 'p-invalid' : ''
-            }`}
-            onChange={formik.handleChange}
-            value={formik.values.lastname}
-          />
-          {formik.errors.lastname && formik.touched.lastname && (
-            <div className='p-error'>{formik.errors.lastname}</div>
-          )}
-        </div>
-        <div className='my-3'>
-          <label>
-            <OlangItem olang='staff.fonction' />
-            {typeNameValidator?.isRequired == 1 && <span className='h3 text-danger'>*</span>}
-          </label>
-          <Dropdown
-            name='typeName'
-            value={formik.values.typeName}
-            options={statusOption}
-            optionLabel='name'
-            onChange={formik.handleChange}
-            placeholder={'Select fonction'}
-            className={`w-full font-semibold text-lg ${
-              formik.errors.typeName && formik.touched.typeName ? 'p-invalid' : ''
-            }`}
-          />
-          {formik.errors.typeName && formik.touched.typeName && (
-            <div className='p-error'>{formik.errors.typeName}</div>
-          )}
-        </div>
-        <div className='my-3 flex flex-column'>
-          <label>Anniversaire</label>
-          <Calendar
-            name='birthday'
-            showIcon
-            className={`w-full font-semibold text-lg ${
-              formik.errors.birthday && formik.touched.birthday ? 'p-invalid' : ''
-            }`}
-            dateFormat='dd/mm/yy'
-            onChange={formik.handleChange}
-            placeholder={'dd/mm/yy'}
-            value={formik.values.birthday}
-          />
-          {formik.errors.birthday && formik.touched.birthday && (
-            <div className='p-error'>{formik.errors.birthday}</div>
-          )}
-        </div>
-        <div className='my-3 flex flex-column'>
-          <label>
-            <OlangItem olang='hireday' />
-          </label>
-          <Calendar
-            name='hireday'
-            showIcon
-            className={`w-full font-semibold text-lg ${
-              formik.errors.hireday && formik.touched.hireday ? 'p-invalid' : ''
-            }`}
-            dateFormat='dd/mm/yy'
-            onChange={formik.handleChange}
-            placeholder={'dd/mm/yy'}
-            value={formik.values.hireday}
-          />
-          {formik.errors.hireday && formik.touched.hireday && (
-            <div className='p-error'>{formik.errors.hireday}</div>
-          )}
-        </div>
-        <div className='my-3 flex flex-column w-full'>
-          <label>
-            <OlangItem olang='exitday' />
-          </label>
-          <div className='flex flex-row w-full justify-content-between'>
-            <Calendar
-              style={{width: '95%'}}
-              showIcon
-              disabled={disabled}
-              name='exitday'
-              dateFormat='dd/mm/yy'
-              className={` font-semibold text-lg ${
-                formik.errors.exitday && formik.touched.exitday ? 'p-invalid' : ''
-              }`}
-              onChange={formik.handleChange}
-              placeholder={'dd/mm/yy'}
-              value={formik.values.exitday}
-            />
 
-            <Button
-              icon={`${disabled ? 'pi pi-plus' : 'pi pi-times'}`}
-              aria-label={`${disabled ? 'Filter' : 'Cancel'}`}
-              severity={`${disabled ? 'success' : 'danger'}`}
-              onClick={() => setDisabled(!disabled)}
+          <div className='lt-user-edit-grid'>
+            <div className='lt-user-edit-field'>
+              <label className='lt-user-edit-label' htmlFor='lt-te-firstname'>
+                Prénom {firstnameValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+              </label>
+              <InputText
+                id='lt-te-firstname'
+                name='firstname'
+                placeholder='ex: Zakaria'
+                className={`lt-user-edit-input ${
+                  formik.errors.firstname && formik.touched.firstname ? 'p-invalid' : ''
+                }`}
+                onChange={formik.handleChange}
+                value={formik.values.firstname || ''}
+                data-testid='team-edit-firstname'
+              />
+              {formik.errors.firstname && formik.touched.firstname && (
+                <span className='lt-user-edit-err'>{formik.errors.firstname}</span>
+              )}
+            </div>
+
+            <div className='lt-user-edit-field'>
+              <label className='lt-user-edit-label' htmlFor='lt-te-lastname'>
+                Nom {lastnameValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+              </label>
+              <InputText
+                id='lt-te-lastname'
+                name='lastname'
+                placeholder='ex: Rahali'
+                className={`lt-user-edit-input ${
+                  formik.errors.lastname && formik.touched.lastname ? 'p-invalid' : ''
+                }`}
+                onChange={formik.handleChange}
+                value={formik.values.lastname || ''}
+                data-testid='team-edit-lastname'
+              />
+              {formik.errors.lastname && formik.touched.lastname && (
+                <span className='lt-user-edit-err'>{formik.errors.lastname}</span>
+              )}
+            </div>
+          </div>
+
+          <div className='lt-user-edit-field' style={{marginTop: 16}}>
+            <label className='lt-user-edit-label'>
+              Fonction {typeNameValidator?.isRequired == 1 && <span className='lt-user-edit-req'>*</span>}
+            </label>
+            <Dropdown
+              name='typeName'
+              value={formik.values.typeName}
+              options={statusOption}
+              optionLabel='name'
+              onChange={formik.handleChange}
+              placeholder='Sélectionner une fonction'
+              className={`lt-user-edit-dropdown ${
+                formik.errors.typeName && formik.touched.typeName ? 'p-invalid' : ''
+              }`}
+              data-testid='team-edit-typeName'
+            />
+            {formik.errors.typeName && formik.touched.typeName && (
+              <span className='lt-user-edit-err'>{formik.errors.typeName}</span>
+            )}
+          </div>
+
+          <div className='lt-user-edit-divider'>
+            <span>Dates clés</span>
+          </div>
+
+          <div className='lt-user-edit-grid'>
+            <div className='lt-user-edit-field'>
+              <label className='lt-user-edit-label'>Anniversaire</label>
+              <Calendar
+                name='birthday'
+                showIcon
+                className={`lt-user-edit-calendar ${
+                  formik.errors.birthday && formik.touched.birthday ? 'p-invalid' : ''
+                }`}
+                dateFormat='dd/mm/yy'
+                onChange={formik.handleChange}
+                placeholder='JJ/MM/AAAA'
+                value={formik.values.birthday}
+                data-testid='team-edit-birthday'
+              />
+              {formik.errors.birthday && formik.touched.birthday && (
+                <span className='lt-user-edit-err'>{formik.errors.birthday}</span>
+              )}
+            </div>
+
+            <div className='lt-user-edit-field'>
+              <label className='lt-user-edit-label'>Date d'embauche</label>
+              <Calendar
+                name='hireday'
+                showIcon
+                className={`lt-user-edit-calendar ${
+                  formik.errors.hireday && formik.touched.hireday ? 'p-invalid' : ''
+                }`}
+                dateFormat='dd/mm/yy'
+                onChange={formik.handleChange}
+                placeholder='JJ/MM/AAAA'
+                value={formik.values.hireday}
+                data-testid='team-edit-hireday'
+              />
+              {formik.errors.hireday && formik.touched.hireday && (
+                <span className='lt-user-edit-err'>{formik.errors.hireday}</span>
+              )}
+            </div>
+          </div>
+
+          <div className='lt-user-edit-field' style={{marginTop: 16}}>
+            <label className='lt-user-edit-label'>Date de sortie</label>
+            <div style={{display: 'flex', gap: 8, alignItems: 'stretch'}}>
+              <div style={{flex: 1, minWidth: 0}}>
+                <Calendar
+                  showIcon
+                  disabled={disabled}
+                  name='exitday'
+                  dateFormat='dd/mm/yy'
+                  className={`lt-user-edit-calendar ${
+                    formik.errors.exitday && formik.touched.exitday ? 'p-invalid' : ''
+                  }`}
+                  onChange={formik.handleChange}
+                  placeholder={disabled ? 'Activer le champ →' : 'JJ/MM/AAAA'}
+                  value={formik.values.exitday}
+                  data-testid='team-edit-exitday'
+                />
+              </div>
+              <button
+                type='button'
+                onClick={() => setDisabled(!disabled)}
+                className={`lt-user-edit-icon-btn ${disabled ? 'is-add' : 'is-remove'}`}
+                title={disabled ? 'Ajouter une date de sortie' : 'Retirer la date de sortie'}
+                data-testid='team-edit-exitday-toggle'
+              >
+                <i className={`pi ${disabled ? 'pi-plus' : 'pi-times'}`} />
+              </button>
+            </div>
+            {formik.errors.exitday && formik.touched.exitday && (
+              <span className='lt-user-edit-err'>{formik.errors.exitday}</span>
+            )}
+          </div>
+
+          <div className='lt-user-edit-divider'>
+            <span>Statut</span>
+          </div>
+
+          <div className='lt-user-edit-toggle-row' data-testid='team-edit-active-row'>
+            <div>
+              <div className='lt-user-edit-toggle-title'>Collaborateur actif</div>
+              <div className='lt-user-edit-toggle-sub'>
+                Décochez pour archiver le collaborateur sans le supprimer.
+              </div>
+            </div>
+            <InputSwitch
+              name='active'
+              checked={!!formik.values.active}
+              onChange={formik.handleChange}
+              data-testid='team-edit-active-switch'
             />
           </div>
-          {formik.errors.exitday && formik.touched.exitday && (
-            <div className='p-error'>{formik.errors.exitday}</div>
-          )}
-        </div>
-        <div className='my-3 flex align-items-center gap-2'>
-          <label>
-            <OlangItem olang='active' />
-          </label>
-          <InputSwitch
-            name='active'
-            checked={formik.values.active}
-            onChange={formik.handleChange}
-          />
         </div>
       </DialogComponent>
     </div>

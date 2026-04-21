@@ -5976,6 +5976,101 @@ input.lt-form-input,
   border-color: #EF4444 !important;
   background: #FEF2F2 !important;
 }
+
+/* Dropdown & Calendar — same premium look */
+.lt-user-edit-dropdown.p-dropdown,
+.lt-user-edit-calendar.p-calendar {
+  width: 100% !important;
+}
+.lt-user-edit-dropdown.p-dropdown {
+  padding: 0 !important;
+  border-radius: 10px !important;
+  border: 1px solid #E2E8F0 !important;
+  background: #F8FAFC !important;
+  font-size: 0.88rem !important;
+  transition: border-color 0.15s, background 0.15s, box-shadow 0.15s !important;
+}
+.lt-user-edit-dropdown.p-dropdown:hover { background: #F1F5F9 !important; }
+.lt-user-edit-dropdown.p-dropdown:not(.p-disabled).p-focus {
+  background: #FFFFFF !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1) !important;
+  outline: none !important;
+}
+.lt-user-edit-dropdown.p-dropdown .p-dropdown-label {
+  padding: 10px 13px !important;
+  font-size: 0.88rem !important;
+  color: #0F172A !important;
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 500 !important;
+}
+.lt-user-edit-dropdown.p-dropdown .p-dropdown-label.p-placeholder {
+  color: #94A3B8 !important;
+  font-weight: 400 !important;
+}
+.lt-user-edit-dropdown.p-dropdown .p-dropdown-trigger { color: #64748B !important; }
+.lt-user-edit-dropdown.p-dropdown.p-invalid {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+}
+
+.lt-user-edit-calendar.p-calendar .p-inputtext {
+  padding: 10px 13px !important;
+  border-radius: 10px 0 0 10px !important;
+  border: 1px solid #E2E8F0 !important;
+  border-right: 0 !important;
+  background: #F8FAFC !important;
+  font-size: 0.88rem !important;
+  font-family: 'Inter', sans-serif !important;
+  color: #0F172A !important;
+  font-weight: 500 !important;
+}
+.lt-user-edit-calendar.p-calendar .p-inputtext:hover { background: #F1F5F9 !important; }
+.lt-user-edit-calendar.p-calendar .p-inputtext:focus {
+  background: #FFFFFF !important;
+  border-color: #1D4ED8 !important;
+  box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1) !important;
+  outline: none !important;
+}
+.lt-user-edit-calendar.p-calendar .p-datepicker-trigger.p-button {
+  background: #F1F5F9 !important;
+  border: 1px solid #E2E8F0 !important;
+  border-left: 0 !important;
+  border-radius: 0 10px 10px 0 !important;
+  color: #1D4ED8 !important;
+  width: 40px;
+}
+.lt-user-edit-calendar.p-calendar .p-datepicker-trigger.p-button:hover {
+  background: #EFF6FF !important;
+  color: #1D4ED8 !important;
+}
+.lt-user-edit-calendar.p-invalid .p-inputtext {
+  border-color: #EF4444 !important;
+  background: #FEF2F2 !important;
+}
+
+/* Small icon button (add/remove exit day) */
+.lt-user-edit-icon-btn {
+  width: 42px; height: 42px;
+  border-radius: 10px;
+  border: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: #FFFFFF;
+  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+  flex-shrink: 0;
+}
+.lt-user-edit-icon-btn.is-add {
+  background: linear-gradient(135deg, #10B981, #059669);
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.22);
+}
+.lt-user-edit-icon-btn.is-remove {
+  background: linear-gradient(135deg, #EF4444, #DC2626);
+  box-shadow: 0 4px 10px rgba(239, 68, 68, 0.22);
+}
+.lt-user-edit-icon-btn:hover { filter: brightness(1.05); }
+.lt-user-edit-icon-btn:active { transform: translateY(1px); }
 .lt-user-edit-err {
   font-size: 0.74rem;
   color: #EF4444;
