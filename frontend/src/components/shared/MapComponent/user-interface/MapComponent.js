@@ -1682,6 +1682,19 @@ const MapComponent = ({
                                 items: [pio],
                                 _single: true,
                               })
+                              // Auto zoom street-level onto the engin position
+                              try {
+                                const lat = parseFloat(pio?.last_lat ?? pio?.lat)
+                                const lng = parseFloat(pio?.last_lng ?? pio?.lng)
+                                if (
+                                  !isNaN(lat) && !isNaN(lng) &&
+                                  lat !== 0 && lng !== 0 && lat !== -1 &&
+                                  mapRef.current && mapRef.current.flyTo
+                                ) {
+                                  mapRef.current.closePopup && mapRef.current.closePopup()
+                                  mapRef.current.flyTo([lat, lng], 17, {duration: 0.8})
+                                }
+                              } catch (err) {}
                               setExpandedPioUid((prev) => {
                                 const next = prev === key ? null : key
                                 if (next) getDetailEngin(pio)
