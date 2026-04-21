@@ -1769,7 +1769,6 @@ const MapComponent = ({
                   <div
                     ref={assetListScrollRef}
                     className='asset-panel-body '
-                    style={{paddingBottom: '100px'}}
                   >
                     {pagedAssets.map((pio) => {
                       const key = pio?.uid || pio?.id

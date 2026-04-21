@@ -4880,9 +4880,11 @@ input.lt-form-input,
   padding: 10px 14px;
   border-bottom: 1px solid #F1F5F9;
   background: #FFFFFF;
+  align-items: center;
 }
 .lt-asset-search-inner {
-  flex: 1;
+  flex: 0 1 220px;
+  max-width: 220px;
   position: relative;
   display: flex; align-items: center;
 }
