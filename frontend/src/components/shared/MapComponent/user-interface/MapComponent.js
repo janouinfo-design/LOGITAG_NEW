@@ -1828,29 +1828,19 @@ const MapComponent = ({
                             }}
                             // style={{borderBottom: '1px solid #f1f5f9'}}
                           >
-                            <div className='lt-asset-row-main'>
+                            <div className='lt-asset-row-main lt-asset-row-compact'>
                               <div className='lt-asset-row-title' title={pio.reference || pio.label}>
                                 {typeof itemTemplate == 'function'
                                   ? itemTemplate(pio)
                                   : pio.reference || pio.label}
                               </div>
-                              <div className='lt-asset-row-meta'>
-                                <span className='lt-asset-row-badge' style={{background: `${cl.color}1A`, color: cl.color}}>
-                                  <span className='lt-asset-row-dot' style={{background: cl.color}} />
-                                  {cl.label}
-                                </span>
-                                {pio?.statuslabel && (
-                                  <span className='lt-asset-row-chip' title={pio.statuslabel}>
-                                    <i className={pio.iconName || 'pi pi-tag'} style={{color: pio.statusbgColor || '#64748B'}} />
-                                    {pio.statuslabel}
-                                  </span>
-                                )}
-                                {timeFromNow && (
-                                  <span className='lt-asset-row-time'><i className='pi pi-clock' />{timeFromNow}</span>
-                                )}
-                              </div>
                             </div>
                             <div className='lt-asset-row-right'>
+                              {timeFromNow && (
+                                <span className='lt-asset-row-compact-time' title={pio.lastSeenAt}>
+                                  <i className='pi pi-clock' />{moment.utc(pio.lastSeenAt).fromNow(true)}
+                                </span>
+                              )}
                               {batLabel && (
                                 <span className='lt-asset-row-bat' style={{color: batColor}}>
                                   <i className='pi pi-bolt' />{batLabel}
@@ -1866,82 +1856,66 @@ const MapComponent = ({
                           </div>
 
                           {isExpanded && (
-                            <div className='px-3 py-2 bg-gray-100 border border-gray-200 m-2 rounded-lg'>
-                              <div className='flex gap-2 align-items-center'>
+                            <div className='lt-asset-row-expand' data-testid={`asset-expand-${key}`}>
+                              <div className='lt-asset-exp-top'>
                                 {pio?.image ? (
                                   <Image
                                     src={assetConfigs.asset_server_url + pio.image}
                                     alt='Asset'
-                                    width='50'
-                                    height='50'
-                                    imageStyle={{objectFit: 'cover', borderRadius: '8px'}}
+                                    width='60'
+                                    height='60'
+                                    imageStyle={{objectFit: 'cover', borderRadius: 10}}
                                     preview
                                     className='cursor-pointer'
                                   />
-                                ) : null}
-                                <Divider style={{margin: '6px'}} layout='vertical' />
-                                <div className='flex flex-column' style={{minWidth: 0}}>
-                                  <div className='flex align-items-start gap-2 flex-column '>
-                                    <div className='flex flex-row gap-2 justify-between w-full'>
-                                      <div className='flex align-items-center gap-2'>
-                                        <i
-                                          title={`${pio?.etatengin} ${selectedEngMap?.[0]?.locationDate}`}
-                                          className={pio.etatIconName + ' text-lg'}
-                                          style={{color: pio.etatbgColor}}
-                                        />
-                                        <span className='text-600 font-semibold'>
-                                          {pio?.LocationObjectname}
-                                        </span>
-                                      </div>
-                                      <Button
-                                        onClick={(e) => {
-                                          e.stopPropagation()
-                                          fetchRoute(pio?.lastSeenAt, pio?.lastSeenDevice)
-                                        }}
-                                        title='Show Route'
-                                        style={{
-                                          display: 'flex',
-                                          alignItems: 'center',
-                                          justifyContent: 'center',
-                                          width: '26px',
-                                          height: '26px',
-                                          background: 'linear-gradient(135deg, #D64B70, #a83458)',
-                                          color: '#fff',
-                                          border: 'none',
-                                          cursor: 'pointer',
-                                          boxShadow: '0 2px 5px rgba(214,75,112,0.4)',
-                                          flexShrink: 0,
-                                        }}
-                                        rounded
-                                      >
-                                        <i
-                                          className='fas fa-solid fa-route text-white'
-                                          style={{fontSize: '11px'}}
-                                        />
-                                      </Button>
-                                    </div>
-                                    <div className='flex align-items-center gap-2'>
-                                      <i
-                                        className='pi pi-eye text-primary'
-                                        style={{fontSize: '12px'}}
-                                      />
-                                      <LastSeenComponent data={pio} />
-                                      {/* <span className='text-600 font-semibold'>
-                                        {formatDate(pio)}
-                                      </span> */}
-                                    </div>
-                                  </div>
-                                  <div className='flex align-items-center gap-3 mt-1'></div>
-                                  <div
-                                    className='flex align-items-start gap-2 mt-1'
-                                    title={pio?.enginAddress || pio?.LocationObjectname || ''}
-                                  >
-                                    {/* <i className='pi pi-map-marker text-primary pt-1' />
-                                    <span className='text-700'>
-                                      {pio?.enginAddress || pio?.LocationObjectname || ''}
-                                    </span> */}
-                                  </div>
+                                ) : (
+                                  <div className='lt-asset-exp-ph'><i className='pi pi-box' /></div>
+                                )}
+                                <div className='lt-asset-exp-head'>
+                                  <span className='lt-asset-row-badge' style={{background: `${cl.color}1A`, color: cl.color}}>
+                                    <span className='lt-asset-row-dot' style={{background: cl.color}} />
+                                    {cl.label}
+                                  </span>
+                                  {pio?.statuslabel && (
+                                    <span className='lt-asset-row-chip' title={pio.statuslabel}>
+                                      <i className={pio.iconName || 'pi pi-tag'} style={{color: pio.statusbgColor || '#64748B'}} />
+                                      {pio.statuslabel}
+                                    </span>
+                                  )}
                                 </div>
+                                <Button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    fetchRoute(pio?.lastSeenAt, pio?.lastSeenDevice)
+                                  }}
+                                  title='Show Route'
+                                  className='lt-asset-exp-route'
+                                  rounded
+                                >
+                                  <i className='fas fa-solid fa-route' style={{fontSize: 11, color: '#FFF'}} />
+                                </Button>
+                              </div>
+                              <div className='lt-asset-exp-grid'>
+                                <div className='lt-asset-exp-row'>
+                                  <i className='pi pi-map-marker' />
+                                  <span>{pio?.enginAddress || pio?.LocationObjectname || '—'}</span>
+                                </div>
+                                <div className='lt-asset-exp-row'>
+                                  <i className='pi pi-eye' />
+                                  <LastSeenComponent data={pio} />
+                                </div>
+                                {timeFromNow && (
+                                  <div className='lt-asset-exp-row'>
+                                    <i className='pi pi-clock' />
+                                    <span>Durée : {timeFromNow}</span>
+                                  </div>
+                                )}
+                                {batLabel && (
+                                  <div className='lt-asset-exp-row'>
+                                    <i className='pi pi-bolt' style={{color: batColor}} />
+                                    <span style={{color: batColor, fontWeight: 700}}>Batterie : {batLabel}</span>
+                                  </div>
+                                )}
                               </div>
                             </div>
                           )}
