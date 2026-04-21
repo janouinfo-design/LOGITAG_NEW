@@ -699,7 +699,31 @@ const DashboardListCards = () => {
 
           {/* Etat Donut */}
           <div className="dbn-card" data-testid="om-etat-chart">
-            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-chart-pie"></i>État des assets</h3></div>
+            <div className="dbn-card-head">
+              <h3 className="dbn-card-title"><i className="pi pi-chart-pie"></i>État des assets</h3>
+              <button
+                type='button'
+                className='dbn-card-info-btn'
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const total = analytics.etatData.reduce((s, d) => s + (Number(d.value) || 0), 0)
+                  const comp = analytics.etatData.map((d, i) => ({
+                    color: ['#22C55E', '#F59E0B', '#EF4444', '#94A3B8', '#8B5CF6'][i % 5],
+                    label: d.label || d.name || `État ${i + 1}`,
+                    value: `${d.value} (${total ? Math.round((d.value / total) * 100) : 0}%)`,
+                  }))
+                  setKpiInfo({info: {
+                    title: 'État des assets — Santé globale du parc',
+                    description: `Vue synthétique de l'état opérationnel du parc. Aide à identifier en un coup d'œil la part d'assets en bonne santé vs ceux nécessitant une intervention.`,
+                    formula: `Répartition selon l'état physique actuel\n  de chaque engin (détecté, signalé,\n  maintenance, hors service, etc.)`,
+                    composition: comp.length > 0 ? comp : [{color: '#94A3B8', label: 'Aucune donnée', value: '—'}],
+                    thresholdNote: `Un parc en bon état a >70% d'engins actifs/détectés. Surveiller les catégories en alerte pour anticiper les interventions.`,
+                  }, anchorRect: rect})
+                }}
+                aria-label='Explication'
+                data-testid='widget-info-etat'
+              ><i className='pi pi-info-circle' /></button>
+            </div>
             <div className="dbn-chart-body">
               {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" /> : analytics.etatData.length > 0 ? <Chart options={etatChartOptions} series={analytics.etatData.map(d => d.value)} type="donut" height={210} /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
@@ -707,7 +731,33 @@ const DashboardListCards = () => {
 
           {/* Status Bar */}
           <div className="dbn-card" data-testid="om-status-chart">
-            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-chart-bar"></i>Distribution statuts</h3></div>
+            <div className="dbn-card-head">
+              <h3 className="dbn-card-title"><i className="pi pi-chart-bar"></i>Distribution statuts</h3>
+              <button
+                type='button'
+                className='dbn-card-info-btn'
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const sorted = [...analytics.statusData].sort((a, b) => (b.value || 0) - (a.value || 0))
+                  const total = sorted.reduce((s, d) => s + (Number(d.value) || 0), 0)
+                  const top = sorted[0]
+                  const comp = sorted.slice(0, 6).map((d, i) => ({
+                    color: ['#2563EB', '#22C55E', '#F59E0B', '#EF4444', '#8B5CF6', '#94A3B8'][i % 6],
+                    label: d.label || d.name || `Statut ${i + 1}`,
+                    value: `${d.value} (${total ? Math.round((d.value / total) * 100) : 0}%)`,
+                  }))
+                  setKpiInfo({info: {
+                    title: 'Distribution statuts — Flux opérationnel',
+                    description: `Répartition des engins selon leur statut opérationnel actuel. Permet de détecter des goulots d'étranglement (trop d'engins en panne, en maintenance ou réservés sans livraison).`,
+                    formula: `Groupement par statut (Disponible,\n  Livré, Réservé, En panne,\n  Maintenance, etc.)`,
+                    composition: comp.length > 0 ? comp : [{color: '#94A3B8', label: 'Aucune donnée', value: '—'}],
+                    thresholdNote: top ? `Statut dominant : "${top.label || top.name}" (${top.value}). Un pic sur "En panne" ou "Maintenance" signale qu'une tournée d'intervention est recommandée.` : `Lecture : ratio Livré / Disponible reflète l'efficacité commerciale.`,
+                  }, anchorRect: rect})
+                }}
+                aria-label='Explication'
+                data-testid='widget-info-status'
+              ><i className='pi pi-info-circle' /></button>
+            </div>
             <div className="dbn-chart-body">
               {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" style={{borderRadius: 8, height: 140}} /> : analytics.statusData.length > 0 ? <Chart options={statusBarOptions} series={[{name: 'Assets', data: analytics.statusData.map(d => d.value)}]} type="bar" height={Math.max(140, analytics.statusData.length * 34)} width="100%" /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
@@ -715,7 +765,36 @@ const DashboardListCards = () => {
 
           {/* Famille Donut */}
           <div className="dbn-card" data-testid="om-famille-chart">
-            <div className="dbn-card-head"><h3 className="dbn-card-title"><i className="pi pi-sitemap"></i>Familles</h3></div>
+            <div className="dbn-card-head">
+              <h3 className="dbn-card-title"><i className="pi pi-sitemap"></i>Familles</h3>
+              <button
+                type='button'
+                className='dbn-card-info-btn'
+                onClick={(e) => {
+                  const rect = e.currentTarget.getBoundingClientRect()
+                  const sorted = [...analytics.familleData].sort((a, b) => (b.value || 0) - (a.value || 0))
+                  const total = sorted.reduce((s, d) => s + (Number(d.value) || 0), 0)
+                  const top = sorted[0]
+                  const under = sorted[sorted.length - 1]
+                  const comp = sorted.slice(0, 6).map((d, i) => ({
+                    color: ['#2563EB', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444', '#64748B'][i % 6],
+                    label: d.label || d.name || `Famille ${i + 1}`,
+                    value: `${d.value} (${total ? Math.round((d.value / total) * 100) : 0}%)`,
+                  }))
+                  setKpiInfo({info: {
+                    title: 'Familles — Répartition du parc par type',
+                    description: `Distribution des engins par famille (Compacteur, Remorque, PC, Tag…). Permet d'évaluer la diversité du parc et d'identifier les familles sous-représentées pour un investissement futur.`,
+                    formula: `Groupement par attribut "famille"\n  depuis le référentiel engins`,
+                    composition: comp.length > 0 ? comp : [{color: '#94A3B8', label: 'Aucune donnée', value: '—'}],
+                    thresholdNote: top && under && top !== under
+                      ? `Top famille : "${top.label || top.name}" (${top.value}). Opportunité : la famille "${under.label || under.name}" est la moins représentée — si elle performe bien chez les clients actifs, envisager un upsell ciblé.`
+                      : `Le parc est concentré sur peu de familles. Diversifier peut ouvrir de nouveaux segments clients.`,
+                  }, anchorRect: rect})
+                }}
+                aria-label='Explication'
+                data-testid='widget-info-famille'
+              ><i className='pi pi-info-circle' /></button>
+            </div>
             <div className="dbn-chart-body">
               {isAnalyticsLoading ? <div className="dbn-skel dbn-skel--circle" /> : analytics.familleData.length > 0 ? <Chart options={familleChartOptions} series={analytics.familleData.map(d => d.value)} type="donut" height={210} /> : <div className="dbn-empty">Aucune donnée</div>}
             </div>
@@ -936,6 +1015,14 @@ const STYLES = `
 .dbn-card-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid #F1F5F9; }
 .dbn-card-title { font-family: 'Manrope', sans-serif; font-size: 0.85rem; font-weight: 800; color: #0F172A; margin: 0; display: flex; align-items: center; gap: 7px; }
 .dbn-card-title i { font-size: 0.88rem; color: #64748B; }
+.dbn-card-info-btn {
+  width: 28px; height: 28px; border: 0; background: transparent;
+  color: #94A3B8; border-radius: 7px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.dbn-card-info-btn:hover { background: #EFF6FF; color: #1D4ED8; }
+.dbn-card-info-btn i { font-size: 0.92rem; }
 .dbn-badge { padding: 2px 10px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; background: #F1F5F9; color: #475569; }
 .dbn-badge--red { background: #FEF2F2; color: #DC2626; }
 
