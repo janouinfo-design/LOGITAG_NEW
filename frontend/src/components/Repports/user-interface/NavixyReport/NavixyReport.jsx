@@ -1,4 +1,6 @@
-import React, {useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
+import {useAppDispatch, useAppSelector} from '../../../../hooks'
+import {fetchEngines, getEngines} from '../../../Engin/slice/engin.slice'
 import './NavixyReport.css'
 
 /**
@@ -88,14 +90,51 @@ const MOCK_ALERT_ROWS = [
 const DAYS = ['Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa', 'Di']
 
 function NavixyReport() {
+  const dispatch = useAppDispatch()
+  const engines = useAppSelector(getEngines) || []
+
+  useEffect(() => {
+    dispatch(fetchEngines({page: 1, SortDirection: 'DESC', SortColumn: 'lastSeenAt'}))
+  }, [dispatch])
+
+  // Build tag groups from real engines (grouped by pioFamilyLabel / famille or fallback)
+  const realTagGroups = useMemo(() => {
+    if (!engines || engines.length === 0) return []
+    const byGroup = new Map()
+    engines.forEach((e) => {
+      const grp = e.pioFamilyLabel || e.familyLabel || e.familyname || e.familyName || 'Autres'
+      const label = e.reference || e.label || e.name || `Tag ${e.id}`
+      if (!byGroup.has(grp)) byGroup.set(grp, [])
+      byGroup.get(grp).push({id: String(e.id || e.uid || label), label})
+    })
+    // color palette cycling
+    const colors = ['#1D4ED8', '#10B981', '#F97316', '#EF4444', '#8B5CF6', '#0EA5E9', '#F59E0B']
+    let i = 0
+    return Array.from(byGroup.entries()).map(([group, items]) => ({
+      group,
+      color: colors[i++ % colors.length],
+      count: items.length,
+      items,
+    }))
+  }, [engines])
+
+  const trackerGroups = realTagGroups.length > 0 ? realTagGroups : MOCK_TRACKERS
+
+  // Auto-expand all groups when data loads
+  useEffect(() => {
+    if (trackerGroups.length > 0) {
+      setExpandedGroups(new Set(trackerGroups.map((g) => g.group)))
+    }
+  }, [trackerGroups.length])
+
   // Left panel
   const [activeReport, setActiveReport] = useState('engin-trips')
   const [searchReport, setSearchReport] = useState('')
 
   // Middle panel
   const [searchTracker, setSearchTracker] = useState('')
-  const [selectedTrackers, setSelectedTrackers] = useState(new Set(['1']))
-  const [expandedGroups, setExpandedGroups] = useState(new Set(['Benz', 'BMW']))
+  const [selectedTrackers, setSelectedTrackers] = useState(new Set())
+  const [expandedGroups, setExpandedGroups] = useState(new Set())
 
   // Right panel (parameters)
   const [reportTitle, setReportTitle] = useState('Rapport des trajets')
@@ -120,12 +159,12 @@ function NavixyReport() {
   }, [searchReport])
 
   const filteredTrackers = useMemo(() => {
-    if (!searchTracker.trim()) return MOCK_TRACKERS
+    if (!searchTracker.trim()) return trackerGroups
     const q = searchTracker.toLowerCase()
-    return MOCK_TRACKERS
+    return trackerGroups
       .map((g) => ({...g, items: g.items.filter((t) => t.label.toLowerCase().includes(q))}))
       .filter((g) => g.items.length > 0)
-  }, [searchTracker])
+  }, [searchTracker, trackerGroups])
 
   const currentReportMeta = useMemo(() => {
     for (const g of REPORT_CATALOG) for (const i of g.items) if (i.id === activeReport) return i
@@ -159,7 +198,7 @@ function NavixyReport() {
   }
   const selectAll = () => {
     const next = new Set()
-    MOCK_TRACKERS.forEach((g) => g.items.forEach((t) => next.add(t.id)))
+    trackerGroups.forEach((g) => g.items.forEach((t) => next.add(t.id)))
     setSelectedTrackers(next)
   }
 
@@ -168,9 +207,9 @@ function NavixyReport() {
 
   const selectedTrackerLabels = useMemo(() => {
     const list = []
-    MOCK_TRACKERS.forEach((g) => g.items.forEach((t) => selectedTrackers.has(t.id) && list.push(t)))
+    trackerGroups.forEach((g) => g.items.forEach((t) => selectedTrackers.has(t.id) && list.push(t)))
     return list
-  }, [selectedTrackers])
+  }, [selectedTrackers, trackerGroups])
 
   // ───────────────────────────────────────────────────────── render
   return (
@@ -240,7 +279,7 @@ function NavixyReport() {
                 <input
                   type='checkbox'
                   readOnly
-                  checked={MOCK_TRACKERS.every((g) => g.items.every((t) => selectedTrackers.has(t.id)))}
+                  checked={trackerGroups.length > 0 && trackerGroups.every((g) => g.items.every((t) => selectedTrackers.has(t.id)))}
                   data-testid='nvx-tracker-select-all'
                 />
                 <span>Tout sélectionner</span>
