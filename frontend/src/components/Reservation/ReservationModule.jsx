@@ -272,6 +272,28 @@ const ReservationModule = () => {
   }
 
   const approveRes = (r) => doAction(`${API}/reservations/${r.id}/approve`, 'POST', 'Réservation validée')
+
+  // ── Drag & drop on Gantt: move a reservation in time ──
+  const dragReservation = async (reservation, deltaMs) => {
+    try {
+      const newStart = new Date(new Date(reservation.start_date).getTime() + deltaMs).toISOString()
+      const newEnd = new Date(new Date(reservation.end_date).getTime() + deltaMs).toISOString()
+      const res = await fetch(`${API}/reservations/${reservation.id}/drag`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({start_date: newStart, end_date: newEnd}),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || 'Déplacement impossible')
+      }
+      showToast('success', 'Réservation déplacée',
+        `${reservation.asset_name} · ${fmtDate(newStart)} → ${fmtDate(newEnd)}`)
+      loadData()
+    } catch (e) {
+      showToast('error', 'Déplacement refusé', e.message || String(e))
+      loadData()
+    }
+  }
   const exportCsv = async () => {
     try {
       const url = filterStatus
@@ -372,6 +394,7 @@ const ReservationModule = () => {
           anchorDate={anchorDate} shiftAnchor={shiftAnchor} setAnchorDate={setAnchorDate}
           dateRange={dateRange}
           onSelect={setSelectedRes}
+          onDrag={dragReservation}
           loading={loading}
         />
       )}
@@ -441,8 +464,47 @@ const ReservationKpi = ({icon, label, value, color, bg, active, onClick}) => (
 // ══════════════════════════════════════════════════════════════
 // Planning View (Gantt)
 // ══════════════════════════════════════════════════════════════
-const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchorDate, dateRange, onSelect, loading}) => {
+const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchorDate, dateRange, onSelect, onDrag, loading}) => {
   const rangeMs = dateRange.end.getTime() - dateRange.start.getTime()
+  const [drag, setDrag] = useState(null) // { id, startX, dxPx, trackWidth, isDragging }
+  const justDraggedRef = useRef(false)
+
+  // Mouse-based drag implementation
+  const startDrag = (e, r, trackEl) => {
+    if (!onDrag) return
+    // Only left-click
+    if (e.button !== 0) return
+    const trackRect = trackEl.getBoundingClientRect()
+    setDrag({id: r.id, reservation: r, startX: e.clientX, dxPx: 0, trackWidth: trackRect.width, isDragging: false})
+    e.stopPropagation()
+  }
+  useEffect(() => {
+    if (!drag) return
+    const onMove = (e) => {
+      const dx = e.clientX - drag.startX
+      if (!drag.isDragging && Math.abs(dx) < 4) return
+      setDrag((p) => p ? {...p, dxPx: dx, isDragging: true} : null)
+    }
+    const onUp = () => {
+      if (drag.isDragging && Math.abs(drag.dxPx) > 4) {
+        const deltaMs = (drag.dxPx / drag.trackWidth) * rangeMs
+        const slot = dateRange.unit === 'hour' ? 3600 * 1000 : 24 * 3600 * 1000
+        const snapped = Math.round(deltaMs / slot) * slot
+        if (snapped !== 0) onDrag(drag.reservation, snapped)
+        // Prevent the click that will fire on mouseup of the same element
+        justDraggedRef.current = true
+        setTimeout(() => { justDraggedRef.current = false }, 120)
+      }
+      setDrag(null)
+    }
+    window.addEventListener('mousemove', onMove)
+    window.addEventListener('mouseup', onUp)
+    return () => {
+      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('mouseup', onUp)
+    }
+  }, [drag, rangeMs, dateRange.unit, onDrag])
+
   const headerLabel = useMemo(() => {
     if (view === 'day') return anchorDate.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'})
     if (view === 'month') return anchorDate.toLocaleDateString('fr-FR', {month: 'long', year: 'numeric'})
@@ -518,7 +580,7 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
                 <span className='lt-res-gantt-ico'><i className='pi pi-truck'></i></span>
                 <span className='lt-res-gantt-rowname'>{asset.name || asset.id.slice(0, 8)}</span>
               </div>
-              <div className='lt-res-gantt-track'>
+              <div className='lt-res-gantt-track' ref={(el) => { if (el) asset._trackEl = el }}>
                 {asset.reservations.map((r) => {
                   const s = new Date(r.start_date).getTime()
                   const e = new Date(r.end_date).getTime()
@@ -528,13 +590,22 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
                   const left = ((clampStart - dateRange.start.getTime()) / rangeMs) * 100
                   const width = ((clampEnd - clampStart) / rangeMs) * 100
                   const meta = STATUS_META[r.status] || STATUS_META.confirmed
+                  const isDragging = drag?.id === r.id && drag.isDragging
+                  const dragOffsetPct = isDragging ? (drag.dxPx / drag.trackWidth) * 100 : 0
+                  const canDrag = !['completed', 'cancelled', 'rejected'].includes(r.status)
                   return (
                     <button
                       key={r.id}
-                      className='lt-res-gantt-bar' style={{left: `${left}%`, width: `${width}%`, background: meta.bg, borderColor: meta.color, color: meta.color}}
-                      onClick={() => onSelect(r)}
+                      className={`lt-res-gantt-bar ${isDragging ? 'is-dragging' : ''} ${canDrag ? 'is-draggable' : ''}`}
+                      style={{
+                        left: `${left + dragOffsetPct}%`, width: `${width}%`,
+                        background: meta.bg, borderColor: meta.color, color: meta.color,
+                        cursor: canDrag ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
+                      }}
+                      onClick={(ev) => { if (justDraggedRef.current || isDragging) { ev.preventDefault(); return; } onSelect(r) }}
+                      onMouseDown={(ev) => canDrag && startDrag(ev, r, asset._trackEl)}
                       data-testid={`reservation-bar-${r.id}`}
-                      title={`${r.asset_name} · ${fmtDateTime(r.start_date)} → ${fmtDateTime(r.end_date)} · ${r.user_name || 'N/A'}`}
+                      title={`${r.asset_name} · ${fmtDateTime(r.start_date)} → ${fmtDateTime(r.end_date)} · ${r.user_name || 'N/A'}${canDrag ? ' · (glisser pour déplacer)' : ''}`}
                     >
                       <i className={`pi ${meta.icon}`} style={{fontSize: '0.68rem'}}></i>
                       <span className='lt-res-gantt-bar-lbl'>{r.user_name || r.project || meta.label}</span>
@@ -654,21 +725,54 @@ const ReservationForm = ({initial, engines, staffs, onClose, onSave}) => {
     raw: e,
   }))
 
-  // Staff options — built from staffs API + fallback free text
+  // Staff options — built from staffs API, supports prénom+nom+rôle, avatar, email
   const staffOptions = useMemo(() => {
     const list = Array.isArray(staffs) ? staffs : []
     const byName = new Map()
     list.forEach((s) => {
-      const name = s?.name || s?.fullname || [s?.firstName, s?.lastName].filter(Boolean).join(' ').trim() || s?.username || s?.email
-      if (name && !byName.has(name)) byName.set(name, {label: name, value: name, raw: s})
+      const first = (s?.firstname || s?.firstName || '').trim()
+      const last = (s?.lastname || s?.lastName || '').trim()
+      const combo = [first, last].filter(Boolean).join(' ').trim()
+      const name = combo || s?.name || s?.fullname || s?.login || s?.username || s?.email
+      const role = s?.famille || s?.role || s?.typeName || ''
+      const email = s?.addrMail || s?.email || s?.login || ''
+      const active = s?.active === 1 || s?.active === true || s?.active === '1'
+      if (name && !byName.has(name)) {
+        byName.set(name, {label: name, value: name, raw: s, role, email, image: s?.image, active})
+      }
     })
-    const arr = Array.from(byName.values()).sort((a, b) => a.label.localeCompare(b.label))
+    const arr = Array.from(byName.values())
+      // Active users first, then alphabetical
+      .sort((a, b) => (b.active === a.active ? a.label.localeCompare(b.label) : (b.active ? 1 : -1)))
     // Ensure current value present
     if (initial?.user_name && !byName.has(initial.user_name)) {
       arr.unshift({label: initial.user_name, value: initial.user_name})
     }
     return arr
   }, [staffs, initial])
+
+  const staffItemTemplate = (opt) => {
+    if (!opt) return null
+    const initials = (opt.label || '').split(' ').map((w) => w[0]).filter(Boolean).slice(0, 2).join('').toUpperCase() || '?'
+    return (
+      <div className='lt-res-staff-opt'>
+        <span className={`lt-res-staff-av ${opt.active ? '' : 'is-inactive'}`}>{initials}</span>
+        <div className='lt-res-staff-txt'>
+          <span className='lt-res-staff-name'>{opt.label}</span>
+          {(opt.role || opt.email) && (
+            <span className='lt-res-staff-sub'>
+              {opt.role && <span className='lt-res-staff-role'>{opt.role}</span>}
+              {opt.role && opt.email && <span className='lt-res-staff-sep'>·</span>}
+              {opt.email && <span className='lt-res-staff-mail'>{opt.email}</span>}
+            </span>
+          )}
+        </div>
+        {!opt.active && opt.active !== undefined && (
+          <span className='lt-res-staff-badge-off'>Inactif</span>
+        )}
+      </div>
+    )
+  }
 
   // Check availability whenever key fields change
   useEffect(() => {
@@ -762,9 +866,10 @@ const ReservationForm = ({initial, engines, staffs, onClose, onSave}) => {
             <Dropdown
               value={form.user_name || null} options={staffOptions}
               onChange={(e) => set('user_name', e.value)}
+              itemTemplate={staffItemTemplate}
               editable filter showClear
               placeholder='Sélectionner ou saisir…'
-              className='w-full' data-testid='reservation-form-user'
+              className='w-full lt-res-staff-dropdown' data-testid='reservation-form-user'
               emptyMessage='Aucun utilisateur'
               emptyFilterMessage='Aucun résultat'
             />
@@ -812,6 +917,36 @@ const ReservationForm = ({initial, engines, staffs, onClose, onSave}) => {
 const ReservationDrawer = ({reservation, onClose, onApprove, onReject, onCancel, onCheckout, onCheckin, onEdit}) => {
   const r = reservation
   const meta = STATUS_META[r.status] || STATUS_META.confirmed
+  const [logs, setLogs] = useState([])
+  const [tab, setTab] = useState('info') // info | history
+
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        const res = await fetch(`${API}/reservations/${r.id}`)
+        if (!res.ok) return
+        const data = await res.json()
+        if (!cancelled) setLogs(Array.isArray(data.logs) ? data.logs : [])
+      } catch (_) { /* ignore */ }
+    }
+    load()
+    return () => { cancelled = true }
+  }, [r.id])
+
+  const actionMeta = (action) => {
+    const map = {
+      created: {label: 'Créée', icon: 'pi-plus-circle', color: '#1D4ED8'},
+      updated: {label: 'Modifiée', icon: 'pi-pencil', color: '#64748B'},
+      moved: {label: 'Déplacée', icon: 'pi-arrows-alt', color: '#8B5CF6'},
+      approved: {label: 'Validée', icon: 'pi-check-circle', color: '#10B981'},
+      rejected: {label: 'Refusée', icon: 'pi-times-circle', color: '#EF4444'},
+      cancelled: {label: 'Annulée', icon: 'pi-ban', color: '#94A3B8'},
+      checkout: {label: 'Check-out', icon: 'pi-sign-out', color: '#3B82F6'},
+      checkin: {label: 'Check-in', icon: 'pi-sign-in', color: '#10B981'},
+    }
+    return map[action] || {label: action, icon: 'pi-circle', color: '#64748B'}
+  }
 
   return (
     <div className='lt-res-drawer-ov' onClick={onClose} data-testid='reservation-drawer'>
@@ -827,25 +962,71 @@ const ReservationDrawer = ({reservation, onClose, onApprove, onReject, onCancel,
           <button className='lt-res-drawer-close' onClick={onClose}><i className='pi pi-times'></i></button>
         </div>
 
-        <div className='lt-res-drawer-body'>
-          <div className='lt-res-drawer-status' style={{background: meta.bg, color: meta.color}}>
-            <i className={`pi ${meta.icon}`}></i>
-            <span>{meta.label}</span>
-          </div>
+        <div className='lt-res-drawer-tabs'>
+          <button className={`lt-res-drawer-tab ${tab === 'info' ? 'is-active' : ''}`} onClick={() => setTab('info')} data-testid='drawer-tab-info'>
+            <i className='pi pi-info-circle'></i> Détails
+          </button>
+          <button className={`lt-res-drawer-tab ${tab === 'history' ? 'is-active' : ''}`} onClick={() => setTab('history')} data-testid='drawer-tab-history'>
+            <i className='pi pi-history'></i> Historique
+            {logs.length > 0 && <span className='lt-res-drawer-tab-count'>{logs.length}</span>}
+          </button>
+        </div>
 
-          <DrawerRow label='Utilisateur' val={r.user_name || '—'} icon='pi-user' />
-          <DrawerRow label='Équipe' val={r.team || '—'} icon='pi-users' />
-          <DrawerRow label='Site' val={r.site || '—'} icon='pi-map-marker' />
-          <DrawerRow label='Projet' val={r.project || '—'} icon='pi-briefcase' />
-          <DrawerRow label='Début' val={fmtDateTime(r.start_date)} icon='pi-calendar' />
-          <DrawerRow label='Fin' val={fmtDateTime(r.end_date)} icon='pi-calendar-times' />
-          <DrawerRow label='Priorité' val={r.priority || 'normal'} icon='pi-flag' />
-          {r.checkout_at && <DrawerRow label='Check-out' val={`${fmtDateTime(r.checkout_at)} par ${r.checkout_by || '-'}`} icon='pi-sign-out' />}
-          {r.checkin_at && <DrawerRow label='Check-in' val={`${fmtDateTime(r.checkin_at)} par ${r.checkin_by || '-'}`} icon='pi-sign-in' />}
-          {r.note && (
-            <div className='lt-res-drawer-note'>
-              <div className='lt-res-drawer-note-label'>Commentaire</div>
-              <div className='lt-res-drawer-note-txt'>{r.note}</div>
+        <div className='lt-res-drawer-body'>
+          {tab === 'info' && (
+            <>
+              <div className='lt-res-drawer-status' style={{background: meta.bg, color: meta.color}}>
+                <i className={`pi ${meta.icon}`}></i>
+                <span>{meta.label}</span>
+              </div>
+
+              <DrawerRow label='Utilisateur' val={r.user_name || '—'} icon='pi-user' />
+              <DrawerRow label='Équipe' val={r.team || '—'} icon='pi-users' />
+              <DrawerRow label='Site' val={r.site || '—'} icon='pi-map-marker' />
+              <DrawerRow label='Projet' val={r.project || '—'} icon='pi-briefcase' />
+              <DrawerRow label='Début' val={fmtDateTime(r.start_date)} icon='pi-calendar' />
+              <DrawerRow label='Fin' val={fmtDateTime(r.end_date)} icon='pi-calendar-times' />
+              <DrawerRow label='Priorité' val={r.priority || 'normal'} icon='pi-flag' />
+              {r.checkout_at && <DrawerRow label='Check-out' val={`${fmtDateTime(r.checkout_at)} par ${r.checkout_by || '-'}`} icon='pi-sign-out' />}
+              {r.checkin_at && <DrawerRow label='Check-in' val={`${fmtDateTime(r.checkin_at)} par ${r.checkin_by || '-'}`} icon='pi-sign-in' />}
+              {r.note && (
+                <div className='lt-res-drawer-note'>
+                  <div className='lt-res-drawer-note-label'>Commentaire</div>
+                  <div className='lt-res-drawer-note-txt'>{r.note}</div>
+                </div>
+              )}
+            </>
+          )}
+
+          {tab === 'history' && (
+            <div className='lt-res-timeline' data-testid='drawer-timeline'>
+              {logs.length === 0 && (
+                <div className='lt-res-timeline-empty'>
+                  <i className='pi pi-history'></i>
+                  <div>Aucun historique disponible.</div>
+                </div>
+              )}
+              {logs.map((log, idx) => {
+                const am = actionMeta(log.action)
+                return (
+                  <div key={log.id || idx} className='lt-res-timeline-item'>
+                    <div className='lt-res-timeline-dot' style={{background: am.color}}>
+                      <i className={`pi ${am.icon}`}></i>
+                    </div>
+                    <div className='lt-res-timeline-body'>
+                      <div className='lt-res-timeline-head'>
+                        <span className='lt-res-timeline-action' style={{color: am.color}}>{am.label}</span>
+                        <span className='lt-res-timeline-time'>{fmtDateTime(log.created_at)}</span>
+                      </div>
+                      {log.details && <div className='lt-res-timeline-details'>{log.details}</div>}
+                      <div className='lt-res-timeline-user'>
+                        <i className='pi pi-user' style={{fontSize: '0.62rem'}}></i>
+                        {log.user || 'Système'}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           )}
         </div>
