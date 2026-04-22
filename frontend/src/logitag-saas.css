@@ -7267,3 +7267,39 @@ input.lt-form-input,
   outline: 1px dashed rgba(29, 78, 216, 0.35);
   outline-offset: 2px;
 }
+
+/* ── Resize handles on Gantt bars ── */
+.lt-res-gantt-handle {
+  position: absolute; top: 0; bottom: 0; width: 8px;
+  background: transparent; cursor: ew-resize;
+  opacity: 0; transition: opacity 0.15s, background 0.15s;
+  z-index: 2;
+}
+.lt-res-gantt-handle::before {
+  content: ''; position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px; height: 14px; border-radius: 2px;
+  background: rgba(15, 23, 42, 0.45);
+}
+.lt-res-gantt-handle-l { left: -3px; border-radius: 6px 0 0 6px; }
+.lt-res-gantt-handle-r { right: -3px; border-radius: 0 6px 6px 0; }
+.lt-res-gantt-bar.is-draggable:hover .lt-res-gantt-handle { opacity: 1; }
+.lt-res-gantt-bar.is-draggable .lt-res-gantt-handle:hover {
+  background: rgba(29, 78, 216, 0.22);
+  opacity: 1;
+}
+.lt-res-gantt-bar.is-dragging .lt-res-gantt-handle { opacity: 0; }
+
+/* ── Planning filters ── */
+.lt-res-planning-filters { display: inline-flex; gap: 8px; align-items: center; }
+.lt-res-planning-filter.p-dropdown {
+  min-width: 170px !important; max-width: 200px !important;
+  border: 1px solid #E2E8F0 !important; border-radius: 8px !important;
+  background: #FFF !important; height: 34px !important;
+}
+.lt-res-planning-filter.p-dropdown .p-dropdown-label {
+  padding: 7px 10px !important; font-size: 0.78rem !important; font-weight: 600 !important; color: #475569 !important;
+}
+.lt-res-planning-filter.p-dropdown:not(.p-disabled).p-focus {
+  border-color: #1D4ED8 !important; box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.08) !important;
+}

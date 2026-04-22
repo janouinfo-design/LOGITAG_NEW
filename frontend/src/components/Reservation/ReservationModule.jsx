@@ -66,6 +66,8 @@ const ReservationModule = () => {
 
   const [filterStatus, setFilterStatus] = useState(null)
   const [search, setSearch] = useState('')
+  const [filterUser, setFilterUser] = useState(null)
+  const [filterSite, setFilterSite] = useState(null)
 
   const toastRef = React.useRef(null)
   const wsRef = useRef(null)
@@ -101,10 +103,29 @@ const ReservationModule = () => {
 
   useEffect(() => { loadData() }, [loadData])
 
-  // ── WebSocket: live refresh on reservation events ──
+  // ── WebSocket: live refresh on reservation events + desktop notifications ──
+  useEffect(() => {
+    // Request notification permission once (async, non-blocking)
+    if (typeof window !== 'undefined' && 'Notification' in window) {
+      if (Notification.permission === 'default') {
+        Notification.requestPermission().catch(() => {})
+      }
+    }
+  }, [])
+
   useEffect(() => {
     if (!WS_URL || WS_URL.indexOf('ws') !== 0) return
     let reconnectTimer = null
+    const pushDesktop = (title, body, level) => {
+      try {
+        if (!('Notification' in window) || Notification.permission !== 'granted') return
+        const n = new Notification(title, {
+          body, icon: '/favicon.ico', tag: 'logitag-reservation', badge: '/favicon.ico',
+          silent: level === 'info',
+        })
+        setTimeout(() => { try { n.close() } catch {} }, 6000)
+      } catch {}
+    }
     const connect = () => {
       try {
         const ws = new WebSocket(WS_URL)
@@ -130,6 +151,12 @@ const ReservationModule = () => {
               }[t] || 'Mise à jour'
               const assetName = msg.data?.asset_name || msg.data?.id?.slice(0, 8) || ''
               toastRef.current?.show({severity: 'info', summary, detail: assetName, life: 3000})
+              // Desktop push notif for CRITICAL events only
+              const critical = ['reservation_cancelled', 'reservation_created']
+              if (critical.includes(t)) {
+                const level = t === 'reservation_cancelled' ? 'warn' : 'info'
+                pushDesktop(`Logitag · ${summary}`, assetName || 'Nouvel événement', level)
+              }
             }
           } catch {}
         }
@@ -174,10 +201,24 @@ const ReservationModule = () => {
     setAnchorDate(d)
   }
 
+  // ── Distinct user/site values found in reservations (for filters) ──
+  const userOptions = useMemo(() => {
+    const set = new Set()
+    reservations.forEach((r) => { if (r.user_name) set.add(r.user_name) })
+    return [{label: 'Tous les utilisateurs', value: null}, ...Array.from(set).sort().map((v) => ({label: v, value: v}))]
+  }, [reservations])
+  const siteOptions = useMemo(() => {
+    const set = new Set()
+    reservations.forEach((r) => { if (r.site) set.add(r.site) })
+    return [{label: 'Tous les sites', value: null}, ...Array.from(set).sort().map((v) => ({label: v, value: v}))]
+  }, [reservations])
+
   // ── Filtered lists ──
   const filteredReservations = useMemo(() => {
     let arr = reservations
     if (filterStatus) arr = arr.filter((r) => r.status === filterStatus)
+    if (filterUser) arr = arr.filter((r) => r.user_name === filterUser)
+    if (filterSite) arr = arr.filter((r) => r.site === filterSite)
     if (search) {
       const s = search.toLowerCase()
       arr = arr.filter((r) =>
@@ -188,16 +229,16 @@ const ReservationModule = () => {
       )
     }
     return arr
-  }, [reservations, filterStatus, search])
+  }, [reservations, filterStatus, filterUser, filterSite, search])
 
   const pendingReservations = useMemo(
     () => reservations.filter((r) => r.status === 'requested'),
     [reservations]
   )
 
-  // Assets shown in Gantt: those with at least one reservation in range + always first 20 of fleet
+  // Assets shown in Gantt: derive from FILTERED reservations
   const ganttAssets = useMemo(() => {
-    const inRange = reservations.filter((r) => {
+    const inRange = filteredReservations.filter((r) => {
       const s = new Date(r.start_date).getTime()
       const e = new Date(r.end_date).getTime()
       return s < dateRange.end.getTime() && e > dateRange.start.getTime()
@@ -210,7 +251,7 @@ const ReservationModule = () => {
       assetMap.get(r.asset_id).reservations.push(r)
     })
     return Array.from(assetMap.values()).sort((a, b) => (a.name || '').localeCompare(b.name || ''))
-  }, [reservations, dateRange])
+  }, [filteredReservations, dateRange])
 
   // ── Actions ──
   const showToast = (severity, summary, detail) => {
@@ -291,6 +332,38 @@ const ReservationModule = () => {
       loadData()
     } catch (e) {
       showToast('error', 'Déplacement refusé', e.message || String(e))
+      loadData()
+    }
+  }
+
+  // ── Resize (left or right edge): keep the opposite edge fixed, update dates ──
+  const resizeReservation = async (reservation, edge, deltaMs) => {
+    try {
+      let newStart = reservation.start_date
+      let newEnd = reservation.end_date
+      if (edge === 'left') {
+        newStart = new Date(new Date(reservation.start_date).getTime() + deltaMs).toISOString()
+      } else {
+        newEnd = new Date(new Date(reservation.end_date).getTime() + deltaMs).toISOString()
+      }
+      // Guard: ensure start < end with at least 30 min
+      if (new Date(newEnd).getTime() - new Date(newStart).getTime() < 30 * 60 * 1000) {
+        showToast('warn', 'Durée minimale', 'La réservation doit durer au moins 30 minutes.')
+        return
+      }
+      const res = await fetch(`${API}/reservations/${reservation.id}/drag`, {
+        method: 'PUT', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({start_date: newStart, end_date: newEnd}),
+      })
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.detail || 'Redimensionnement impossible')
+      }
+      showToast('success', 'Réservation redimensionnée',
+        `${reservation.asset_name} · ${fmtDate(newStart)} → ${fmtDate(newEnd)}`)
+      loadData()
+    } catch (e) {
+      showToast('error', 'Redimensionnement refusé', e.message || String(e))
       loadData()
     }
   }
@@ -395,6 +468,10 @@ const ReservationModule = () => {
           dateRange={dateRange}
           onSelect={setSelectedRes}
           onDrag={dragReservation}
+          onResize={resizeReservation}
+          userOptions={userOptions} siteOptions={siteOptions}
+          filterUser={filterUser} setFilterUser={setFilterUser}
+          filterSite={filterSite} setFilterSite={setFilterSite}
           loading={loading}
         />
       )}
@@ -464,19 +541,25 @@ const ReservationKpi = ({icon, label, value, color, bg, active, onClick}) => (
 // ══════════════════════════════════════════════════════════════
 // Planning View (Gantt)
 // ══════════════════════════════════════════════════════════════
-const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchorDate, dateRange, onSelect, onDrag, loading}) => {
+const PlanningView = ({
+  assets, view, setView, anchorDate, shiftAnchor, setAnchorDate, dateRange,
+  onSelect, onDrag, onResize,
+  userOptions, siteOptions, filterUser, setFilterUser, filterSite, setFilterSite,
+  loading,
+}) => {
   const rangeMs = dateRange.end.getTime() - dateRange.start.getTime()
-  const [drag, setDrag] = useState(null) // { id, startX, dxPx, trackWidth, isDragging }
+  const [drag, setDrag] = useState(null) // { id, reservation, mode: 'move' | 'resize-left' | 'resize-right', startX, dxPx, trackWidth, isDragging }
   const justDraggedRef = useRef(false)
 
-  // Mouse-based drag implementation
-  const startDrag = (e, r, trackEl) => {
-    if (!onDrag) return
+  const startDrag = (e, r, trackEl, mode = 'move') => {
     // Only left-click
     if (e.button !== 0) return
+    if (mode === 'move' && !onDrag) return
+    if (mode !== 'move' && !onResize) return
     const trackRect = trackEl.getBoundingClientRect()
-    setDrag({id: r.id, reservation: r, startX: e.clientX, dxPx: 0, trackWidth: trackRect.width, isDragging: false})
+    setDrag({id: r.id, reservation: r, mode, startX: e.clientX, dxPx: 0, trackWidth: trackRect.width, isDragging: false})
     e.stopPropagation()
+    e.preventDefault()
   }
   useEffect(() => {
     if (!drag) return
@@ -490,8 +573,11 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
         const deltaMs = (drag.dxPx / drag.trackWidth) * rangeMs
         const slot = dateRange.unit === 'hour' ? 3600 * 1000 : 24 * 3600 * 1000
         const snapped = Math.round(deltaMs / slot) * slot
-        if (snapped !== 0) onDrag(drag.reservation, snapped)
-        // Prevent the click that will fire on mouseup of the same element
+        if (snapped !== 0) {
+          if (drag.mode === 'move') onDrag(drag.reservation, snapped)
+          else if (drag.mode === 'resize-left') onResize(drag.reservation, 'left', snapped)
+          else if (drag.mode === 'resize-right') onResize(drag.reservation, 'right', snapped)
+        }
         justDraggedRef.current = true
         setTimeout(() => { justDraggedRef.current = false }, 120)
       }
@@ -503,7 +589,7 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [drag, rangeMs, dateRange.unit, onDrag])
+  }, [drag, rangeMs, dateRange.unit, onDrag, onResize])
 
   const headerLabel = useMemo(() => {
     if (view === 'day') return anchorDate.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'})
@@ -541,6 +627,22 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
           </button>
           <Button icon='pi pi-chevron-right' className='lt-res-nav-btn' onClick={() => shiftAnchor(1)} />
           <span className='lt-res-planning-label'>{headerLabel}</span>
+        </div>
+        <div className='lt-res-planning-filters'>
+          <Dropdown
+            value={filterUser} options={userOptions}
+            onChange={(e) => setFilterUser(e.value)}
+            placeholder='Utilisateur' showClear
+            className='lt-res-planning-filter' filter
+            data-testid='planning-filter-user'
+          />
+          <Dropdown
+            value={filterSite} options={siteOptions}
+            onChange={(e) => setFilterSite(e.value)}
+            placeholder='Site' showClear
+            className='lt-res-planning-filter' filter
+            data-testid='planning-filter-site'
+          />
         </div>
         <div className='lt-res-view-switch'>
           {['day', 'week', 'month'].map((v) => (
@@ -591,25 +693,50 @@ const PlanningView = ({assets, view, setView, anchorDate, shiftAnchor, setAnchor
                   const width = ((clampEnd - clampStart) / rangeMs) * 100
                   const meta = STATUS_META[r.status] || STATUS_META.confirmed
                   const isDragging = drag?.id === r.id && drag.isDragging
-                  const dragOffsetPct = isDragging ? (drag.dxPx / drag.trackWidth) * 100 : 0
                   const canDrag = !['completed', 'cancelled', 'rejected'].includes(r.status)
+                  // Visual preview during resize: change left/width live
+                  let previewLeft = left + (drag?.id === r.id && drag.isDragging && drag.mode === 'move' ? (drag.dxPx / drag.trackWidth) * 100 : 0)
+                  let previewWidth = width
+                  if (isDragging && drag.mode === 'resize-left') {
+                    const pct = (drag.dxPx / drag.trackWidth) * 100
+                    previewLeft = left + pct
+                    previewWidth = Math.max(1, width - pct)
+                  } else if (isDragging && drag.mode === 'resize-right') {
+                    previewWidth = Math.max(1, width + (drag.dxPx / drag.trackWidth) * 100)
+                  }
                   return (
-                    <button
+                    <div
                       key={r.id}
                       className={`lt-res-gantt-bar ${isDragging ? 'is-dragging' : ''} ${canDrag ? 'is-draggable' : ''}`}
                       style={{
-                        left: `${left + dragOffsetPct}%`, width: `${width}%`,
+                        left: `${previewLeft}%`, width: `${previewWidth}%`,
                         background: meta.bg, borderColor: meta.color, color: meta.color,
                         cursor: canDrag ? (isDragging ? 'grabbing' : 'grab') : 'pointer',
                       }}
                       onClick={(ev) => { if (justDraggedRef.current || isDragging) { ev.preventDefault(); return; } onSelect(r) }}
-                      onMouseDown={(ev) => canDrag && startDrag(ev, r, asset._trackEl)}
+                      onMouseDown={(ev) => canDrag && startDrag(ev, r, asset._trackEl, 'move')}
                       data-testid={`reservation-bar-${r.id}`}
-                      title={`${r.asset_name} · ${fmtDateTime(r.start_date)} → ${fmtDateTime(r.end_date)} · ${r.user_name || 'N/A'}${canDrag ? ' · (glisser pour déplacer)' : ''}`}
+                      title={`${r.asset_name} · ${fmtDateTime(r.start_date)} → ${fmtDateTime(r.end_date)} · ${r.user_name || 'N/A'}${canDrag ? ' · (glisser pour déplacer, bords pour redimensionner)' : ''}`}
                     >
+                      {canDrag && (
+                        <span
+                          className='lt-res-gantt-handle lt-res-gantt-handle-l'
+                          onMouseDown={(ev) => { ev.stopPropagation(); startDrag(ev, r, asset._trackEl, 'resize-left') }}
+                          title='Changer la date de début'
+                          data-testid={`reservation-handle-left-${r.id}`}
+                        />
+                      )}
                       <i className={`pi ${meta.icon}`} style={{fontSize: '0.68rem'}}></i>
                       <span className='lt-res-gantt-bar-lbl'>{r.user_name || r.project || meta.label}</span>
-                    </button>
+                      {canDrag && (
+                        <span
+                          className='lt-res-gantt-handle lt-res-gantt-handle-r'
+                          onMouseDown={(ev) => { ev.stopPropagation(); startDrag(ev, r, asset._trackEl, 'resize-right') }}
+                          title='Changer la date de fin'
+                          data-testid={`reservation-handle-right-${r.id}`}
+                        />
+                      )}
+                    </div>
                   )
                 })}
               </div>
