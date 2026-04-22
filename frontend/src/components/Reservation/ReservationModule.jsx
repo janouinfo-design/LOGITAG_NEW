@@ -6,7 +6,7 @@
  *
  * Backend: /api/reservations (FastAPI) — uses REACT_APP_BACKEND_URL
  */
-import React, {useEffect, useMemo, useState, useCallback} from 'react'
+import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react'
 import {useSelector, useDispatch} from 'react-redux'
 import {Dialog} from 'primereact/dialog'
 import {InputText} from 'primereact/inputtext'
@@ -17,8 +17,10 @@ import {Button} from 'primereact/button'
 import {Toast} from 'primereact/toast'
 import {confirmDialog, ConfirmDialog} from 'primereact/confirmdialog'
 import {fetchEngines, getEngines} from '../Engin/slice/engin.slice'
+import {_fetchStaffs} from '../../api/index'
 
 const API = process.env.REACT_APP_BACKEND_URL + '/api'
+const WS_URL = (process.env.REACT_APP_BACKEND_URL || '').replace(/^http/, 'ws') + '/api/ws'
 
 // ── Status config ───────────────────────────────────────────────
 const STATUS_META = {
@@ -49,6 +51,7 @@ const fmtDateTime = (iso) => {
 const ReservationModule = () => {
   const dispatch = useDispatch()
   const engines = useSelector(getEngines) || []
+  const [staffs, setStaffs] = useState([])
 
   const [tab, setTab] = useState('planning') // planning | list | pending
   const [view, setView] = useState('week') // day | week | month
@@ -65,12 +68,18 @@ const ReservationModule = () => {
   const [search, setSearch] = useState('')
 
   const toastRef = React.useRef(null)
+  const wsRef = useRef(null)
 
-  // ── Load engines (needed for dropdown and planning rows) ──
+  // ── Load engines (Redux) + staffs (direct API) ──
   useEffect(() => {
-    if (!engines || engines.length === 0) {
-      dispatch(fetchEngines())
-    }
+    if (!engines || engines.length === 0) dispatch(fetchEngines())
+    ;(async () => {
+      try {
+        const res = await _fetchStaffs({})
+        const list = res?.result || res?.data || res?.staffs || []
+        setStaffs(Array.isArray(list) ? list : [])
+      } catch (_) { /* ignore */ }
+    })()
   }, [dispatch]) // eslint-disable-line
 
   // ── Load KPIs + reservations ──
@@ -91,6 +100,53 @@ const ReservationModule = () => {
   }, [])
 
   useEffect(() => { loadData() }, [loadData])
+
+  // ── WebSocket: live refresh on reservation events ──
+  useEffect(() => {
+    if (!WS_URL || WS_URL.indexOf('ws') !== 0) return
+    let reconnectTimer = null
+    const connect = () => {
+      try {
+        const ws = new WebSocket(WS_URL)
+        wsRef.current = ws
+        ws.onopen = () => { /* connected */ }
+        ws.onmessage = (evt) => {
+          try {
+            const msg = JSON.parse(evt.data)
+            if (!msg || !msg.type) return
+            const t = msg.type
+            const relevant = [
+              'reservation_created', 'reservation_moved', 'reservation_cancelled',
+              'reservation_checkout', 'reservation_checkin',
+            ]
+            if (relevant.includes(t)) {
+              loadData()
+              const summary = {
+                reservation_created: 'Nouvelle réservation',
+                reservation_moved: 'Réservation déplacée',
+                reservation_cancelled: 'Réservation annulée',
+                reservation_checkout: 'Check-out effectué',
+                reservation_checkin: 'Check-in effectué',
+              }[t] || 'Mise à jour'
+              const assetName = msg.data?.asset_name || msg.data?.id?.slice(0, 8) || ''
+              toastRef.current?.show({severity: 'info', summary, detail: assetName, life: 3000})
+            }
+          } catch {}
+        }
+        ws.onclose = () => {
+          reconnectTimer = setTimeout(connect, 4000)
+        }
+        ws.onerror = () => { try { ws.close() } catch {} }
+      } catch (e) {
+        reconnectTimer = setTimeout(connect, 5000)
+      }
+    }
+    connect()
+    return () => {
+      if (reconnectTimer) clearTimeout(reconnectTimer)
+      try { wsRef.current?.close() } catch {}
+    }
+  }, [loadData])
 
   // ── Date helpers for planning ──
   const dateRange = useMemo(() => {
@@ -216,6 +272,25 @@ const ReservationModule = () => {
   }
 
   const approveRes = (r) => doAction(`${API}/reservations/${r.id}/approve`, 'POST', 'Réservation validée')
+  const exportCsv = async () => {
+    try {
+      const url = filterStatus
+        ? `${API}/reservations/export/csv?status=${encodeURIComponent(filterStatus)}`
+        : `${API}/reservations/export/csv`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error('Export impossible')
+      const blob = await res.blob()
+      const a = document.createElement('a')
+      const href = URL.createObjectURL(blob)
+      a.href = href
+      a.download = `reservations_${new Date().toISOString().slice(0, 10)}.csv`
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(href)
+      showToast('success', 'Export lancé', 'Téléchargement CSV en cours…')
+    } catch (e) {
+      showToast('error', 'Erreur export', e.message || String(e))
+    }
+  }
   const rejectRes = (r) => confirmDialog({
     message: `Refuser la réservation de ${r.asset_name} ?`, header: 'Confirmer', icon: 'pi pi-times-circle',
     acceptLabel: 'Refuser', rejectLabel: 'Annuler', acceptClassName: 'p-button-danger',
@@ -246,6 +321,11 @@ const ReservationModule = () => {
           </div>
         </div>
         <div className='lt-res-header-right'>
+          <Button
+            label='Exporter CSV' icon='pi pi-download'
+            className='lt-res-btn-secondary' onClick={exportCsv}
+            data-testid='reservation-export-btn'
+          />
           <Button
             label='Nouvelle réservation' icon='pi pi-plus'
             className='lt-res-btn-primary' onClick={onCreate}
@@ -322,7 +402,8 @@ const ReservationModule = () => {
       {/* ── Form Dialog ── */}
       {showForm && editing && (
         <ReservationForm
-          initial={editing} engines={engines} onClose={() => {setShowForm(false); setEditing(null)}}
+          initial={editing} engines={engines} staffs={staffs}
+          onClose={() => {setShowForm(false); setEditing(null)}}
           onSave={saveReservation}
         />
       )}
@@ -559,7 +640,7 @@ const ListView = ({reservations, filterStatus, setFilterStatus, search, setSearc
 // ══════════════════════════════════════════════════════════════
 // Form Dialog — Create / Edit
 // ══════════════════════════════════════════════════════════════
-const ReservationForm = ({initial, engines, onClose, onSave}) => {
+const ReservationForm = ({initial, engines, staffs, onClose, onSave}) => {
   const [form, setForm] = useState(initial)
   const [availability, setAvailability] = useState(null) // null | 'checking' | 'available' | 'conflict'
   const [availabilityMsg, setAvailabilityMsg] = useState('')
@@ -572,6 +653,22 @@ const ReservationForm = ({initial, engines, onClose, onSave}) => {
     value: e.id,
     raw: e,
   }))
+
+  // Staff options — built from staffs API + fallback free text
+  const staffOptions = useMemo(() => {
+    const list = Array.isArray(staffs) ? staffs : []
+    const byName = new Map()
+    list.forEach((s) => {
+      const name = s?.name || s?.fullname || [s?.firstName, s?.lastName].filter(Boolean).join(' ').trim() || s?.username || s?.email
+      if (name && !byName.has(name)) byName.set(name, {label: name, value: name, raw: s})
+    })
+    const arr = Array.from(byName.values()).sort((a, b) => a.label.localeCompare(b.label))
+    // Ensure current value present
+    if (initial?.user_name && !byName.has(initial.user_name)) {
+      arr.unshift({label: initial.user_name, value: initial.user_name})
+    }
+    return arr
+  }, [staffs, initial])
 
   // Check availability whenever key fields change
   useEffect(() => {
@@ -662,8 +759,15 @@ const ReservationForm = ({initial, engines, onClose, onSave}) => {
         <div className='lt-res-form-row'>
           <div className='lt-res-form-field'>
             <label>Utilisateur</label>
-            <InputText value={form.user_name || ''} onChange={(e) => set('user_name', e.target.value)}
-              placeholder='ex: Jean Dupont' className='w-full' data-testid='reservation-form-user' />
+            <Dropdown
+              value={form.user_name || null} options={staffOptions}
+              onChange={(e) => set('user_name', e.value)}
+              editable filter showClear
+              placeholder='Sélectionner ou saisir…'
+              className='w-full' data-testid='reservation-form-user'
+              emptyMessage='Aucun utilisateur'
+              emptyFilterMessage='Aucun résultat'
+            />
           </div>
           <div className='lt-res-form-field'>
             <label>Équipe</label>

@@ -6869,6 +6869,16 @@ input.lt-form-input,
 }
 .lt-res-btn-primary.p-button:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(29, 78, 216, 0.35) !important; }
 
+.lt-res-btn-secondary.p-button {
+  background: #FFF !important; color: #1D4ED8 !important;
+  border: 1px solid #DBEAFE !important; padding: 10px 18px !important;
+  font-weight: 700 !important; border-radius: 10px !important;
+  margin-right: 8px !important; transition: all 0.18s !important;
+}
+.lt-res-btn-secondary.p-button:hover { background: #EFF4FF !important; border-color: #1D4ED8 !important; }
+
+.lt-res-header-right { display: inline-flex; align-items: center; }
+
 /* ── KPIs ── */
 .lt-res-kpis {
   display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 18px;

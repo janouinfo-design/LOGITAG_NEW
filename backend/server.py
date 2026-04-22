@@ -131,6 +131,21 @@ async def websocket_endpoint(websocket: WebSocket):
         ws_manager.disconnect(websocket)
 
 
+# Alias reachable through Kubernetes ingress (/api/*)
+@app.websocket("/api/ws")
+async def websocket_endpoint_api(websocket: WebSocket):
+    await ws_manager.connect(websocket)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            if data == "ping":
+                await websocket.send_text(json.dumps({"type": "pong"}))
+    except WebSocketDisconnect:
+        ws_manager.disconnect(websocket)
+    except Exception:
+        ws_manager.disconnect(websocket)
+
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()

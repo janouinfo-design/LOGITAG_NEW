@@ -256,6 +256,45 @@ const MapComponent = ({
     try { return localStorage.getItem('lt_map_list_density') || 'compact' } catch { return 'compact' }
   }) // 'compact' | 'detailed'
   const assetListScrollRef = useRef(null)
+
+  // ─── Reservations: set of asset ids/names currently reserved (in_progress + confirmed today) ───
+  const [reservedAssetKeys, setReservedAssetKeys] = useState(new Set())
+  useEffect(() => {
+    const apiRoot = (process.env.REACT_APP_BACKEND_URL || '') + '/api'
+    let cancelled = false
+    const load = async () => {
+      try {
+        const [inProg, confirmed] = await Promise.all([
+          fetch(`${apiRoot}/reservations?status=in_progress`).then((r) => r.ok ? r.json() : []).catch(() => []),
+          fetch(`${apiRoot}/reservations?status=confirmed`).then((r) => r.ok ? r.json() : []).catch(() => []),
+        ])
+        if (cancelled) return
+        const now = Date.now()
+        const keys = new Set()
+        const add = (r) => {
+          if (r.asset_id) keys.add(String(r.asset_id).toLowerCase())
+          if (r.asset_name) keys.add(String(r.asset_name).toLowerCase())
+        }
+        ;(inProg || []).forEach(add)
+        // Confirmed and active NOW (start <= now <= end)
+        ;(confirmed || []).forEach((r) => {
+          const s = new Date(r.start_date).getTime()
+          const e = new Date(r.end_date).getTime()
+          if (!isNaN(s) && !isNaN(e) && s <= now && e >= now) add(r)
+        })
+        setReservedAssetKeys(keys)
+      } catch (_) { /* ignore */ }
+    }
+    load()
+    const t = setInterval(load, 60 * 1000)
+    return () => { cancelled = true; clearInterval(t) }
+  }, [])
+
+  const isAssetReserved = useCallback((p) => {
+    if (!reservedAssetKeys || reservedAssetKeys.size === 0) return false
+    const keys = [p?.id, p?.reference, p?.nom, p?.label].filter(Boolean).map((k) => String(k).toLowerCase())
+    return keys.some((k) => reservedAssetKeys.has(k))
+  }, [reservedAssetKeys])
   const assetRowRefs = useRef({})
   const assetMarkerRefs = useRef({})
   const sortMenuRef = useRef(null)
@@ -319,15 +358,16 @@ const MapComponent = ({
   }
 
   const listCounts = useMemo(() => {
-    const c = {all: flatAssets.length, onsite: 0, arrived: 0, exited: 0, battery: 0, offline: 0}
+    const c = {all: flatAssets.length, onsite: 0, arrived: 0, exited: 0, battery: 0, offline: 0, reserved: 0}
     flatAssets.forEach((p) => {
       const cl = classifyAsset(p)
       c[cl.bucket]++
       const b = Number(p?.batteries)
       if (!isNaN(b) && b > 0 && b <= 20) c.battery++
+      if (isAssetReserved(p)) c.reserved++
     })
     return c
-  }, [flatAssets])
+  }, [flatAssets, isAssetReserved])
 
   const visibleAssets = useMemo(() => {
     let list = flatAssets
@@ -337,6 +377,9 @@ const MapComponent = ({
         if (listQuickFilter === 'battery') {
           const b = Number(p?.batteries)
           return !isNaN(b) && b > 0 && b <= 20
+        }
+        if (listQuickFilter === 'reserved') {
+          return isAssetReserved(p)
         }
         return cl.bucket === listQuickFilter
       })
@@ -1655,6 +1698,7 @@ const MapComponent = ({
                     {[
                       {key: 'all', label: 'Tous', count: listCounts.all, color: '#0F172A'},
                       {key: 'onsite', label: 'Sur site', count: listCounts.onsite, color: '#10B981'},
+                      {key: 'reserved', label: 'Réservés', count: listCounts.reserved, color: '#1D4ED8'},
                       {key: 'exited', label: 'Sortis', count: listCounts.exited, color: '#EF4444'},
                       {key: 'battery', label: 'Batt. faible', count: listCounts.battery, color: '#F59E0B'},
                     ].map((f) => (
@@ -1800,6 +1844,7 @@ const MapComponent = ({
                       const batLabel = (!isNaN(bat) && bat > 0) ? `${Math.round(bat)}%` : null
                       const batColor = (!isNaN(bat) && bat <= 20 && bat > 0) ? '#EF4444' : (!isNaN(bat) && bat <= 40) ? '#F59E0B' : '#10B981'
                       const timeFromNow = pio?.lastSeenAt ? moment.utc(pio.lastSeenAt).fromNow() : null
+                      const isReserved = isAssetReserved(pio)
 
                       return (
                         <div key={key}>
@@ -1870,6 +1915,17 @@ const MapComponent = ({
                               )}
                             </div>
                             <div className='lt-asset-row-right'>
+                              {isReserved && (
+                                <span
+                                  className='lt-asset-row-reserved'
+                                  title='Engin réservé actuellement'
+                                  data-testid={`asset-reserved-${key}`}
+                                  style={{display: 'inline-flex', alignItems: 'center', gap: 4, padding: '2px 8px', borderRadius: 10, background: '#DBEAFE', color: '#1D4ED8', fontSize: '0.62rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.04em', marginRight: 6}}
+                                >
+                                  <i className='pi pi-calendar-check' style={{fontSize: '0.6rem'}} />
+                                  Réservé
+                                </span>
+                              )}
                               {listDensity === 'compact' && timeFromNow && (
                                 <span className='lt-asset-row-compact-time' title={pio.lastSeenAt}>
                                   <i className='pi pi-clock' />{moment.utc(pio.lastSeenAt).fromNow(true)}
