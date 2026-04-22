@@ -33,6 +33,7 @@ const ICON_MAP = {
   'maps': 'fa-solid fa-map-location-dot',
   'carte': 'fa-solid fa-map-location-dot',
   'planning': 'fa-solid fa-calendar-days',
+  'reservations': 'fa-solid fa-calendar-check',
 
   // Organisation
   'places': 'fa-solid fa-warehouse',
@@ -91,6 +92,7 @@ const GROUP_MAP = {
   'carte': 'gestion',
   'planning': 'gestion',
   'vehicules': 'gestion',
+  'reservations': 'gestion',
 
   // Organisation — entities, sites & people
   'places': 'organisation',

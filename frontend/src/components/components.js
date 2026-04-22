@@ -50,6 +50,7 @@ import NewRepportComponent from './Repports/user-interface/NewRepportComponent'
 import RapportComponent from './Repports/user-interface/RapportComponent'
 import NavixyReport from './Repports/user-interface/NavixyReport/NavixyReport'
 import RapportDisplayed from './Repports/user-interface/RapportDisplayed'
+import ReservationModule from './Reservation/ReservationModule'
 import SetupInfo from './Setup_Info/user-interface/Setup.info'
 import SiteComponent from './Site/user-interface/SiteComponent'
 import SiteDetail from './Site/user-interface/SiteList/SiteDetail'
@@ -99,6 +100,7 @@ const components = {
   'vehicule/index': VehComponent,
   'deposit/index': DepotComponent,
   'rapports/index': NavixyReport,
+  'reservations/index': ReservationModule,
   'EnginNoActive/index': EnginInactive,
   'LOGS/index': LogsTrackingList,
   'gateway/index': GatewayComponent,

@@ -35,7 +35,17 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-04-21]** P1 validé : le zoom niveau rue (z17) en mode single-engin ne casse pas le layout
 - **[2026-04-21]** P2 : Toggle "Compact / Détaillé" dans le header de la liste (persisté dans `localStorage`). Mode détaillé affiche une 2e ligne avec statut + batterie + dernière activité humanisée.
 - **[2026-04-21]** Session précédente : Login premium, Calendrier Gantt, Modals Users/Teams, Module Rapports "Navixy" (export PDF/Excel + Planification), refonte Dépôts + Stepper 3 étapes.
-- **[2026-04-21] SIDEBAR REFONTE PREMIUM** — Style Notion/Stripe/Linear :
+- **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
+  - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)
+  - **Planning Gantt** : vues Jour / Semaine / Mois, navigation prev/next/today, barres colorées par statut, weekend grisés, aujourd'hui highlighted
+  - **Liste** : recherche + filtre statut, actions contextuelles (valider/refuser/check-out/check-in/annuler)
+  - **À valider** : panneau dédié des demandes en attente avec workflow admin
+  - **Formulaire création/édition** : engin (filter dropdown), dates avec vérification temps réel de disponibilité (POST /availability), utilisateur, équipe, site, projet, priorité, note
+  - **Drawer détail** : infos complètes + actions (approve/reject/checkout/checkin/cancel/edit)
+  - Backend : endpoints déjà complets dans `/app/backend/routes/reservations.py` (CRUD, planning, gantt, availability, approve/reject, checkout/checkin, export CSV, WebSocket broadcasts)
+  - Route enregistrée via `EXTRA_MENU` (config.js) + `components.js`
+  - Fichiers : `/app/frontend/src/components/Reservation/ReservationModule.jsx` (~500 lignes), CSS dans `logitag-saas.css` lignes 6843+
+
   - 5 groupes structurés : Dashboard · GESTION · ORGANISATION · CONFIGURATION · ANALYSE
   - Mapping normalisé (accents/casse) sur les titres backend réels (Timeline→Calendrier, Maps→Map, Equipes→Utilisateurs, Paramettres→Paramètres)
   - Icônes FontAwesome modernes (truck-fast, tags, calendar-days, warehouse, users, gear, chart-column, etc.)
