@@ -1,12 +1,43 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable react-hooks/exhaustive-deps */
 import clsx from 'clsx'
-import {Link} from 'react-router-dom'
+import {Link, NavLink, useLocation} from 'react-router-dom'
 import {KTIcon, toAbsoluteUrl} from '../../../helpers'
 import {useLayout} from '../../core'
 import {Header} from './Header'
 import {Navbar} from './Navbar'
 import {useEffect} from 'react'
+
+/* ── Quick action shortcuts in the header ── */
+const QUICK_ACTIONS = [
+  {to: '/engin/index', label: 'Engins', icon: 'fa-solid fa-truck-fast'},
+  {to: '/map/index', label: 'Map', icon: 'fa-solid fa-map-location-dot'},
+  {to: '/planning/index', label: 'Calendrier', icon: 'fa-solid fa-calendar-days'},
+  {to: '/rapports/index', label: 'Rapports', icon: 'fa-solid fa-chart-column'},
+]
+
+const HeaderQuickActions = () => {
+  const loc = useLocation()
+  return (
+    <div className='lt-header-quick' data-testid='header-quick-actions'>
+      {QUICK_ACTIONS.map((a) => {
+        const isActive = loc.pathname.startsWith(a.to)
+        return (
+          <NavLink
+            key={a.to}
+            to={a.to}
+            className={`lt-header-quick-btn ${isActive ? 'is-active' : ''}`}
+            data-testid={`header-quick-${a.label.toLowerCase()}`}
+            title={a.label}
+          >
+            <i className={a.icon}></i>
+            <span className='lt-header-quick-lbl'>{a.label}</span>
+          </NavLink>
+        )
+      })}
+    </div>
+  )
+}
 
 export function HeaderWrapper() {
   const {config, classes} = useLayout()
@@ -114,6 +145,7 @@ export function HeaderWrapper() {
                 <Header />
               </div>
             )}
+          <HeaderQuickActions />
           <Navbar />
         </div>
       </div>
