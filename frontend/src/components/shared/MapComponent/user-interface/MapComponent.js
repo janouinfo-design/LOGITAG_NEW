@@ -1231,12 +1231,11 @@ const MapComponent = ({
   }, [filterEt, filterSt])
 
   function fetchEnginMap() {
-    let obj = {page: 1, PageSize: 10, filterPosition: 1, displayMap: 1}
+    let obj = {page: 1, PageSize: 5000, filterPosition: 1, displayMap: 1}
     if (lastSeenFrom) {
       obj.LastSeenFrom = moment(lastSeenFrom).utc().format('YYYY-MM-DD')
     }
     dispatch(fetchEnginesMap(obj)).then(({payload}) => {
-      console.log('payloaddddd:', payload)
       if (payload) {
         setEngMap(payload)
         enginMapOld.current = payload
@@ -1248,7 +1247,7 @@ const MapComponent = ({
     dispatch(fetchGeofencings())
     dispatch(fetchSites())
     dispatch(fetchCompanyAddresses())
-    dispatch(fetchEnginesMap({page: 1, PageSize: 15, filterPosition: 1, displayMap: 1})).then(
+    dispatch(fetchEnginesMap({page: 1, PageSize: 5000, filterPosition: 1, displayMap: 1})).then(
       ({payload}) => {
         if (payload) {
           setEngMap(payload)
