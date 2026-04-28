@@ -100,7 +100,9 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
     const counts = {total: enriched.length, present: 0, arrived: 0, exited: 0, lowBattery: 0}
     let totalMin = 0, cntMin = 0
     enriched.forEach((e) => {
-      if (e._timing.bucket === 'present' || e._timing.bucket === 'stale') counts.present++
+      // "Sur site" = tout engin physiquement présent (signal récent OU ancien mais pas sorti)
+      // Inclut les buckets 'present', 'arrived' (vu < 1h) et 'stale' (vu < 3j)
+      if (e._timing.bucket === 'present' || e._timing.bucket === 'stale' || e._timing.bucket === 'arrived') counts.present++
       if (e._timing.bucket === 'arrived') counts.arrived++
       if (e._timing.bucket === 'exited') counts.exited++
       if (e._bat.level === 'low') counts.lowBattery++
@@ -119,7 +121,7 @@ const ClusterInsightsPanel = ({open, items, onClose, onSelectItem, singleMode}) 
 
   const visible = useMemo(() => {
     let list = enriched
-    if (filter === 'present') list = list.filter((e) => e._timing.bucket === 'present' || e._timing.bucket === 'stale')
+    if (filter === 'present') list = list.filter((e) => e._timing.bucket === 'present' || e._timing.bucket === 'stale' || e._timing.bucket === 'arrived')
     if (filter === 'exited') list = list.filter((e) => e._timing.bucket === 'exited')
     if (filter === 'battery') list = list.filter((e) => e._bat.level === 'low')
     if (familyFilter !== 'all') list = list.filter((e) => e.famille === familyFilter)

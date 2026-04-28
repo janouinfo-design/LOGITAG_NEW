@@ -35,6 +35,7 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-04-21]** P1 validé : le zoom niveau rue (z17) en mode single-engin ne casse pas le layout
 - **[2026-04-21]** P2 : Toggle "Compact / Détaillé" dans le header de la liste (persisté dans `localStorage`). Mode détaillé affiche une 2e ligne avec statut + batterie + dernière activité humanisée.
 - **[2026-04-21]** Session précédente : Login premium, Calendrier Gantt, Modals Users/Teams, Module Rapports "Navixy" (export PDF/Excel + Planification), refonte Dépôts + Stepper 3 étapes.
+- **[2026-02-XX] FIX statistiques cluster (`ClusterInsightsPanel.jsx`)** : "Sur site" affichait 0 alors que 18 engins étaient sur place. Cause : la logique catégorisait les engins vus < 1h dans le bucket `arrived` (exclu de `present`). Correction : "Sur site" inclut désormais `present` + `stale` + `arrived` (tout engin physiquement présent, peu importe la fraîcheur du signal). "Arrivés 1h" reste un sous-ensemble informatif. Le filtre "Sur site" en bas du panneau a été aligné.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
   - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)
   - **Planning Gantt** : vues Jour / Semaine / Mois, navigation prev/next/today, barres colorées par statut, weekend grisés, aujourd'hui highlighted
