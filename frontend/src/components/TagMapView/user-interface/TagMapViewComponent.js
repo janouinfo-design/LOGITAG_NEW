@@ -346,7 +346,7 @@ const TagMapViewComponent = ({type}) => {
         filterPosition: 1,
         SortDirection: 'DESC',
         SortColumn: 'lastSeenAt',
-        PageSize: 10,
+        PageSize: 5000,
       })
     ).then(({payload}) => {
       setTotalRecords(payload[0]?.TotalEngins || 0)
