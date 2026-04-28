@@ -81,6 +81,17 @@ async def list_device_configs():
     return configs
 
 
+# ── Lightweight in-memory TTL cache for slow Omniyat dashboard endpoints ──
+import time
+_DASH_CACHE: dict = {}
+_DASH_CACHE_TTL = 30  # seconds — refresh dashboard data every 30s max
+_CACHEABLE_PATHS = ("tag/dashboard", "tag/dashboarddetail")
+
+
+def _cache_key(path: str, body: bytes, qs: str) -> str:
+    return f"{path}|{qs}|{body.decode('utf-8', 'ignore')[:300]}"
+
+
 # ── Proxy: forwards /api/proxy/* to external API ──
 @app.api_route("/api/proxy/{path:path}", methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"])
 async def proxy_external_api(path: str, request: Request):
@@ -92,6 +103,24 @@ async def proxy_external_api(path: str, request: Request):
         if key.lower() not in ('host', 'origin', 'referer', 'connection', 'transfer-encoding'):
             headers[key] = value
     body = await request.body()
+
+    # Cache lookup (only for idempotent slow dashboard endpoints)
+    is_cacheable = (
+        request.method in ("GET", "POST")
+        and any(path.startswith(p) for p in _CACHEABLE_PATHS)
+    )
+    cache_k = None
+    if is_cacheable:
+        cache_k = _cache_key(path, body, str(request.query_params or ""))
+        cached = _DASH_CACHE.get(cache_k)
+        if cached and (time.time() - cached["t"]) < _DASH_CACHE_TTL:
+            return Response(
+                content=cached["content"],
+                status_code=cached["status"],
+                headers={**cached["headers"], "x-cache": "hit"},
+                media_type=cached["media"],
+            )
+
     try:
         response = await http_client.request(method=request.method, url=target_url, headers=headers, content=body)
         resp_headers = {}
@@ -100,7 +129,17 @@ async def proxy_external_api(path: str, request: Request):
                                     'access-control-allow-origin', 'access-control-allow-credentials',
                                     'access-control-allow-methods', 'access-control-allow-headers'):
                 resp_headers[key] = value
-        return Response(content=response.content, status_code=response.status_code, headers=resp_headers, media_type=response.headers.get('content-type', 'application/json'))
+        media = response.headers.get('content-type', 'application/json')
+        # Store in cache only on success
+        if is_cacheable and cache_k and 200 <= response.status_code < 300:
+            _DASH_CACHE[cache_k] = {
+                "t": time.time(),
+                "content": response.content,
+                "status": response.status_code,
+                "headers": resp_headers,
+                "media": media,
+            }
+        return Response(content=response.content, status_code=response.status_code, headers=resp_headers, media_type=media)
     except Exception as e:
         logger.error(f"Proxy error: {e}")
         return Response(content=f'{{"error": "{str(e)}"}}', status_code=502, media_type="application/json")

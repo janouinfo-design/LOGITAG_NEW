@@ -174,21 +174,30 @@ const DashboardListCards = () => {
 
     const fetchAll = async () => {
       setAnalyticsLoading(true)
-      // PARALLEL fetches (was sequential — 4× to 8× faster on slow API)
+      setAllDetailData([])  // reset before fresh fetches
       const validCards = dashboardData.filter((c) => c?.code)
-      const results = await Promise.allSettled(
-        validCards.map((card) => _fetchDashboardDetail(card.code).then((res) => ({card, res})))
-      )
-      const merged = []
-      results.forEach((p) => {
-        if (p.status === 'fulfilled') {
-          const {card, res} = p.value
-          if (res && !res.error && Array.isArray(res.data)) {
-            merged.push(...res.data.map((item) => ({...item, _src: card.src})))
-          }
+      // PROGRESSIVE LOADING: each card updates state as soon as it arrives,
+      // so the UI doesn't wait for the slowest call (e.g. Engins ~15s on Omniyat).
+      let firstResolved = false
+      const finishCard = (card, res) => {
+        if (res && !res.error && Array.isArray(res.data)) {
+          const enriched = res.data.map((item) => ({...item, _src: card.src}))
+          setAllDetailData((prev) => [...prev, ...enriched])
         }
-      })
-      setAllDetailData(merged)
+        // Hide global skeleton as soon as the FIRST card arrives — analytics will
+        // refine themselves as remaining cards finish.
+        if (!firstResolved) {
+          firstResolved = true
+          setAnalyticsLoading(false)
+        }
+      }
+      await Promise.allSettled(
+        validCards.map((card) =>
+          _fetchDashboardDetail(card.code)
+            .then((res) => finishCard(card, res))
+            .catch(() => finishCard(card, null))
+        )
+      )
       setAnalyticsLoading(false)
     }
     fetchAll()
