@@ -175,17 +175,20 @@ const DashboardListCards = () => {
     const fetchAll = async () => {
       setAnalyticsLoading(true)
       setAllDetailData([])  // reset before fresh fetches
-      const validCards = dashboardData.filter((c) => c?.code)
-      // PROGRESSIVE LOADING: each card updates state as soon as it arrives,
-      // so the UI doesn't wait for the slowest call (e.g. Engins ~15s on Omniyat).
+      // Reorder: put slow cards (Engins ~15s on Omniyat) LAST so UI fills with
+      // fast cards first. Combined with progressive setState, user sees content
+      // in <1s instead of waiting 15s for everything.
+      const SLOW = new Set(['Engins'])
+      const validCards = [
+        ...dashboardData.filter((c) => c?.code && !SLOW.has(c.code)),
+        ...dashboardData.filter((c) => c?.code && SLOW.has(c.code)),
+      ]
       let firstResolved = false
       const finishCard = (card, res) => {
         if (res && !res.error && Array.isArray(res.data)) {
           const enriched = res.data.map((item) => ({...item, _src: card.src}))
           setAllDetailData((prev) => [...prev, ...enriched])
         }
-        // Hide global skeleton as soon as the FIRST card arrives — analytics will
-        // refine themselves as remaining cards finish.
         if (!firstResolved) {
           firstResolved = true
           setAnalyticsLoading(false)
