@@ -746,6 +746,52 @@
   transform: translateY(-1px);
 }
 
+/* ─── "Sur site" pulse indicator on engin cards ─────────── */
+.lt-vcard--onsite {
+  box-shadow: inset 3px 0 0 0 #22C55E;
+}
+.lt-vcard--onsite:hover {
+  box-shadow: inset 3px 0 0 0 #16A34A, 0 6px 18px rgba(0,0,0,0.06);
+}
+.lt-vcard-onsite-pulse {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: #22C55E;
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.65);
+  animation: lt-onsite-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  pointer-events: auto;
+  cursor: help;
+  z-index: 2;
+}
+.lt-vcard-onsite-pulse::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  animation: lt-onsite-ring 1.6s ease-out infinite;
+}
+@keyframes lt-onsite-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70%  { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+@keyframes lt-onsite-ring {
+  0%   { transform: scale(0.8); opacity: 0.9; }
+  100% { transform: scale(1.8); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lt-vcard-onsite-pulse,
+  .lt-vcard-onsite-pulse::after {
+    animation: none;
+  }
+}
+
+
 .lt-vcard-img {
   width: 48px;
   height: 48px;

@@ -229,6 +229,8 @@ const EnginList = () => {
   const [loadingOrder, setLoadingOrder] = useState(false)
   const [viewMode, setViewMode] = useState('grid')
   const [gridSort, setGridSort] = useState('default')
+  const [gridPage, setGridPage] = useState(1)
+  const GRID_PAGE_SIZE = 24
   const [searchInput, setSearchInput] = useState('')
   const [filters, setFilters] = useState({
     etat: null,
@@ -1363,6 +1365,12 @@ const EnginList = () => {
     orderByRef.current = orderBy
   }, [orderBy])
 
+  // Clamp gridPage when engines list changes (sort, search, filter, refetch)
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil((engines?.length || 0) / GRID_PAGE_SIZE))
+    if (gridPage > maxPage) setGridPage(maxPage)
+  }, [engines?.length, gridSort, searchInput, gridPage])
+
   useEffect(() => {
     if (firstLoading.current) return
     setFilterLoadingPopup(true)
@@ -1585,17 +1593,21 @@ const EnginList = () => {
               </button>
             </div>
             <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
-              Page {page} / {Math.ceil(totalRecords / rows) || 1}
+              Page {gridPage} / {Math.ceil((engines?.length || 0) / GRID_PAGE_SIZE) || 1}
             </span>
           </div>
           {/* Grid of vignettes */}
           <div className="lt-vignette-grid" data-testid="engin-grid-view">
-            {[...engines].sort((a, b) => {
-              if (gridSort === 'name') return (a.reference || '').localeCompare(b.reference || '')
-              if (gridSort === 'battery') return (parseInt(b.batteries) || 0) - (parseInt(a.batteries) || 0)
-              if (gridSort === 'status') return (a.etatenginname || '').localeCompare(b.etatenginname || '')
-              return 0
-            }).map((item, i) => {
+            {(() => {
+              const sorted = [...engines].sort((a, b) => {
+                if (gridSort === 'name') return (a.reference || '').localeCompare(b.reference || '')
+                if (gridSort === 'battery') return (parseInt(b.batteries) || 0) - (parseInt(a.batteries) || 0)
+                if (gridSort === 'status') return (a.etatenginname || '').localeCompare(b.etatenginname || '')
+                return 0
+              })
+              const start = (gridPage - 1) * GRID_PAGE_SIZE
+              return sorted.slice(start, start + GRID_PAGE_SIZE)
+            })().map((item, i) => {
               const isExit = item.etatenginname === 'exit'
               const isEntry = item.etatenginname === 'reception'
               const etatLabel = isExit ? 'Sortie' : isEntry ? 'Entrée' : (item.etatenginname || 'Inactif')
@@ -1604,8 +1616,16 @@ const EnginList = () => {
               const batColor = bat >= 50 ? '#22C55E' : bat >= 20 ? '#F59E0B' : '#EF4444'
               const statusColor = item.statusbgColor || '#94A3B8'
               return (
-                <div key={item.id || i} className="lt-vcard" data-testid={`engin-vcard-${i}`}
+                <div key={item.id || i} className={`lt-vcard ${isEntry ? 'lt-vcard--onsite' : ''}`} data-testid={`engin-vcard-${i}`}
                   onClick={() => { dispatch(setSelectedEngine(item)); dispatch(setShow(false)); }}>
+                  {isEntry && (
+                    <span
+                      className="lt-vcard-onsite-pulse"
+                      title="Sur site"
+                      data-testid={`engin-vcard-onsite-${i}`}
+                      aria-label="Sur site"
+                    />
+                  )}
                   <div className="lt-vcard-dots" onClick={(e) => e.stopPropagation()}>
                     <button className="lt-vcard-dots-btn" onClick={(e) => {
                       e.stopPropagation()
@@ -1677,23 +1697,25 @@ const EnginList = () => {
               )
             })}
           </div>
-          {/* Grid Pagination */}
+          {/* Grid Pagination (client-side) */}
           <div className="lt-grid-pagination" data-testid="engin-grid-pagination">
             <button
               className="lt-grid-page-btn"
-              disabled={page <= 1 || isLoadingButton}
-              onClick={() => handlePageChange({page: page - 1, rows})}
+              disabled={gridPage <= 1}
+              onClick={() => setGridPage((p) => Math.max(1, p - 1))}
+              data-testid="engin-grid-prev"
             >
               <i className="pi pi-chevron-left"></i>
             </button>
             <span className="lt-grid-page-info">
-              Page <strong>{page}</strong> / <strong>{Math.ceil(totalRecords / rows) || 1}</strong>
-              &nbsp;&mdash;&nbsp;{totalRecords} assets
+              Page <strong>{gridPage}</strong> / <strong>{Math.ceil((engines?.length || 0) / GRID_PAGE_SIZE) || 1}</strong>
+              &nbsp;&mdash;&nbsp;{engines?.length || 0} assets
             </span>
             <button
               className="lt-grid-page-btn"
-              disabled={page >= Math.ceil(totalRecords / rows) || isLoadingButton}
-              onClick={() => handlePageChange({page: page + 1, rows})}
+              disabled={gridPage >= Math.ceil((engines?.length || 0) / GRID_PAGE_SIZE)}
+              onClick={() => setGridPage((p) => Math.min(Math.ceil((engines?.length || 0) / GRID_PAGE_SIZE), p + 1))}
+              data-testid="engin-grid-next"
             >
               <i className="pi pi-chevron-right"></i>
             </button>
