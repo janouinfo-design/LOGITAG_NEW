@@ -51,6 +51,7 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - Suppression des boîtes rouges parasites précédentes (icônes FontAwesome cassées remplacées par PrimeReact natifs).
   - Responsive : passe en 1 colonne sous 600px.
   - Frontend (`EnginList.js`) : pattern stale-while-revalidate — si Redux contient déjà des engins (navigation back), on les affiche immédiatement sans bloquer avec le skeleton, et on rafraîchit en arrière-plan.
+- **[2026-02-XX] FIX raccourcis du header (`HeaderWrapper.tsx`)** : Les 4 boutons "Engins / Map / Calendrier / Rapports" pointaient vers des routes inexistantes (`/engin/index`, `/map/index`, `/planning/index`) → fallback vers le dashboard à chaque clic. Routes corrigées : `/view/engin/index`, `/tour/index`, `/reservations/index`, `/rapports/index`. Tous les liens validés en e2e (Playwright).
   - Résultat e2e mesuré : 1ère visite ~2-3s (avec cache préchauffé), 2ème visite 0.22s.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
   - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)

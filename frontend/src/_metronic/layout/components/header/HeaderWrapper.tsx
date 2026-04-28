@@ -10,9 +10,9 @@ import {useEffect} from 'react'
 
 /* ── Quick action shortcuts in the header ── */
 const QUICK_ACTIONS = [
-  {to: '/engin/index', label: 'Engins', icon: 'fa-solid fa-truck-fast'},
-  {to: '/map/index', label: 'Map', icon: 'fa-solid fa-map-location-dot'},
-  {to: '/planning/index', label: 'Calendrier', icon: 'fa-solid fa-calendar-days'},
+  {to: '/view/engin/index', label: 'Engins', icon: 'fa-solid fa-truck-fast'},
+  {to: '/tour/index', label: 'Map', icon: 'fa-solid fa-map-location-dot'},
+  {to: '/reservations/index', label: 'Calendrier', icon: 'fa-solid fa-calendar-days'},
   {to: '/rapports/index', label: 'Rapports', icon: 'fa-solid fa-chart-column'},
 ]
 
