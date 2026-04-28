@@ -1977,11 +1977,13 @@ const MapComponent = ({
                                     e.stopPropagation()
                                     fetchRoute(pio?.lastSeenAt, pio?.lastSeenDevice)
                                   }}
-                                  title='Show Route'
+                                  title='Voir le trajet'
+                                  aria-label='Voir le trajet'
                                   className='lt-asset-exp-route'
                                   rounded
+                                  data-testid={`asset-route-btn-${key}`}
                                 >
-                                  <i className='fas fa-solid fa-route' style={{fontSize: 11, color: '#FFF'}} />
+                                  <i className='pi pi-directions' style={{fontSize: 13, color: '#FFF'}} />
                                 </Button>
                               </div>
                               <div className='lt-asset-exp-grid'>

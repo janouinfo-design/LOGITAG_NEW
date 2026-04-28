@@ -40,6 +40,7 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-02-XX] FEAT Indicateur "Sur site" sur cartes engins** : Point pulsant vert (top-right) + bordure gauche verte sur les cartes dont `etatenginname === 'reception'`. Animation `lt-onsite-pulse` + ring expansion `lt-onsite-ring`. Respect de `prefers-reduced-motion`.
 - **[2026-02-XX] PERF Optimisation chargement page Engins** :
   - Backend (`server.py`) : ajout de `engin/list` aux endpoints cachés (TTL 60s, vs 30s pour le dashboard). Premier appel cold ~29s, suivants 0.3s (cache hit, x100 plus rapide).
+- **[2026-02-XX] FIX icône bouton "trajet" sur cartes engins (Map)** : Dans `MapComponent.js` (drawer expandé d'un engin), le bouton circulaire bleu utilisait `fas fa-solid fa-route` (syntaxe FontAwesome v5+v6 invalide) qui rendait un glyphe parasite. Remplacé par `pi pi-directions` (icône PrimeReact native) pour cohérence avec le reste du panneau. Tooltip également traduit (`title="Voir le trajet"`).
   - Frontend (`EnginList.js`) : pattern stale-while-revalidate — si Redux contient déjà des engins (navigation back), on les affiche immédiatement sans bloquer avec le skeleton, et on rafraîchit en arrière-plan.
   - Résultat e2e mesuré : 1ère visite ~2-3s (avec cache préchauffé), 2ème visite 0.22s.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
