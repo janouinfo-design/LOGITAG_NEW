@@ -1071,7 +1071,7 @@ const STYLES = `
 .dbn-alert-row:hover { background: #FAFBFC; }
 .dbn-alert-row-name { font-weight: 700; color: #0F172A; min-width: 100px; }
 .dbn-alert-row-val { font-weight: 700; color: #EF4444; padding: 2px 8px; background: #FEF2F2; border-radius: 4px; font-size: 0.68rem; }
-.dbn-alert-row-loc { color: #94A3B8; font-size: 0.68rem; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dbn-alert-row-loc { color: #94A3B8; font-size: 0.68rem; flex: 1; text-align: right; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-transform: capitalize; font-weight: 600; }
 .dbn-empty-sm { display: flex; align-items: center; gap: 6px; justify-content: center; padding: 20px; font-size: 0.8rem; color: #94A3B8; }
 
 /* Battery */
