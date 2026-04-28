@@ -1275,11 +1275,14 @@ const EnginList = () => {
     }))
 
   const fetchData = async () => {
-    setLoading(true)
+    // Stale-while-revalidate: if engines already in redux (from previous navigation),
+    // show them immediately and refresh in background — no blocking skeleton.
+    const hasCachedEngines = engines && engines.length > 0
+    if (!hasCachedEngines) setLoading(true)
     try {
       // let pageGp = 1
       refFilter.current = filters
-      setLoadingOrder(true)
+      if (!hasCachedEngines) setLoadingOrder(true)
       const localFirst = localStorage.getItem('engin-table-configs')
       const parcedDt = JSON.parse(localFirst)
       // if (parcedDt) {

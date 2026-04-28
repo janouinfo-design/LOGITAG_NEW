@@ -84,12 +84,19 @@ async def list_device_configs():
 # ── Lightweight in-memory TTL cache for slow Omniyat dashboard endpoints ──
 import time
 _DASH_CACHE: dict = {}
-_DASH_CACHE_TTL = 30  # seconds — refresh dashboard data every 30s max
-_CACHEABLE_PATHS = ("tag/dashboard", "tag/dashboarddetail")
+_DASH_CACHE_TTL = 30  # seconds — default for dashboard endpoints
+_ENGIN_CACHE_TTL = 60  # seconds — engin/list is 5000 records, slower to fetch
+_CACHEABLE_PATHS = ("tag/dashboard", "tag/dashboarddetail", "engin/list")
 
 
 def _cache_key(path: str, body: bytes, qs: str) -> str:
     return f"{path}|{qs}|{body.decode('utf-8', 'ignore')[:300]}"
+
+
+def _ttl_for_path(path: str) -> int:
+    if path.startswith("engin/list"):
+        return _ENGIN_CACHE_TTL
+    return _DASH_CACHE_TTL
 
 
 # ── Proxy: forwards /api/proxy/* to external API ──
@@ -113,7 +120,7 @@ async def proxy_external_api(path: str, request: Request):
     if is_cacheable:
         cache_k = _cache_key(path, body, str(request.query_params or ""))
         cached = _DASH_CACHE.get(cache_k)
-        if cached and (time.time() - cached["t"]) < _DASH_CACHE_TTL:
+        if cached and (time.time() - cached["t"]) < _ttl_for_path(path):
             return Response(
                 content=cached["content"],
                 status_code=cached["status"],

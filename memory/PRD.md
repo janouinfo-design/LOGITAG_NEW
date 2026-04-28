@@ -38,6 +38,10 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-02-XX] FIX statistiques cluster (`ClusterInsightsPanel.jsx`)** : "Sur site" affichait 0 alors que 18 engins étaient sur place. Cause : la logique catégorisait les engins vus < 1h dans le bucket `arrived` (exclu de `present`). Correction : "Sur site" inclut désormais `present` + `stale` + `arrived` (tout engin physiquement présent, peu importe la fraîcheur du signal). "Arrivés 1h" reste un sous-ensemble informatif. Le filtre "Sur site" en bas du panneau a été aligné.
 - **[2026-02-XX] FIX pagination grille engins (`EnginList.js`)** : "next" affichait une page vide. Cause : `handlePageChange` était appelé avec un objet `{page, rows}` au lieu de deux args, et la grille faisait un refetch serveur alors que les 5000 engins étaient déjà chargés. Solution : pagination 100% client-side (`gridPage` state + `slice()`) avec page size de 24, clamp automatique quand le dataset change.
 - **[2026-02-XX] FEAT Indicateur "Sur site" sur cartes engins** : Point pulsant vert (top-right) + bordure gauche verte sur les cartes dont `etatenginname === 'reception'`. Animation `lt-onsite-pulse` + ring expansion `lt-onsite-ring`. Respect de `prefers-reduced-motion`.
+- **[2026-02-XX] PERF Optimisation chargement page Engins** :
+  - Backend (`server.py`) : ajout de `engin/list` aux endpoints cachés (TTL 60s, vs 30s pour le dashboard). Premier appel cold ~29s, suivants 0.3s (cache hit, x100 plus rapide).
+  - Frontend (`EnginList.js`) : pattern stale-while-revalidate — si Redux contient déjà des engins (navigation back), on les affiche immédiatement sans bloquer avec le skeleton, et on rafraîchit en arrière-plan.
+  - Résultat e2e mesuré : 1ère visite ~2-3s (avec cache préchauffé), 2ème visite 0.22s.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
   - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)
   - **Planning Gantt** : vues Jour / Semaine / Mois, navigation prev/next/today, barres colorées par statut, weekend grisés, aujourd'hui highlighted
