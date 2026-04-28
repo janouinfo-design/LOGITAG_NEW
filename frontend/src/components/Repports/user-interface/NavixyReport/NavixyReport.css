@@ -467,6 +467,21 @@
   letter-spacing: -0.005em;
 }
 .nvx-sect-head i { font-size: 0.72rem; }
+.nvx-tracker-pill {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #FFFFFF;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  backdrop-filter: blur(4px);
+}
+
 .nvx-sect-resume { max-width: 440px; }
 .nvx-sect-note {
   font-size: 0.8rem;

@@ -83,6 +83,91 @@ const MOCK_RESULT_DAYS = [
     ],
   },
 ]
+
+// ── Pool of trip routes for per-tracker variations ──────────────
+const TRIP_ROUTES_POOL = [
+  // Original Madrid → Barcelone route
+  [
+    {depart: '10:30 - Princesa-Centro Comercial, Madrid, Communauté de Madrid, Espagne', arrivee: '11:32 - Repsol A-2, Guadalajara, ES-GU, Espagne', temps: '01:02', inactiv: '00:11'},
+    {depart: '11:44 - Repsol A-2, Guadalajara, ES-GU, Espagne', arrivee: '13:22 - Repsol Calatorao, Saragosse, ES-Z, Espagne', temps: '01:38', inactiv: '00:13'},
+    {depart: '13:35 - Repsol Calatorao, Saragosse, ES-Z, Espagne', arrivee: '15:32 - Polígon Fonolleres, Lérida, ES-L, Espagne', temps: '01:57', inactiv: '00:06'},
+    {depart: '15:38 - Polígon Fonolleres, Lérida, ES-L, Espagne', arrivee: '16:58 - Place de Catalogne, Barcelone, ES-B, Espagne', temps: '01:20', inactiv: '00:33'},
+  ],
+  // Lyon → Genève route
+  [
+    {depart: '08:15 - Dépôt Vénissieux, Lyon, Auvergne-Rhône-Alpes, France, 69200', arrivee: '09:48 - Aire de Mâcon, A6, Saône-et-Loire, France, 71000', temps: '01:33', inactiv: '00:18'},
+    {depart: '10:02 - Aire de Mâcon, A6, France, 71000', arrivee: '11:54 - Bellegarde-sur-Valserine, Ain, France, 01200', temps: '01:52', inactiv: '00:09'},
+    {depart: '12:10 - Bellegarde-sur-Valserine, Ain, France', arrivee: '13:24 - Genève Aéroport, Le Grand-Saconnex, GE, Suisse, 1218', temps: '01:14', inactiv: '00:45'},
+  ],
+  // Zürich → Bâle route (long)
+  [
+    {depart: '06:55 - Logitag HQ, Zürich Altstetten, ZH, Suisse, 8048', arrivee: '07:42 - Aarau, Centre logistique, AG, Suisse, 5000', temps: '00:47', inactiv: '00:25'},
+    {depart: '08:07 - Aarau Centre, AG, Suisse', arrivee: '08:58 - Olten Industrie, SO, Suisse, 4600', temps: '00:51', inactiv: '00:14'},
+    {depart: '09:12 - Olten Industrie, SO, Suisse', arrivee: '10:35 - Liestal, Site BL, Suisse, 4410', temps: '01:23', inactiv: '00:08'},
+    {depart: '11:00 - Liestal Site BL, Suisse', arrivee: '11:58 - Bâle Centre, BS, Suisse, 4001', temps: '00:58', inactiv: '00:22'},
+    {depart: '14:05 - Bâle Centre, BS, Suisse', arrivee: '15:48 - Liestal Site BL, Suisse', temps: '01:43', inactiv: '00:31'},
+  ],
+  // Paris → Lille (urban)
+  [
+    {depart: '07:30 - Paris Bercy, 75012, Île-de-France', arrivee: '08:22 - Senlis péage, A1, Oise, 60300', temps: '00:52', inactiv: '00:12'},
+    {depart: '08:35 - Senlis péage, A1, Oise', arrivee: '09:48 - Aire de Phalempin, Nord, 59133', temps: '01:13', inactiv: '00:20'},
+    {depart: '10:05 - Aire de Phalempin, Nord', arrivee: '10:42 - Lille Euralille, Nord, 59800', temps: '00:37', inactiv: '00:54'},
+  ],
+  // Site-only (short routes)
+  [
+    {depart: '09:20 - Site A, Quai logistique 4, Lausanne', arrivee: '09:58 - Site B, Préverenges, VD, Suisse', temps: '00:38', inactiv: '01:12'},
+    {depart: '11:18 - Site B, Préverenges', arrivee: '11:44 - Site C, Morges, VD, Suisse', temps: '00:26', inactiv: '00:42'},
+    {depart: '13:30 - Site C, Morges', arrivee: '14:22 - Site A, Lausanne', temps: '00:52', inactiv: '00:16'},
+  ],
+]
+
+const DATE_VARIATIONS = [
+  '7 nov. 2024 (Jeu.)',
+  '12 mars 2026 (Jeu.)',
+  '15 mars 2026 (Dim.)',
+  '08 avr. 2026 (Mer.)',
+  '22 avr. 2026 (Mar.)',
+]
+
+// Deterministic hash from string — same id always produces same data
+function hashId(id) {
+  const s = String(id || 'default')
+  let h = 0
+  for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0
+  return Math.abs(h)
+}
+
+function buildDaysForTracker(trackerId) {
+  const seed = hashId(trackerId)
+  const dayCount = 1 + (seed % 2)            // 1 or 2 days
+  const days = []
+  for (let d = 0; d < dayCount; d++) {
+    const routeIdx = (seed + d * 3) % TRIP_ROUTES_POOL.length
+    const route = TRIP_ROUTES_POOL[routeIdx]
+    const dateIdx = (seed + d) % DATE_VARIATIONS.length
+    days.push({
+      date: DATE_VARIATIONS[dateIdx],
+      rows: route.map((r, i) => ({
+        depart: r.depart,
+        arrivee: r.arrivee,
+        temps: r.temps,
+        inactiv: r.inactiv,
+      })),
+    })
+  }
+  return days
+}
+
+function sumColumn(days, key) {
+  let totalMin = 0
+  days.forEach((d) => d.rows.forEach((r) => {
+    const [h, m] = (r[key] || '00:00').split(':').map(Number)
+    totalMin += (h || 0) * 60 + (m || 0)
+  }))
+  const h = Math.floor(totalMin / 60)
+  const m = totalMin % 60
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
 const MOCK_ALERT_ROWS = [
   {time: '07 nov. 2024 09:12', address: 'Zone Est · Site Omniyat Dubai', status: 'Immobilisé', duration: '2j 04h', severity: 'warning'},
   {time: '07 nov. 2024 11:44', address: 'Place de Catalogne, Barcelone', status: 'Sous-utilisé', duration: '7j', severity: 'info'},
@@ -684,8 +769,12 @@ function NavixyReport() {
                   <div className='nvx-sect-head'>
                     <i className='pi pi-chevron-down' />
                     <span>{isAlertReport ? 'Alertes' : isZoneReport ? 'Visites de zones' : 'Trajets'}</span>
+                    <span className='nvx-tracker-pill' data-testid='nvx-active-tracker-pill'>
+                      <i className='pi pi-truck' style={{fontSize: '0.65rem'}} />
+                      {selectedTrackerLabels.find((t) => t.id === activeTab)?.label || activeTab}
+                    </span>
                   </div>
-                  {isAlertReport ? <AlertTable /> : <TripsTable isZone={isZoneReport} />}
+                  {isAlertReport ? <AlertTable trackerId={activeTab} /> : <TripsTable isZone={isZoneReport} trackerId={activeTab} />}
                 </div>
                 {showResume && (
                   <div className='nvx-sect nvx-sect-resume'>
@@ -693,7 +782,7 @@ function NavixyReport() {
                       <i className='pi pi-chevron-down' />
                       <span>Résumé</span>
                     </div>
-                    <ResumeCard isAlert={isAlertReport} />
+                    <ResumeCard isAlert={isAlertReport} trackerId={activeTab} />
                   </div>
                 )}
                 <div className='nvx-sect-note'>Données basées sur la période sélectionnée.</div>
@@ -707,7 +796,10 @@ function NavixyReport() {
 }
 
 // ────────── Sub components ──────────
-function TripsTable({isZone}) {
+function TripsTable({isZone, trackerId}) {
+  const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
+  const totalTemps = useMemo(() => sumColumn(days, 'temps'), [days])
+  const totalInactiv = useMemo(() => sumColumn(days, 'inactiv'), [days])
   return (
     <table className='nvx-tbl' data-testid='nvx-trips-table'>
       <thead>
@@ -719,7 +811,7 @@ function TripsTable({isZone}) {
         </tr>
       </thead>
       <tbody>
-        {MOCK_RESULT_DAYS.map((day) => (
+        {days.map((day) => (
           <React.Fragment key={day.date}>
             <tr className='nvx-tbl-day'>
               <td colSpan={isZone ? 3 : 4}>
@@ -731,24 +823,29 @@ function TripsTable({isZone}) {
                 <td className='nvx-tbl-dp'>{r.depart}</td>
                 <td className='nvx-tbl-dp'>{r.arrivee}</td>
                 <td className='nvx-tbl-num'>{r.temps}</td>
-                {!isZone && <td className='nvx-tbl-num'>{['00:11', '00:13', '00:06', '00:33'][i] ?? '—'}</td>}
+                {!isZone && <td className='nvx-tbl-num'>{r.inactiv}</td>}
               </tr>
             ))}
-            <tr className='nvx-tbl-total'>
-              <td />
-              <td style={{textAlign:'right', fontWeight:700}}>Au total :</td>
-              <td className='nvx-tbl-num'>05:57</td>
-              {!isZone && <td className='nvx-tbl-num'>11:34</td>}
-            </tr>
           </React.Fragment>
         ))}
+        <tr className='nvx-tbl-total'>
+          <td />
+          <td style={{textAlign: 'right', fontWeight: 700}}>Au total :</td>
+          <td className='nvx-tbl-num'>{totalTemps}</td>
+          {!isZone && <td className='nvx-tbl-num'>{totalInactiv}</td>}
+        </tr>
       </tbody>
     </table>
   )
 }
 
-function AlertTable() {
+function AlertTable({trackerId}) {
   const sevCol = {warning: '#F59E0B', info: '#3B82F6', danger: '#EF4444'}
+  const rows = useMemo(() => {
+    const seed = hashId(trackerId)
+    const rowCount = 2 + (seed % 4) // 2 to 5 alerts
+    return Array.from({length: rowCount}, (_, i) => MOCK_ALERT_ROWS[(seed + i) % MOCK_ALERT_ROWS.length])
+  }, [trackerId])
   return (
     <table className='nvx-tbl' data-testid='nvx-alert-table'>
       <thead>
@@ -760,7 +857,7 @@ function AlertTable() {
         </tr>
       </thead>
       <tbody>
-        {MOCK_ALERT_ROWS.map((r, i) => (
+        {rows.map((r, i) => (
           <tr key={i}>
             <td className='nvx-tbl-num'>{r.time}</td>
             <td>{r.address}</td>
@@ -778,19 +875,32 @@ function AlertTable() {
   )
 }
 
-function ResumeCard({isAlert}) {
+function ResumeCard({isAlert, trackerId}) {
+  const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
+  const tripCount = useMemo(() => days.reduce((acc, d) => acc + d.rows.length, 0), [days])
+  const totalSite = useMemo(() => sumColumn(days, 'temps'), [days])
+  const totalInactiv = useMemo(() => sumColumn(days, 'inactiv'), [days])
+  const lastAddr = useMemo(() => {
+    const last = days[days.length - 1]?.rows?.slice(-1)[0]
+    if (!last?.arrivee) return '—'
+    // Take part after time prefix
+    const m = last.arrivee.match(/\d{2}:\d{2}\s*-\s*(.+)/)
+    return m ? m[1].split(',').slice(0, 2).join(',') : last.arrivee
+  }, [days])
+
+  const alertSeed = hashId(trackerId)
   const rows = isAlert
     ? [
-        ['Alertes totales', '4'],
-        ['Immobilisés', '2'],
-        ['Sous-utilisés', '1'],
-        ['Hors zone', '1'],
+        ['Alertes totales', String(2 + (alertSeed % 4))],
+        ['Immobilisés', String(1 + (alertSeed % 3))],
+        ['Sous-utilisés', String(alertSeed % 3)],
+        ['Hors zone', String((alertSeed + 1) % 2)],
       ]
     : [
-        ['Trajets', '4'],
-        ['Temps sur site total', '05:57'],
-        ['Temps d\u2019inactivité', '11:34'],
-        ['Dernière adresse', 'Place de Catalogne, Barcelone'],
+        ['Trajets', String(tripCount)],
+        ['Temps sur site total', totalSite],
+        ['Temps d\u2019inactivité', totalInactiv],
+        ['Dernière adresse', lastAddr],
       ]
   return (
     <table className='nvx-tbl nvx-tbl--resume'>
