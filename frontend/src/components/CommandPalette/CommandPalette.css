@@ -1,0 +1,190 @@
+/* ═══════════════════════════════════════════════════════════════
+   Cmd+K Command Palette — Linear/Stripe-style
+   ═══════════════════════════════════════════════════════════════ */
+
+.lt-cmdk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 14vh;
+  animation: lt-cmdk-fade 0.18s ease-out;
+}
+
+.lt-cmdk-panel {
+  width: min(640px, 92vw);
+  max-height: 70vh;
+  background: #FFFFFF;
+  border-radius: 14px;
+  border: 1px solid #E2E8F0;
+  box-shadow:
+    0 24px 48px -12px rgba(15, 23, 42, 0.25),
+    0 8px 16px -4px rgba(15, 23, 42, 0.10),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: lt-cmdk-pop 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes lt-cmdk-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes lt-cmdk-pop {
+  from { opacity: 0; transform: translateY(-8px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* ─── Input ─── */
+.lt-cmdk-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid #F1F5F9;
+}
+.lt-cmdk-input-ico {
+  color: #94A3B8;
+  font-size: 1rem;
+}
+.lt-cmdk-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--lt-font, 'Inter', sans-serif);
+  font-size: 0.95rem;
+  color: #0F172A;
+  font-weight: 500;
+}
+.lt-cmdk-input::placeholder {
+  color: #94A3B8;
+  font-weight: 400;
+}
+.lt-cmdk-kbd,
+.lt-cmdk-shortcut,
+.lt-cmdk-footer kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  border-radius: 5px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  border-bottom-width: 2px;
+  font-family: var(--lt-font, 'Inter', sans-serif);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748B;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lt-cmdk-shortcut { background: #FFFFFF; color: #475569; }
+
+/* ─── List ─── */
+.lt-cmdk-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px 0;
+}
+.lt-cmdk-list::-webkit-scrollbar { width: 8px; }
+.lt-cmdk-list::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
+
+.lt-cmdk-group { padding: 4px 8px 6px; }
+.lt-cmdk-group-title {
+  padding: 6px 12px 4px;
+  font-family: var(--lt-font-heading, 'Manrope', sans-serif);
+  font-size: 0.66rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #94A3B8;
+}
+
+.lt-cmdk-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: var(--lt-font, 'Inter', sans-serif);
+  font-size: 0.88rem;
+  color: #0F172A;
+  text-align: left;
+  transition: background-color 0.1s;
+}
+.lt-cmdk-item:hover,
+.lt-cmdk-item.is-active {
+  background: #EFF6FF;
+}
+.lt-cmdk-item.is-active {
+  background: linear-gradient(90deg, #DBEAFE 0%, #EFF6FF 100%);
+}
+
+.lt-cmdk-item-ico {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  color: #475569;
+  flex-shrink: 0;
+}
+.lt-cmdk-item.is-active .lt-cmdk-item-ico {
+  background: #FFFFFF;
+  border-color: #BFDBFE;
+  color: #1D4ED8;
+}
+.lt-cmdk-item-ico i { font-size: 0.85rem; }
+
+.lt-cmdk-item-label {
+  flex: 1;
+  font-weight: 500;
+  color: #1E293B;
+}
+.lt-cmdk-item.is-active .lt-cmdk-item-label { color: #0F172A; font-weight: 600; }
+
+/* Empty state */
+.lt-cmdk-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 12px;
+  color: #94A3B8;
+  font-size: 0.84rem;
+}
+.lt-cmdk-empty i { font-size: 1.2rem; opacity: 0.7; }
+
+/* ─── Footer ─── */
+.lt-cmdk-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 18px;
+  padding: 8px 16px;
+  border-top: 1px solid #F1F5F9;
+  background: #FAFBFC;
+  font-size: 0.72rem;
+  color: #64748B;
+  font-weight: 500;
+}
+.lt-cmdk-footer span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}

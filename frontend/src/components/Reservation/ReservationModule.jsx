@@ -66,8 +66,26 @@ const ReservationModule = () => {
 
   const [filterStatus, setFilterStatus] = useState(null)
   const [search, setSearch] = useState('')
-  const [filterUser, setFilterUser] = useState(null)
-  const [filterSite, setFilterSite] = useState(null)
+  const [filterUser, setFilterUser] = useState(() => {
+    try { return localStorage.getItem('lt-res-filterUser') || null } catch { return null }
+  })
+  const [filterSite, setFilterSite] = useState(() => {
+    try { return localStorage.getItem('lt-res-filterSite') || null } catch { return null }
+  })
+
+  // Persist Gantt filters across sessions
+  useEffect(() => {
+    try {
+      if (filterUser) localStorage.setItem('lt-res-filterUser', filterUser)
+      else localStorage.removeItem('lt-res-filterUser')
+    } catch {}
+  }, [filterUser])
+  useEffect(() => {
+    try {
+      if (filterSite) localStorage.setItem('lt-res-filterSite', filterSite)
+      else localStorage.removeItem('lt-res-filterSite')
+    } catch {}
+  }, [filterSite])
 
   const toastRef = React.useRef(null)
   const wsRef = useRef(null)
@@ -314,21 +332,32 @@ const ReservationModule = () => {
 
   const approveRes = (r) => doAction(`${API}/reservations/${r.id}/approve`, 'POST', 'Réservation validée')
 
-  // ── Drag & drop on Gantt: move a reservation in time ──
-  const dragReservation = async (reservation, deltaMs) => {
+  // ── Drag & drop on Gantt: move a reservation in time (and optionally to another asset row) ──
+  const dragReservation = async (reservation, deltaMs, targetAsset = null) => {
     try {
       const newStart = new Date(new Date(reservation.start_date).getTime() + deltaMs).toISOString()
       const newEnd = new Date(new Date(reservation.end_date).getTime() + deltaMs).toISOString()
+      const body = {start_date: newStart, end_date: newEnd}
+      const movedToOtherAsset = targetAsset && targetAsset.id && targetAsset.id !== reservation.asset_id
+      if (movedToOtherAsset) {
+        body.asset_id = targetAsset.id
+        body.asset_name = targetAsset.name || targetAsset.id
+      }
       const res = await fetch(`${API}/reservations/${reservation.id}/drag`, {
         method: 'PUT', headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({start_date: newStart, end_date: newEnd}),
+        body: JSON.stringify(body),
       })
       if (!res.ok) {
         const err = await res.json().catch(() => ({}))
         throw new Error(err.detail || 'Déplacement impossible')
       }
-      showToast('success', 'Réservation déplacée',
-        `${reservation.asset_name} · ${fmtDate(newStart)} → ${fmtDate(newEnd)}`)
+      showToast(
+        'success',
+        movedToOtherAsset ? 'Réservation transférée' : 'Réservation déplacée',
+        movedToOtherAsset
+          ? `${reservation.asset_name} → ${body.asset_name} · ${fmtDate(newStart)}`
+          : `${reservation.asset_name} · ${fmtDate(newStart)} → ${fmtDate(newEnd)}`,
+      )
       loadData()
     } catch (e) {
       showToast('error', 'Déplacement refusé', e.message || String(e))
@@ -548,8 +577,9 @@ const PlanningView = ({
   loading,
 }) => {
   const rangeMs = dateRange.end.getTime() - dateRange.start.getTime()
-  const [drag, setDrag] = useState(null) // { id, reservation, mode: 'move' | 'resize-left' | 'resize-right', startX, dxPx, trackWidth, isDragging }
+  const [drag, setDrag] = useState(null) // { id, reservation, mode, startX, dxPx, trackWidth, isDragging, hoverAssetId }
   const justDraggedRef = useRef(false)
+  const trackRefs = useRef({}) // { assetId: HTMLElement }
 
   const startDrag = (e, r, trackEl, mode = 'move') => {
     // Only left-click
@@ -557,7 +587,12 @@ const PlanningView = ({
     if (mode === 'move' && !onDrag) return
     if (mode !== 'move' && !onResize) return
     const trackRect = trackEl.getBoundingClientRect()
-    setDrag({id: r.id, reservation: r, mode, startX: e.clientX, dxPx: 0, trackWidth: trackRect.width, isDragging: false})
+    setDrag({
+      id: r.id, reservation: r, mode,
+      startX: e.clientX, startY: e.clientY, dxPx: 0,
+      trackWidth: trackRect.width, isDragging: false,
+      hoverAssetId: r.asset_id,
+    })
     e.stopPropagation()
     e.preventDefault()
   }
@@ -565,16 +600,32 @@ const PlanningView = ({
     if (!drag) return
     const onMove = (e) => {
       const dx = e.clientX - drag.startX
-      if (!drag.isDragging && Math.abs(dx) < 4) return
-      setDrag((p) => p ? {...p, dxPx: dx, isDragging: true} : null)
+      if (!drag.isDragging && Math.abs(dx) < 4 && Math.abs(e.clientY - drag.startY) < 4) return
+      // Detect which row the cursor is over (only for 'move' mode)
+      let hoverAssetId = drag.hoverAssetId
+      if (drag.mode === 'move') {
+        for (const [aid, el] of Object.entries(trackRefs.current)) {
+          if (!el) continue
+          const r = el.getBoundingClientRect()
+          if (e.clientY >= r.top && e.clientY <= r.bottom) {
+            hoverAssetId = aid
+            break
+          }
+        }
+      }
+      setDrag((p) => p ? {...p, dxPx: dx, isDragging: true, hoverAssetId} : null)
     }
     const onUp = () => {
-      if (drag.isDragging && Math.abs(drag.dxPx) > 4) {
+      if (drag.isDragging && (Math.abs(drag.dxPx) > 4 || drag.hoverAssetId !== drag.reservation.asset_id)) {
         const deltaMs = (drag.dxPx / drag.trackWidth) * rangeMs
         const slot = dateRange.unit === 'hour' ? 3600 * 1000 : 24 * 3600 * 1000
         const snapped = Math.round(deltaMs / slot) * slot
-        if (snapped !== 0) {
-          if (drag.mode === 'move') onDrag(drag.reservation, snapped)
+        const targetAsset =
+          drag.mode === 'move' && drag.hoverAssetId && drag.hoverAssetId !== drag.reservation.asset_id
+            ? assets.find((a) => a.id === drag.hoverAssetId) || null
+            : null
+        if (snapped !== 0 || targetAsset) {
+          if (drag.mode === 'move') onDrag(drag.reservation, snapped, targetAsset)
           else if (drag.mode === 'resize-left') onResize(drag.reservation, 'left', snapped)
           else if (drag.mode === 'resize-right') onResize(drag.reservation, 'right', snapped)
         }
@@ -589,7 +640,7 @@ const PlanningView = ({
       window.removeEventListener('mousemove', onMove)
       window.removeEventListener('mouseup', onUp)
     }
-  }, [drag, rangeMs, dateRange.unit, onDrag, onResize])
+  }, [drag, rangeMs, dateRange.unit, onDrag, onResize, assets])
 
   const headerLabel = useMemo(() => {
     if (view === 'day') return anchorDate.toLocaleDateString('fr-FR', {weekday: 'long', day: 'numeric', month: 'long'})
@@ -676,13 +727,33 @@ const PlanningView = ({
               <div className='lt-res-gantt-empty-sub'>Cliquez sur "Nouvelle réservation" pour démarrer.</div>
             </div>
           )}
-          {assets.map((asset) => (
-            <div key={asset.id} className='lt-res-gantt-row'>
+          {assets.map((asset) => {
+            const isHoverTarget = drag?.isDragging && drag?.mode === 'move' && drag.hoverAssetId === asset.id && drag.reservation.asset_id !== asset.id
+            return (
+            <div
+              key={asset.id}
+              className={`lt-res-gantt-row ${isHoverTarget ? 'is-drop-target' : ''}`}
+              data-asset-id={asset.id}
+              data-testid={`reservation-row-${asset.id}`}
+            >
               <div className='lt-res-gantt-rowlabel'>
                 <span className='lt-res-gantt-ico'><i className='pi pi-truck'></i></span>
                 <span className='lt-res-gantt-rowname'>{asset.name || asset.id.slice(0, 8)}</span>
+                {isHoverTarget && (
+                  <span className='lt-res-gantt-drop-pill' data-testid={`drop-target-${asset.id}`}>
+                    <i className='pi pi-arrow-right' style={{fontSize: '0.6rem'}} /> Déposer ici
+                  </span>
+                )}
               </div>
-              <div className='lt-res-gantt-track' ref={(el) => { if (el) asset._trackEl = el }}>
+              <div
+                className='lt-res-gantt-track'
+                ref={(el) => {
+                  if (el) {
+                    asset._trackEl = el
+                    trackRefs.current[asset.id] = el
+                  }
+                }}
+              >
                 {asset.reservations.map((r) => {
                   const s = new Date(r.start_date).getTime()
                   const e = new Date(r.end_date).getTime()
@@ -741,7 +812,8 @@ const PlanningView = ({
                 })}
               </div>
             </div>
-          ))}
+            )
+          })}
         </div>
       </div>
     </div>

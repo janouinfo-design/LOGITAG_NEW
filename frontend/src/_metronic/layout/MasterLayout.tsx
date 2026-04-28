@@ -16,6 +16,8 @@ import {
 import {PageDataProvider} from './core'
 import {reInitMenu} from '../helpers'
 import QuickActionsDrawer from '../../components/shared/QuickActionsDrawer/QuickActionsDrawer'
+import CommandPalette from '../../components/CommandPalette/CommandPalette'
+import ReservationNotifier from '../../components/Reservation/ReservationNotifier'
 
 const MasterLayout = () => {
   const location = useLocation()
@@ -48,6 +50,8 @@ const MasterLayout = () => {
         {/* <RightToolbar /> */}
         <DrawerMessenger />
         <QuickActionsDrawer />
+        <CommandPalette />
+        <ReservationNotifier />
         {/* end:: Drawers */}
 
         {/* begin:: Modals */}

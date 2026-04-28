@@ -56,6 +56,8 @@ class CheckInData(BaseModel):
 class DragDropUpdate(BaseModel):
     start_date: str
     end_date: str
+    asset_id: Optional[str] = None
+    asset_name: Optional[str] = None
 
 
 # ── STATIC ROUTES FIRST (before {reservation_id}) ──
@@ -312,8 +314,13 @@ async def drag_drop_reservation(reservation_id: str, data: DragDropUpdate):
     if res["status"] in ["completed", "cancelled", "rejected"]:
         raise HTTPException(status_code=400, detail="Impossible de déplacer cette réservation.")
 
+    # Determine target asset (cross-row drag if data.asset_id differs)
+    target_asset_id = data.asset_id or res["asset_id"]
+    target_asset_name = data.asset_name or res["asset_name"]
+    asset_changed = target_asset_id != res["asset_id"]
+
     conflict = await db.reservations.find_one({
-        "asset_id": res["asset_id"], "id": {"$ne": reservation_id},
+        "asset_id": target_asset_id, "id": {"$ne": reservation_id},
         "status": {"$in": ["requested", "confirmed", "in_progress"]},
         "$or": [{"start_date": {"$lt": data.end_date}, "end_date": {"$gt": data.start_date}}],
     }, {"_id": 0})
@@ -321,13 +328,23 @@ async def drag_drop_reservation(reservation_id: str, data: DragDropUpdate):
         raise HTTPException(status_code=409, detail=f"Conflit: créneau occupé par {conflict['asset_name']} ({conflict['id'][:8]})")
 
     now_iso = datetime.now(timezone.utc).isoformat()
-    await db.reservations.update_one({"id": reservation_id}, {"$set": {
+    update_fields = {
         "start_date": data.start_date, "end_date": data.end_date, "updated_at": now_iso,
-    }})
+    }
+    if asset_changed:
+        update_fields["asset_id"] = target_asset_id
+        update_fields["asset_name"] = target_asset_name
+    await db.reservations.update_one({"id": reservation_id}, {"$set": update_fields})
+    log_action = "moved_to_asset" if asset_changed else "moved"
+    log_details = (
+        f"Engin: {res['asset_name']} → {target_asset_name} · {data.start_date[:10]} — {data.end_date[:10]}"
+        if asset_changed
+        else f"Déplacé vers {data.start_date[:10]} — {data.end_date[:10]}"
+    )
     await db.reservation_logs.insert_one({
         "id": str(uuid.uuid4()), "reservation_id": reservation_id,
-        "action": "moved", "user": "admin",
-        "details": f"Déplacé vers {data.start_date[:10]} — {data.end_date[:10]}",
+        "action": log_action, "user": "admin",
+        "details": log_details,
         "created_at": now_iso,
     })
     updated = await db.reservations.find_one({"id": reservation_id}, {"_id": 0})

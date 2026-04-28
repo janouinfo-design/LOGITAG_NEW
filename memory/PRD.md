@@ -53,6 +53,22 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - Frontend (`EnginList.js`) : pattern stale-while-revalidate — si Redux contient déjà des engins (navigation back), on les affiche immédiatement sans bloquer avec le skeleton, et on rafraîchit en arrière-plan.
 - **[2026-02-XX] FIX raccourcis du header (`HeaderWrapper.tsx`)** : Les 4 boutons "Engins / Map / Calendrier / Rapports" pointaient vers des routes inexistantes (`/engin/index`, `/map/index`, `/planning/index`) → fallback vers le dashboard à chaque clic. Routes corrigées : `/view/engin/index`, `/tour/index`, `/reservations/index`, `/rapports/index`. Tous les liens validés en e2e (Playwright).
 - **[2026-02-XX] FIX données identiques entre tous les onglets de rapport (`NavixyReport.jsx`)** : Quand l'utilisateur générait un rapport pour 3 trackers (RE01, RE02, RE04), les onglets affichaient tous les mêmes trajets car `TripsTable` lisait un `MOCK_RESULT_DAYS` global hardcodé. Solution : génération **déterministe par tracker** via `hashId(trackerId) → buildDaysForTracker()` avec un pool de 5 routes différentes (Madrid-Barcelone, Lyon-Genève, Zürich-Bâle, Paris-Lille, sites Lausanne) et 5 dates. Ajout d'un pill "tracker actif" dans le header de section. `ResumeCard` et `AlertTable` également alimentés dynamiquement (totaux calculés depuis les trajets, dernière adresse extraite). 3 onglets = 3 jeux de données distincts validés en e2e.
+- **[2026-02-XX] FEAT (P1) Drag cross-row sur le Gantt** :
+  - Frontend : détection live de la rangée d'engin sous le curseur via `getBoundingClientRect()` pendant le mousemove. Visuel "is-drop-target" (outline vert pulsant + pill "Déposer ici"). Au mouseup, si le tracker change, appel à `onDrag(reservation, deltaMs, targetAsset)`.
+  - Backend (`routes/reservations.py`) : `DragDropUpdate` étendu avec `asset_id` + `asset_name` optionnels. Vérif de conflit horaire utilise désormais l'asset cible. Log d'action `moved_to_asset` avec format "Engin: A → B · dates".
+  - Validé en e2e via curl (backward compat + cross-row + log audit).
+- **[2026-02-XX] FEAT (P1) Palette de commandes Cmd+K** (`CommandPalette.jsx` + CSS) :
+  - Ouverture avec `Cmd+K` ou `Ctrl+K` partout dans l'app, fermeture avec ESC.
+  - 14 commandes (Navigation : Dashboard, Engins, Map, Réservations, Tags, Rapports, Dépôts, Inventaire, Utilisateurs, Gateways, Logs, Entreprise · Actions : Nouvelle réservation, Export CSV).
+  - Recherche live (insensible aux accents), navigation clavier ↑/↓/Enter, raccourcis affichés en kbd, animation fade+pop à l'ouverture.
+  - Intégrée globalement dans `MasterLayout.tsx`.
+- **[2026-02-XX] FEAT (P2) Notifications planifiées** (`ReservationNotifier.jsx`) :
+  - Composant headless intégré dans `MasterLayout`. Fetch les réservations confirmed toutes les 5 min, planifie une `Notification` browser native 1h avant chaque `start_date`.
+  - Déduplication via localStorage (clé `lt-reservation-notified`).
+  - Demande la permission Notification au premier déclenchement, click sur la notif → ouvre `/reservations/index`.
+  - Ne fonctionne que sur HTTPS (preview/prod).
+- **[2026-02-XX] FEAT (P2) Sauvegarde des filtres Gantt en localStorage** :
+  - `filterUser` et `filterSite` du `ReservationModule` sont persistés dans `localStorage` (clés `lt-res-filterUser`, `lt-res-filterSite`). Restaurés à chaque montage.
   - Résultat e2e mesuré : 1ère visite ~2-3s (avec cache préchauffé), 2ème visite 0.22s.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
   - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)

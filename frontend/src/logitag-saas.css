@@ -7338,6 +7338,32 @@ input.lt-form-input,
 .lt-res-gantt-body { max-height: calc(100vh - 500px); overflow-y: auto; min-height: 300px; }
 .lt-res-gantt-row { border-bottom: 1px solid #F1F5F9; min-height: 46px; }
 .lt-res-gantt-row:last-child { border-bottom: none; }
+.lt-res-gantt-row.is-drop-target {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.08) 0%, rgba(34, 197, 94, 0.04) 100%);
+  outline: 2px dashed #22C55E;
+  outline-offset: -2px;
+  border-radius: 6px;
+}
+.lt-res-gantt-drop-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: auto;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #22C55E;
+  color: #FFFFFF;
+  font-size: 0.62rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  animation: lt-drop-pulse 1s ease-in-out infinite;
+}
+@keyframes lt-drop-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
 .lt-res-gantt-rowlabel {
   padding: 10px 14px; display: flex; align-items: center; gap: 8px;
   border-right: 1px solid #E2E8F0; background: #FAFBFC; position: sticky; left: 0; z-index: 2;
