@@ -82,7 +82,7 @@ import {Badge} from 'primereact/badge'
 import ClusterInsightsPanel from './ClusterInsightsPanel'
 
 const layers = [
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+  'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
   'http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',
   'http://{s}.google.com/vt/lyrs=s,h&x={x}&y={y}&z={z}',
 ]

@@ -27,7 +27,7 @@ const useMap = () => {
           <TileLayer
             url={mapConfig.tilelayer.uri}
             {...mapConfig.tilelayer.options}
-            //url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            //url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
             //attribution='&copy openstreetmap'
           />
       </MapContainer>

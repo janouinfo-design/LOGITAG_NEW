@@ -145,7 +145,7 @@ export const MapComponent = (props) => {
       >
         <MapEvents />
         <TileLayer
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
           attribution='&copy openstreetmap'
         />
         <FeatureGroup ref={layerRef}>

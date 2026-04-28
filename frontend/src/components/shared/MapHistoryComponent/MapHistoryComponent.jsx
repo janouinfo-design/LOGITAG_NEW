@@ -130,7 +130,7 @@ const MapHistoryComponent = (props) => {
         style={{zIndex: '2', width: '100%', height: '78vh', ...(props?.mapStyle || {})}}
       >
         <TileLayer
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
           attribution='&copy openstreetmap'
         />
         <Marker position={position} icon={customIcon}>

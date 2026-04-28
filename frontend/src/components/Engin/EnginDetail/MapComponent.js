@@ -238,7 +238,7 @@ const MapComponent = forwardRef((props) => {
       >
         {/* <ZoomControl  /> */}
         {/* <TileLayer
-          url='https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png'
+          url='https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
           attribution='&copy openstreetmap'
         /> */}
         <FeatureGroup ref={editorRef}></FeatureGroup>
