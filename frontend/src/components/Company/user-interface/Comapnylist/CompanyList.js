@@ -270,25 +270,112 @@ const CompanyList = () => {
                 </div>
               )}
             </TabPanel>
-            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-cog'></i>Paramètres</span>}>
-              <div className='lt-detail-form' style={{maxWidth: 500}}>
-                <div className='lt-form-section'>
-                  <h4 className='lt-form-section-title'>
-                    <img src={require('../../../../assets/images/LOGITRAK.webp')} style={{width: 120, objectFit: 'cover'}} alt="Logitrak" />
-                  </h4>
-                  <div className='lt-form-grid' style={{display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px'}}>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Email' /></label>
-                      <InputText name='email' className={`lt-form-input ${formik.errors.email && formik.touched.email ? 'p-invalid' : ''}`} value={formik.values.email} onChange={formik.handleChange} disabled={isDisabled} />
+            <TabPanel header={<span className='lt-tab-header'><i className='pi pi-link'></i>Intégrations</span>}>
+              <div className='lt-integrations-wrap'>
+                <div className='lt-integrations-head'>
+                  <div>
+                    <h3 className='lt-integrations-title'>Intégrations & connexions externes</h3>
+                    <p className='lt-integrations-sub'>Connectez vos services tiers pour enrichir le suivi de votre flotte.</p>
+                  </div>
+                </div>
+
+                {/* Logitrak / Navixy integration card */}
+                <div className={`lt-int-card ${hash ? 'lt-int-card--connected' : ''}`} data-testid='integration-logitrak'>
+                  <div className='lt-int-card-head'>
+                    <div className='lt-int-card-logo'>
+                      <img src={require('../../../../assets/images/LOGITRAK.webp')} alt='Logitrak' />
                     </div>
-                    <div className='lt-form-field'>
-                      <label className='lt-form-label'><OlangItem olang='Password' /></label>
-                      <Password name='password' value={formik.values.password} toggleMask feedback={false} onChange={formik.handleChange} className='lt-form-input' inputClassName='w-full' disabled={isDisabled} />
+                    <div className='lt-int-card-meta'>
+                      <div className='lt-int-card-name'>
+                        Logitrak
+                        <span className='lt-int-card-tag'>GPS · Navixy</span>
+                      </div>
+                      <p className='lt-int-card-desc'>Synchronisation temps-réel des positions GPS et de l'historique de mouvements.</p>
                     </div>
-                    <div className='lt-form-field lt-form-field--full' style={{display: 'flex', flexDirection: 'row', gap: 8, justifyContent: 'flex-end'}}>
-                      <button className='lt-modal-btn-cancel' onClick={logOut}>Déconnexion</button>
-                      <button className='lt-detail-action-btn lt-detail-action-btn--save' onClick={formik.handleSubmit} disabled={isDisabled} style={{width: 'auto', padding: '8px 16px', borderRadius: 8}}><i className='pi pi-sign-in' style={{marginRight: 4}}></i> Connexion</button>
+                    <div className='lt-int-card-status'>
+                      <span className={`lt-int-pill ${hash ? 'lt-int-pill--ok' : 'lt-int-pill--off'}`} data-testid='integration-status'>
+                        <span className='lt-int-pill-dot' />
+                        {hash ? 'Connecté' : 'Non connecté'}
+                      </span>
                     </div>
+                  </div>
+
+                  <div className='lt-int-card-body'>
+                    {hash ? (
+                      <div className='lt-int-account' data-testid='integration-account'>
+                        <div className='lt-int-account-row'>
+                          <span className='lt-int-account-label'><i className='pi pi-user' /> Compte connecté</span>
+                          <span className='lt-int-account-val'>{infoUser?.login || formik.values.email || '—'}</span>
+                        </div>
+                        <div className='lt-int-account-row'>
+                          <span className='lt-int-account-label'><i className='pi pi-shield' /> Authentification</span>
+                          <span className='lt-int-account-val'>Token sécurisé actif</span>
+                        </div>
+                        <div className='lt-int-account-actions'>
+                          <button type='button' className='lt-int-btn lt-int-btn--danger' onClick={logOut} data-testid='integration-disconnect'>
+                            <i className='pi pi-sign-out' /> Déconnecter
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <form
+                        className='lt-int-form'
+                        onSubmit={(e) => { e.preventDefault(); formik.handleSubmit() }}
+                        data-testid='integration-form'
+                      >
+                        <div className='lt-int-form-grid'>
+                          <div className='lt-int-field'>
+                            <label className='lt-int-label' htmlFor='int-email'><OlangItem olang='Email' /></label>
+                            <InputText
+                              id='int-email'
+                              name='email'
+                              type='email'
+                              autoComplete='username'
+                              placeholder='vous@entreprise.com'
+                              className={`lt-int-input ${formik.errors.email && formik.touched.email ? 'p-invalid' : ''}`}
+                              value={formik.values.email}
+                              onChange={formik.handleChange}
+                              data-testid='integration-email'
+                            />
+                          </div>
+                          <div className='lt-int-field'>
+                            <label className='lt-int-label' htmlFor='int-password'><OlangItem olang='Password' /></label>
+                            <Password
+                              inputId='int-password'
+                              name='password'
+                              autoComplete='current-password'
+                              placeholder='••••••••'
+                              value={formik.values.password}
+                              toggleMask
+                              feedback={false}
+                              onChange={formik.handleChange}
+                              className='lt-int-input lt-int-input--password'
+                              inputClassName='lt-int-password-input'
+                              data-testid='integration-password'
+                            />
+                          </div>
+                        </div>
+                        <div className='lt-int-form-actions'>
+                          <button
+                            type='submit'
+                            className='lt-int-btn lt-int-btn--primary'
+                            disabled={!formik.values.email || !formik.values.password}
+                            data-testid='integration-connect'
+                          >
+                            <i className='pi pi-sign-in' /> Connecter le compte
+                          </button>
+                        </div>
+                      </form>
+                    )}
+                  </div>
+                </div>
+
+                {/* Placeholder pour futures intégrations */}
+                <div className='lt-int-empty-card' data-testid='integration-soon'>
+                  <i className='pi pi-plus-circle' />
+                  <div>
+                    <strong>D'autres intégrations bientôt disponibles</strong>
+                    <p>Stripe, Google Calendar, SMS… Suggérez-nous les services dont vous avez besoin.</p>
                   </div>
                 </div>
               </div>

@@ -41,6 +41,15 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - **[2026-02-XX] PERF Optimisation chargement page Engins** :
   - Backend (`server.py`) : ajout de `engin/list` aux endpoints cachés (TTL 60s, vs 30s pour le dashboard). Premier appel cold ~29s, suivants 0.3s (cache hit, x100 plus rapide).
 - **[2026-02-XX] FIX icône bouton "trajet" sur cartes engins (Map)** : Dans `MapComponent.js` (drawer expandé d'un engin), le bouton circulaire bleu utilisait `fas fa-solid fa-route` (syntaxe FontAwesome v5+v6 invalide) qui rendait un glyphe parasite. Remplacé par `pi pi-directions` (icône PrimeReact native) pour cohérence avec le reste du panneau. Tooltip également traduit (`title="Voir le trajet"`).
+- **[2026-02-XX] REDESIGN tab "Paramètres" → "Intégrations" (page Entreprise)** :
+  - Refonte complète du tab en hub d'intégrations premium B2B (style Notion/Linear).
+  - Header avec titre + sous-titre contextuel ("Connectez vos services tiers…").
+  - Card d'intégration Logitrak avec : logo encadré, nom + tag "GPS · Navixy", description, **pill de statut animé** (Connecté = vert pulsant, Non connecté = gris), accent visuel vert quand connecté.
+  - **Mode connecté** : compte affiché + token sécurisé + bouton "Déconnecter" rouge sobre.
+  - **Mode déconnecté** : formulaire inline avec inputs premium (focus ring bleu), bouton "Connecter le compte" désactivé tant que les champs sont vides (= disabled state propre).
+  - Card placeholder "D'autres intégrations bientôt disponibles" (Stripe, Google Calendar, SMS) — extensible pour le futur.
+  - Suppression des boîtes rouges parasites précédentes (icônes FontAwesome cassées remplacées par PrimeReact natifs).
+  - Responsive : passe en 1 colonne sous 600px.
   - Frontend (`EnginList.js`) : pattern stale-while-revalidate — si Redux contient déjà des engins (navigation back), on les affiche immédiatement sans bloquer avec le skeleton, et on rafraîchit en arrière-plan.
   - Résultat e2e mesuré : 1ère visite ~2-3s (avec cache préchauffé), 2ème visite 0.22s.
 - **[2026-04-22] MODULE RÉSERVATIONS** — Page complète + sidebar (Gestion > Réservations) :
