@@ -31,7 +31,8 @@ const SUGGESTIONS = [
 const ReportsHub = () => {
   const dispatch = useAppDispatch()
   const navigate = useNavigate()
-  const engines = useSelector(getEngines) || []
+  const enginesRaw = useSelector(getEngines)
+  const engines = Array.isArray(enginesRaw) ? enginesRaw : []
   const toast = useRef(null)
 
   const [search, setSearch] = useState('')

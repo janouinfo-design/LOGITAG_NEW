@@ -22,7 +22,7 @@ const daysSince = (d) => (d ? Math.max(0, Math.floor((Date.now() - d.getTime()) 
 
 /** Filter engines based on config (date range + scope + zone) */
 const applyFilters = (engines, config) => {
-  let list = engines || []
+  let list = Array.isArray(engines) ? engines : []
   if (config?.zone) list = list.filter((e) => (e.LocationObjectname || e.zoneName) === config.zone)
   if (config?.scopeIds && config.scopeIds.length > 0) {
     const set = new Set(config.scopeIds)

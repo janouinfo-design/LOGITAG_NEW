@@ -64,7 +64,8 @@ const computeStatus = (engin, days, threshold) => {
 
 const IdleAssetsReport = () => {
   const dispatch = useAppDispatch()
-  const engines = useSelector(getEngines) || []
+  const enginesRaw = useSelector(getEngines)
+  const engines = Array.isArray(enginesRaw) ? enginesRaw : []
   const toast = useRef(null)
 
   /* Filters */
