@@ -63,6 +63,7 @@ function CalendarView() {
   const [rows, setRows] = useState(10)
 
   let selectedEngin = useAppSelector(getSelectedEngine)
+  const enginesFromRedux = useAppSelector(getEngines) || []
   const IMAGE_BASE_URL = API_BASE_URL_IMAGE
   const calendarRef = useRef(null)
   const originSites = useRef([])
@@ -194,6 +195,15 @@ function CalendarView() {
   }))
 
   let events = option === 'engin' ? engineevents : updatedWorksiteListEvents
+  // Sync local engines from Redux when it updates (e.g. background refresh after navigating away)
+  useEffect(() => {
+    if (enginesFromRedux && enginesFromRedux.length > 0 && enginesFromRedux !== engines) {
+      setEngines(enginesFromRedux)
+      setTotalRecords(enginesFromRedux.length)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [enginesFromRedux])
+
   let ressources = option === 'engin' ? engines : sitesRes
 
   // ── Computed mini-stats for premium Gantt header ──
@@ -252,19 +262,23 @@ function CalendarView() {
   }
 
   const fetchFilteredEng = (searchTerm) => {
-    const params = {search: searchTerm || undefined, page: 1}
-    dispatch(fetchEngines(params))
-      .then(({payload}) => {
-        if (payload) {
-          setTotalRecords(payload[0]?.TotalEngins || 0)
-          setFirst(0)
-          setEngines(payload)
-          setCalendarKey((prevKey) => prevKey + 1)
-        }
+    // Client-side search on cached Redux engines (no server roundtrip).
+    if (!searchTerm) {
+      setEngines(enginesFromRedux || [])
+      setTotalRecords((enginesFromRedux || []).length)
+    } else {
+      const q = searchTerm.toLowerCase()
+      const filtered = (enginesFromRedux || []).filter((e) => {
+        const ref = (e?.reference || '').toLowerCase()
+        const name = (e?.nom || e?.name || '').toLowerCase()
+        const tag = (e?.tagname || '').toLowerCase()
+        return ref.includes(q) || name.includes(q) || tag.includes(q)
       })
-      .catch((error) => {
-        console.error('Error fetching engines:', error)
-      })
+      setEngines(filtered)
+      setTotalRecords(filtered.length)
+    }
+    setFirst(0)
+    setCalendarKey((prevKey) => prevKey + 1)
   }
 
   const filterSites = (searchTerm) => {
@@ -297,7 +311,7 @@ function CalendarView() {
     debouncedSearch(e.target.value)
   }
 
-  const filteredRessources =
+  const filteredRessourcesAll =
     Array.isArray(ressources) &&
     ressources.length > 0 &&
     ressources?.filter((resource) => {
@@ -308,6 +322,13 @@ function CalendarView() {
 
       return statusFilterMatch && typeFilterMatch && movementFilterMatch
     })
+
+  // Client-side pagination — feed FullCalendar only the current page (10-50 rows max),
+  // not the full 5000 engins. Drastically reduces blank-page / freeze episodes.
+  const filteredRessources = Array.isArray(filteredRessourcesAll)
+    ? filteredRessourcesAll.slice(first, first + rows)
+    : filteredRessourcesAll
+  const filteredTotal = Array.isArray(filteredRessourcesAll) ? filteredRessourcesAll.length : 0
 
   const formatDuration = (minutes) => {
     const duration = moment.duration(minutes, 'minutes')
@@ -342,16 +363,9 @@ function CalendarView() {
   const onPageChange = (event) => {
     setFirst(event.first)
     setRows(event.rows)
-    dispatch(fetchEngines({page: event.page + 1})).then(({payload}) => {
-      setEngines(payload)
-      const calendarApi = calendarRef.current.getApi()
-      const view = calendarApi.view
-      const start = view.currentStart
-      const end = view.currentEnd
-      setCurrentDate({start: new Date(start), end: new Date(end)})
-
-      setCalendarKey((prevKey) => prevKey + 1)
-    })
+    // Client-side pagination — no server refetch needed (engines already cached in Redux).
+    // Just bump the calendar key so FullCalendar re-renders with the new slice.
+    setCalendarKey((prevKey) => prevKey + 1)
   }
 
   const template = {
@@ -545,10 +559,17 @@ function CalendarView() {
   }, [statusFilter, typeFilter, movementFilter, option])
 
   useEffect(() => {
-    dispatch(fetchEngines({LocationID: 0, page: 1})).then(({payload}) => {
-      setTotalRecords(payload?.[0]?.TotalEngins || 0)
-      setEngines(payload)
-    })
+    // Use cached engines from Redux if available (5000 records loaded on first dashboard visit, cached 60s backend).
+    // Avoids a second 30s wait + 5000 records re-render on every Calendar mount.
+    if (enginesFromRedux && enginesFromRedux.length > 0) {
+      setTotalRecords(enginesFromRedux.length)
+      setEngines(enginesFromRedux)
+    } else {
+      dispatch(fetchEngines({LocationID: 0, page: 1})).then(({payload}) => {
+        setTotalRecords(payload?.[0]?.TotalEngins || (payload?.length || 0))
+        setEngines(payload || [])
+      })
+    }
     dispatch(fetchStatusList())
     dispatch(fetchDepots())
     // dispatch(fetchEnginesWorksite({LocationObject: 'worksiteEvents', LocationID: 0})).then(
@@ -722,7 +743,7 @@ function CalendarView() {
             <Paginator
               first={first}
               rows={rows}
-              totalRecords={totalRecords}
+              totalRecords={filteredTotal || totalRecords}
               rowsPerPageOptions={[10, 20, 30]}
               onPageChange={onPageChange}
               template={template}

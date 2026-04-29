@@ -94,6 +94,19 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - **Drawer détail** : infos complètes + actions (approve/reject/checkout/checkin/cancel/edit)
   - Backend : endpoints déjà complets dans `/app/backend/routes/reservations.py` (CRUD, planning, gantt, availability, approve/reject, checkout/checkin, export CSV, WebSocket broadcasts)
   - Route enregistrée via `EXTRA_MENU` (config.js) + `components.js`
+- **[2026-02-XX] PERF Optimisation majeure du Calendrier (`CalendarView.js`)** :
+  Page très lente, parfois blanche. 3 causes :
+  1. Au mount → fetchEngines (30s, 5000 records) à chaque visite, même si Redux était chaud.
+  2. FullCalendar recevait **les 5000 lignes d'engins** d'un coup → freeze navigateur.
+  3. Pagination + recherche faisaient un refetch serveur (30s) à chaque interaction.
+  
+  **Solutions** :
+  - **Source primaire** : `enginesFromRedux` (cache 60s backend déjà chaud) — fallback sur `dispatch(fetchEngines)` uniquement si vide.
+  - **Pagination 100% client-side** : `filteredRessources.slice(first, first+rows)` → FullCalendar ne reçoit jamais plus de 30 lignes (rowsPerPage 10/20/30). 
+  - **Recherche client-side** : filtre sur `reference/nom/tagname` du cache Redux (instantané, plus de 30s d'attente).
+  - **`onPageChange`** : juste un bump du `calendarKey`, plus aucun appel réseau.
+  
+  **Mesures e2e** : 1er rendu **1.4s** (vs 30s+ ou blank page), nav page suivante **2.1s** (vs ~30s + freeze), recherche instantanée.
   - Fichiers : `/app/frontend/src/components/Reservation/ReservationModule.jsx` (~500 lignes), CSS dans `logitag-saas.css` lignes 6843+
 
   - 5 groupes structurés : Dashboard · GESTION · ORGANISATION · CONFIGURATION · ANALYSE
