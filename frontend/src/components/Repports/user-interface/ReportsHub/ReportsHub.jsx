@@ -36,7 +36,10 @@ const ReportsHub = () => {
   const toast = useRef(null)
 
   const [search, setSearch] = useState('')
-  const [selectedId, setSelectedId] = useState(FLAT_REPORTS[0]?.id || null)
+  /* Default selection: first report that is rendered IN the hub (skip those that
+     redirect to dedicated modules like NavixyReport / IdleAssetsReport). */
+  const defaultId = FLAT_REPORTS.find((r) => r.renderer !== 'redirect' && r.renderer !== 'navixy')?.id || null
+  const [selectedId, setSelectedId] = useState(defaultId)
   const [config, setConfig] = useState({from: null, to: null, zone: null, threshold: 14})
   const [results, setResults] = useState(null)
   const [generating, setGenerating] = useState(false)
@@ -77,6 +80,18 @@ const ReportsHub = () => {
   }, [engines])
 
   const handleSelectReport = (id) => {
+    const report = FLAT_REPORTS.find((r) => r.id === id)
+    if (!report) return
+    /* Reports backed by a dedicated full-featured module (NavixyReport, IdleAssetsReport, …)
+       should open that module directly — bypassing the simple hub config form. */
+    if (report.renderer === 'redirect' && report.navigate) {
+      navigate(report.navigate)
+      return
+    }
+    if (report.renderer === 'navixy') {
+      navigate('/rapports/legacy')
+      return
+    }
     setSelectedId(id)
     setResults(null)
   }
