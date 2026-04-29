@@ -84,6 +84,11 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - Parser de date tolérant : ISO 8601, format FR, fallback Date natif.
   - Critère "Immobilisé" simplifié : tout engin avec `lastSeenAt` plus ancien que le seuil (peu importe l'état).
   - Résultat e2e mesuré : Immobilisés 0→12, Batterie 1→9, Sous-utilisés 0→10, badge total 1→31. Le centre d'alertes reflète enfin la réalité.
+- **[2026-02-XX] FEAT Bouton "Voir la liste" + actions sur les rangées d'alertes** :
+  - CTA explicite sur chaque card d'alerte (toggle "Voir la liste" / "Masquer la liste") avec couleur synchronisée à l'alerte (rouge pour Immobilisés, orange Batterie, violet Sous-utilisés…).
+  - Les rangées affichent désormais : nom, lieu (📍), **date du dernier signal** (🕐 "Vu le 25 juin 2024"), valeur d'alerte en pill rouge, **2 boutons d'action** : 🗺️ Localiser (→ `/tour/index?focus=<id>`) et ➡️ Fiche engin (→ `/view/engin/index?selected=<id>`).
+  - Badge count ajouté dans l'en-tête du panneau (ex: "Immobilisés [1]").
+  - Styles `.dbn-alert-*` (~250 lignes) ajoutés dans `logitag-saas.css` (le code utilisait des classes non stylées jusqu'ici).
   - **À valider** : panneau dédié des demandes en attente avec workflow admin
   - **Formulaire création/édition** : engin (filter dropdown), dates avec vérification temps réel de disponibilité (POST /availability), utilisateur, équipe, site, projet, priorité, note
   - **Drawer détail** : infos complètes + actions (approve/reject/checkout/checkin/cancel/edit)

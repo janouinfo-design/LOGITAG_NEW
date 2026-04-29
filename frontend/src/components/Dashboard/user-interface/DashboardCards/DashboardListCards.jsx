@@ -694,23 +694,108 @@ const DashboardListCards = () => {
                   <div className="dbn-alert-num" style={{color: a.count > 0 ? a.color : '#CBD5E1'}}>{a.count}</div>
                   <div className="dbn-alert-lbl">{a.label}</div>
                   <div className="dbn-alert-desc">{a.desc}</div>
+                  {a.count > 0 && (
+                    <button
+                      type='button'
+                      className='dbn-alert-cta'
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setSelectedAlert(selectedAlert === a.key ? null : a.key)
+                      }}
+                      data-testid={`alert-cta-${a.key}`}
+                      style={{'--ac': a.color}}
+                    >
+                      <span>{selectedAlert === a.key ? 'Masquer la liste' : 'Voir la liste'}</span>
+                      <i className={`pi ${selectedAlert === a.key ? 'pi-chevron-up' : 'pi-arrow-right'}`} />
+                    </button>
+                  )}
                 </div>
               ))}
             </div>
 
             {selectedAlert && (
               <div className="dbn-alert-list" data-testid="om-alert-detail">
-                <div className="dbn-alert-list-head"><strong>{selectedAlert === 'immobilized' ? 'Immobilisés' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Sous-utilisés' : 'Tags inactifs'}</strong>
-                  <button className="dbn-close-sm" onClick={() => setSelectedAlert(null)}><i className="pi pi-times"></i></button></div>
+                <div className="dbn-alert-list-head">
+                  <strong>{selectedAlert === 'immobilized' ? 'Immobilisés' : selectedAlert === 'lowBattery' ? 'Batterie critique' : selectedAlert === 'underUtilized' ? 'Sous-utilisés' : 'Tags inactifs'}</strong>
+                  <span className="dbn-alert-list-count" data-testid="om-alert-detail-count">{(alerts[selectedAlert] || []).length}</span>
+                  <button className="dbn-close-sm" onClick={() => setSelectedAlert(null)} aria-label="Fermer"><i className="pi pi-times"></i></button>
+                </div>
                 <div className="dbn-alert-list-body">
-                  {(alerts[selectedAlert] || []).length === 0 ? <div className="dbn-empty-sm"><i className="pi pi-check-circle" style={{color: '#22C55E'}}></i>RAS</div> :
-                  (alerts[selectedAlert] || []).map((item, i) => (
-                    <div key={i} className="dbn-alert-row">
-                      <span className="dbn-alert-row-name">{item.reference || item.label || item.name || 'Asset'}</span>
-                      <span className="dbn-alert-row-val">{selectedAlert === 'immobilized' ? `${item._daysSince}j` : selectedAlert === 'lowBattery' ? `${item._batteryLevel}%` : selectedAlert === 'underUtilized' ? `${item._daysSince}j` : 'Off'}</span>
-                      <span className="dbn-alert-row-loc">{item.LocationObjectname || item.enginAddress || '-'}</span>
-                    </div>
-                  ))}
+                  {(alerts[selectedAlert] || []).length === 0 ? (
+                    <div className="dbn-empty-sm"><i className="pi pi-check-circle" style={{color: '#22C55E'}}></i>RAS</div>
+                  ) : (
+                    (alerts[selectedAlert] || []).map((item, i) => {
+                      const fmtDate = (raw) => {
+                        if (!raw) return '—'
+                        const tryParse = (v) => {
+                          if (typeof v === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(v)) {
+                            const [datePart, timePart] = v.split(' ')
+                            const [dd, mm, yyyy] = datePart.split('/')
+                            const [hh = '0', mi = '0'] = (timePart || '').split(':')
+                            return new Date(+yyyy, +mm - 1, +dd, +hh, +mi)
+                          }
+                          return new Date(v)
+                        }
+                        const d = tryParse(raw)
+                        if (!d || isNaN(d.getTime())) return '—'
+                        return d.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short', year: 'numeric'})
+                      }
+                      const lastSeenRaw = item.lastSeenAt || item.locationDate || item.tagDate
+                      const valLabel = selectedAlert === 'immobilized' ? `${item._daysSince}j`
+                        : selectedAlert === 'lowBattery' ? `${item._batteryLevel}%`
+                        : selectedAlert === 'underUtilized' ? `${item._daysSince}j`
+                        : 'Off'
+                      return (
+                        <div key={item.id || i} className="dbn-alert-row" data-testid={`alert-row-detail-${i}`}>
+                          <div className="dbn-alert-row-main">
+                            <span className="dbn-alert-row-name">{item.reference || item.label || item.name || 'Asset'}</span>
+                            <span className="dbn-alert-row-meta">
+                              <i className="pi pi-map-marker" />
+                              {item.LocationObjectname || item.lastSeenAddress || item.enginAddress || '—'}
+                            </span>
+                            {lastSeenRaw && (
+                              <span className="dbn-alert-row-date">
+                                <i className="pi pi-clock" /> Vu le {fmtDate(lastSeenRaw)}
+                              </span>
+                            )}
+                          </div>
+                          <span className="dbn-alert-row-val">{valLabel}</span>
+                          <div className="dbn-alert-row-actions">
+                            {(item.id || item.uid) && (
+                              <button
+                                type="button"
+                                className="dbn-alert-row-btn dbn-alert-row-btn--locate"
+                                title="Localiser sur la carte"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const id = item.id || item.uid
+                                  window.location.href = `/tour/index?focus=${encodeURIComponent(id)}`
+                                }}
+                                data-testid={`alert-row-locate-${i}`}
+                              >
+                                <i className="pi pi-map" />
+                              </button>
+                            )}
+                            {(item.id || item.uid) && (
+                              <button
+                                type="button"
+                                className="dbn-alert-row-btn dbn-alert-row-btn--detail"
+                                title="Ouvrir la fiche engin"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  const id = item.id || item.uid
+                                  window.location.href = `/view/engin/index?selected=${encodeURIComponent(id)}`
+                                }}
+                                data-testid={`alert-row-detail-btn-${i}`}
+                              >
+                                <i className="pi pi-arrow-right" />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
                 </div>
               </div>
             )}
