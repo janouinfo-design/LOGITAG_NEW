@@ -826,10 +826,55 @@ const DashboardListCards = () => {
               analytics.activityFeed.slice(0, 8).map((item, i) => {
                 const isExit = item.etatenginname === 'exit'
                 const isEntry = item.etatenginname === 'reception'
-                const ec = isExit ? '#EF4444' : isEntry ? '#22C55E' : '#F59E0B'
-                return (<div key={i} className="dbn-feed-row" data-testid={`feed-item-${i}`}>
-                  <div className="dbn-feed-dot" style={{background: ec}} />
-                  <div className="dbn-feed-info"><span className="dbn-feed-name">{item.reference || item.label || item.name || `#${i+1}`}</span><span className="dbn-feed-loc">{item.LocationObjectname || item.enginAddress || '-'}</span></div>
+                const isInactive = item.etatenginname === 'nonactive'
+                const ec = isExit ? '#EF4444' : isEntry ? '#22C55E' : isInactive ? '#F59E0B' : '#3B82F6'
+                const label = isExit ? 'Sorti' : isEntry ? 'Entré' : isInactive ? 'Inactif' : 'Actif'
+                const loc = item.LocationObjectname || item.enginAddress || ''
+                // Time delta
+                const parseDate = (raw) => {
+                  if (!raw) return null
+                  if (typeof raw === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
+                    const [d, t] = raw.split(' ')
+                    const [dd, mm, yyyy] = d.split('/')
+                    const [hh = '0', mi = '0'] = (t || '').split(':')
+                    return new Date(+yyyy, +mm - 1, +dd, +hh, +mi)
+                  }
+                  const x = new Date(raw)
+                  return isNaN(x.getTime()) || x.getFullYear() < 2000 ? null : x
+                }
+                const lastDate = parseDate(item.lastSeenAt) || parseDate(item.locationDate) || parseDate(item.tagDate)
+                const timeAgo = lastDate ? (() => {
+                  const diff = Date.now() - lastDate.getTime()
+                  const m = Math.floor(diff / 60000)
+                  if (m < 1) return 'à l\u2019instant'
+                  if (m < 60) return `il y a ${m} min`
+                  const h = Math.floor(m / 60)
+                  if (h < 24) return `il y a ${h}h`
+                  const d = Math.floor(h / 24)
+                  if (d < 30) return `il y a ${d}j`
+                  return lastDate.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short'})
+                })() : '—'
+                const bat = item.batteries !== undefined && item.batteries !== null && item.batteries !== ''
+                  ? parseInt(item.batteries, 10) : null
+                return (<div key={i} className="dbn-feed-row dbn-feed-row--rich" data-testid={`feed-item-${i}`}>
+                  <div className="dbn-feed-icon" style={{background: `${ec}1A`, color: ec}}>
+                    <i className={`pi ${isExit ? 'pi-sign-out' : isEntry ? 'pi-sign-in' : isInactive ? 'pi-pause' : 'pi-circle-fill'}`} />
+                  </div>
+                  <div className="dbn-feed-info">
+                    <div className="dbn-feed-line1">
+                      <span className="dbn-feed-name">{item.reference || item.label || item.name || `#${i+1}`}</span>
+                      <span className="dbn-feed-pill" style={{background: `${ec}15`, color: ec}}>{label}</span>
+                    </div>
+                    <div className="dbn-feed-line2">
+                      {loc && <span className="dbn-feed-loc"><i className="pi pi-map-marker" /> {loc}</span>}
+                      <span className="dbn-feed-when"><i className="pi pi-clock" /> {timeAgo}</span>
+                      {bat !== null && !isNaN(bat) && (
+                        <span className={`dbn-feed-bat ${bat <= 20 ? 'is-low' : ''}`}>
+                          <i className={`pi ${bat <= 20 ? 'pi-exclamation-triangle' : 'pi-bolt'}`} /> {bat}%
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>)
               })}
             </div>

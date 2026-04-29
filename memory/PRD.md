@@ -154,6 +154,15 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - Résultat : "Sur site 16" cohérent avec "Tous 16" pour un cluster sans engin sorti.
   - 5 groupes structurés : Dashboard · GESTION · ORGANISATION · CONFIGURATION · ANALYSE
   - Mapping normalisé (accents/casse) sur les titres backend réels (Timeline→Calendrier, Maps→Map, Equipes→Utilisateurs, Paramettres→Paramètres)
+- **[2026-02-XX] REDESIGN "Activité récente" du Dashboard** :
+  - **Avant** : Simple point coloré + nom + lieu. Très épuré, beaucoup d'espace vide perdu, pas d'info utile au coup d'œil.
+  - **Après** : Card premium par ligne avec :
+    - Icône carrée colorée (vert/rouge/orange/bleu) selon l'état (Entré/Sorti/Inactif/Actif) + icône sémantique (`pi-sign-in/out/pause/circle-fill`).
+    - Pill de statut en couleur cohérente (ENTRÉ, SORTI, INACTIF, ACTIF).
+    - Ligne 2 enrichie : 📍 lieu, 🕐 date relative ("il y a 25 min" / "il y a 2j" / "25 juin"), ⚡/⚠️ batterie avec couleur rouge si <20%.
+    - Parser de date tolérant FR `DD/MM/YYYY` + ISO 8601.
+    - Hover effect, scrollbar custom, max-height 380px.
+  - **Styles** : ~200 lignes de CSS `.dbn-card`, `.dbn-feed-*`, `.dbn-skel`, etc. ajoutées dans `logitag-saas.css` (les classes existaient sans styles).
   - Icônes FontAwesome modernes (truck-fast, tags, calendar-days, warehouse, users, gear, chart-column, etc.)
   - États : hover (gris-bleu léger), **actif** (fond `#EFF4FF`, left-bar bleu 3px `#1D4ED8`, texte + icône bleu, font-weight 600)
   - **Mode rétractable** 252px ↔ 68px avec bouton "Replier/Déplier" en bas, état persisté dans `localStorage` (`lt_sidebar_collapsed`)
