@@ -118,6 +118,11 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - **Fix 2 (MapComponent UX)** : Quand `realList.length === 0`, afficher un état de chargement explicite (spinner bleu + "Chargement des engins…") au lieu du message d'erreur trompeur "Aucun engin ne correspond aux filtres".
   - **Validation e2e** : Map list peuplée en **0.75s** quand on arrive du Dashboard (cache hot), 4935 engins / Pagination 1/494 fonctionnelle.
   - **Recherche client-side** : filtre sur `reference/nom/tagname` du cache Redux (instantané, plus de 30s d'attente).
+- **[2026-02-XX] FIX pagination des Tags** (`TagList.js`) :
+  - **Bug 1** : `handlePageChange({page, rows})` recevait un objet alors qu'il attend `(newPage, rows)` → state pété, page suivante vide.
+  - **Bug 2** : Le fetch initial chargeait seulement 10 tags du serveur (pagination serveur par défaut) → "Page 1/6 — 53 tags" mais Redux ne contient que 10.
+  - **Solution** : Pagination 100% client-side comme EnginList (`gridPage` state local + `slice(start, start+24)`). Fetch initial avec `PageSize: 5000` pour charger les 53 tags d'un coup. Clamp auto sur changement de liste.
+  - **Validation e2e** : navigation Page 1→2→3 affiche bien 24 + 24 + 5 = 53 tags distincts.
   - **`onPageChange`** : juste un bump du `calendarKey`, plus aucun appel réseau.
   
   **Mesures e2e** : 1er rendu **1.4s** (vs 30s+ ou blank page), nav page suivante **2.1s** (vs ~30s + freeze), recherche instantanée.

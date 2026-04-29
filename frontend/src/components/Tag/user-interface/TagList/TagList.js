@@ -47,6 +47,8 @@ const TagList = ({titleShow, detailView, tags}) => {
   const [generatedCheck, setGeneratedCheck] = useState([])
   const [searchInput, setSearchInput] = useState('')
   const [viewMode, setViewMode] = useState('grid')
+  const [gridPage, setGridPage] = useState(1)
+  const GRID_PAGE_SIZE = 24
 
   const status = useAppSelector(getStatus)
 
@@ -349,13 +351,20 @@ const TagList = ({titleShow, detailView, tags}) => {
     dispatch(fetchFamilles({src: 'tagType'}))
     setIsLoading(true)
     dispatch(fetchStatus())
-    dispatch(fetchTags({page: 1, All: 1})).then(({payload}) => {
+    // Load ALL tags up-front (53 only) to enable client-side pagination & search.
+    dispatch(fetchTags({page: 1, PageSize: 5000, All: 1})).then(({payload}) => {
       setPage(0)
-      setTotalRecords(payload?.[0]?.TotalTags)
+      setTotalRecords(payload?.[0]?.TotalTags || (Array.isArray(payload) ? payload.length : 0))
       setRows(10)
       setIsLoading(false)
     })
   }, [])
+
+  // Clamp gridPage when tag list changes (search, refetch)
+  useEffect(() => {
+    const maxPage = Math.max(1, Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE))
+    if (gridPage > maxPage) setGridPage(maxPage)
+  }, [tags?.length, gridPage])
 
   return (
     <>
@@ -452,12 +461,15 @@ const TagList = ({titleShow, detailView, tags}) => {
                 data-testid="tag-grid-search"
               />
               <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
-                Page {page + 1} / {Math.ceil(totalRecords / rows) || 1}
+                Page {gridPage} / {Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE) || 1}
               </span>
             </div>
             {/* Grid */}
             <div className="lt-vignette-grid" data-testid="tag-grid-view">
-              {tags.map((item, i) => {
+              {(() => {
+                const start = (gridPage - 1) * GRID_PAGE_SIZE
+                return (tags || []).slice(start, start + GRID_PAGE_SIZE)
+              })().map((item, i) => {
                 const isActive = item.active == 1
                 const statusColor = item.statusbgColor || '#94A3B8'
                 return (
@@ -500,16 +512,26 @@ const TagList = ({titleShow, detailView, tags}) => {
                 )
               })}
             </div>
-            {/* Grid Pagination */}
+            {/* Grid Pagination (client-side) */}
             <div className="lt-grid-pagination" data-testid="tag-grid-pagination">
-              <button className="lt-grid-page-btn" disabled={page <= 0} onClick={() => handlePageChange({page: page - 1, rows})}>
+              <button
+                className="lt-grid-page-btn"
+                disabled={gridPage <= 1}
+                onClick={() => setGridPage((p) => Math.max(1, p - 1))}
+                data-testid="tag-grid-prev"
+              >
                 <i className="pi pi-chevron-left"></i>
               </button>
               <span className="lt-grid-page-info">
-                Page <strong>{page + 1}</strong> / <strong>{Math.ceil(totalRecords / rows) || 1}</strong>
-                &nbsp;&mdash;&nbsp;{totalRecords} tags
+                Page <strong>{gridPage}</strong> / <strong>{Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE) || 1}</strong>
+                &nbsp;&mdash;&nbsp;{tags?.length || 0} tags
               </span>
-              <button className="lt-grid-page-btn" disabled={page + 1 >= Math.ceil(totalRecords / rows)} onClick={() => handlePageChange({page: page + 1, rows})}>
+              <button
+                className="lt-grid-page-btn"
+                disabled={gridPage >= Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE)}
+                onClick={() => setGridPage((p) => Math.min(Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE), p + 1))}
+                data-testid="tag-grid-next"
+              >
                 <i className="pi pi-chevron-right"></i>
               </button>
             </div>
