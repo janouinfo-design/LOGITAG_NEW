@@ -1,4 +1,6 @@
 import {useEffect, useState, useMemo, useCallback, useRef} from 'react'
+import {useSelector} from 'react-redux'
+import {getEngines} from '../../../Engin/slice/engin.slice'
 import {
   fetchDashboard,
   fetchDashboardDetail,
@@ -141,6 +143,7 @@ const DashboardListCards = () => {
   const selectedCard = useAppSelector(getCardSelected)
   const loadingCard = useAppSelector(getLoadingCard)
   const dispatch = useAppDispatch()
+  const enginesFromRedux = useSelector(getEngines) || []
   const [loaded, setLoaded] = useState(false)
   const [allDetailData, setAllDetailData] = useState([])
   const [analyticsLoading, setAnalyticsLoading] = useState(true)
@@ -335,7 +338,14 @@ const DashboardListCards = () => {
 
   /* ── Smart Alerts ── */
   const alerts = useMemo(() => {
-    if (!allDetailData.length) return {immobilized: [], lowBattery: [], underUtilized: [], inactiveTags: []}
+    /* PRIMARY SOURCE: full engines list from Redux (5000 records, accurate lastSeenAt).
+       Falls back to allDetailData if engines not loaded yet.
+       allDetailData is limited to in-zone/active tags and misses long-term inactive ones. */
+    const baseList =
+      Array.isArray(enginesFromRedux) && enginesFromRedux.length > 0
+        ? enginesFromRedux
+        : allDetailData
+    if (!baseList.length) return {immobilized: [], lowBattery: [], underUtilized: [], inactiveTags: []}
     const now = new Date()
     const immobilizedCutoff = new Date(now.getTime() - alertThresholds.immobilized * 24 * 60 * 60 * 1000)
     const inactiveCutoff = new Date(now.getTime() - alertThresholds.inactive * 24 * 60 * 60 * 1000)
@@ -345,11 +355,36 @@ const DashboardListCards = () => {
     const underUtilized = []
     const inactiveTags = []
 
-    allDetailData.forEach(item => {
-      const lastDate = new Date(item.locationDate || item.statusDate || item.tagDate || 0)
+    /* Date parser tolerant of multiple formats: ISO 8601, "01/11/2024 14:28", etc. */
+    const parseAnyDate = (raw) => {
+      if (!raw) return null
+      // ISO 8601 (e.g. "2025-10-23T14:01:19+02:00")
+      if (typeof raw === 'string' && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+        const d = new Date(raw)
+        return isNaN(d.getTime()) ? null : d
+      }
+      // "DD/MM/YYYY HH:mm" (FR format from tagDate)
+      if (typeof raw === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
+        const [datePart, timePart] = raw.split(' ')
+        const [dd, mm, yyyy] = datePart.split('/')
+        const [hh = '0', mi = '0'] = (timePart || '').split(':')
+        const d = new Date(+yyyy, +mm - 1, +dd, +hh, +mi)
+        return isNaN(d.getTime()) ? null : d
+      }
+      const d = new Date(raw)
+      return isNaN(d.getTime()) || d.getFullYear() < 2000 ? null : d
+    }
 
-      /* Immobilized: no movement since threshold */
-      if (item.etatenginname && lastDate < immobilizedCutoff && lastDate.getFullYear() > 2000) {
+    baseList.forEach(item => {
+      /* Best date = lastSeenAt > locationDate > statusDate > tagDate */
+      const lastDate =
+        parseAnyDate(item.lastSeenAt) ||
+        parseAnyDate(item.locationDate) ||
+        parseAnyDate(item.statusDate) ||
+        parseAnyDate(item.tagDate)
+
+      /* Immobilized: any engin not seen since the threshold (regardless of state) */
+      if (lastDate && lastDate < immobilizedCutoff) {
         const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24))
         immobilized.push({...item, _daysSince: daysSince})
       }
@@ -362,9 +397,9 @@ const DashboardListCards = () => {
         }
       }
 
-      /* Under-utilized: had movement but very long duration on same site */
+      /* Under-utilized: explicitly inactive/exit AND not seen since the inactivity threshold */
       if (item.etatenginname === 'nonactive' || item.etatenginname === 'exit') {
-        if (lastDate < inactiveCutoff && lastDate.getFullYear() > 2000) {
+        if (lastDate && lastDate < inactiveCutoff) {
           const daysSince = Math.floor((now - lastDate) / (1000 * 60 * 60 * 24))
           underUtilized.push({...item, _daysSince: daysSince})
         }
@@ -372,6 +407,9 @@ const DashboardListCards = () => {
 
       /* Inactive tags */
       if (item.active !== undefined && item.active == 0) {
+        inactiveTags.push(item)
+      }
+      if (item.sysActive !== undefined && item.sysActive == 0 && (item.active === undefined)) {
         inactiveTags.push(item)
       }
     })
@@ -382,7 +420,7 @@ const DashboardListCards = () => {
       underUtilized: underUtilized.sort((a, b) => b._daysSince - a._daysSince).slice(0, 50),
       inactiveTags: inactiveTags.slice(0, 50),
     }
-  }, [allDetailData, alertThresholds])
+  }, [allDetailData, enginesFromRedux, alertThresholds])
 
   const saveThresholds = (newThresholds) => {
     setAlertThresholds(newThresholds)

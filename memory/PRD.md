@@ -74,6 +74,16 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - **KPIs** : En attente, Validées, En cours, Aujourd'hui, En retard, Terminées (cliquables pour filtrer)
   - **Planning Gantt** : vues Jour / Semaine / Mois, navigation prev/next/today, barres colorées par statut, weekend grisés, aujourd'hui highlighted
   - **Liste** : recherche + filtre statut, actions contextuelles (valider/refuser/check-out/check-in/annuler)
+- **[2026-02-XX] FIX critique Centre d'alertes (`DashboardListCards.jsx`)** : Les KPIs "Immobilisés / Sous-utilisés" affichaient 0 alors que des dizaines d'engins n'ont pas été vus depuis 2025. Trois causes :
+  1. La source de données était `tag/dashboarddetail` (sous-ensemble actif/in-zone) au lieu de la liste complète d'engins (5000 records de Redux).
+  2. Le filtre `if (item.etatenginname && ...)` excluait tout engin sans état défini, alors que ces engins fantômes sont précisément les plus immobilisés.
+  3. Le parser de date `new Date(item.locationDate || ...)` échouait sur le format FR `DD/MM/YYYY HH:mm` du champ `tagDate`.
+  
+  **Solution** :
+  - Source primaire = `enginesFromRedux` (Redux selector `getEngines`, 5000 entrées avec `lastSeenAt` ISO 8601 fiable) ; fallback `allDetailData` si engins pas encore chargés.
+  - Parser de date tolérant : ISO 8601, format FR, fallback Date natif.
+  - Critère "Immobilisé" simplifié : tout engin avec `lastSeenAt` plus ancien que le seuil (peu importe l'état).
+  - Résultat e2e mesuré : Immobilisés 0→12, Batterie 1→9, Sous-utilisés 0→10, badge total 1→31. Le centre d'alertes reflète enfin la réalité.
   - **À valider** : panneau dédié des demandes en attente avec workflow admin
   - **Formulaire création/édition** : engin (filter dropdown), dates avec vérification temps réel de disponibilité (POST /availability), utilisateur, équipe, site, projet, priorité, note
   - **Drawer détail** : infos complètes + actions (approve/reject/checkout/checkin/cancel/edit)
