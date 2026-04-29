@@ -306,14 +306,12 @@ function NavixyReport() {
     }
     const headers = isZoneReport
       ? ['Départ', 'Arrivée', 'Temps sur site']
-      : ['Départ', 'Arrivée', 'Temps sur site', 'Temps d\u2019inactivité']
+      : ['Départ', 'Arrivée', 'Temps sur site']
     const rows = []
     MOCK_RESULT_DAYS.forEach((day) => {
-      rows.push([`── ${day.date} ──`, '', '', ''])
-      day.rows.forEach((r, i) => {
-        const row = [r.depart, r.arrivee, r.temps]
-        if (!isZoneReport) row.push(['00:11', '00:13', '00:06', '00:33'][i] ?? '—')
-        rows.push(row)
+      rows.push([`── ${day.date} ──`, '', ''])
+      day.rows.forEach((r) => {
+        rows.push([r.depart, r.arrivee, r.temps])
       })
     })
     return {headers, rows}
@@ -799,7 +797,6 @@ function NavixyReport() {
 function TripsTable({isZone, trackerId}) {
   const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
   const totalTemps = useMemo(() => sumColumn(days, 'temps'), [days])
-  const totalInactiv = useMemo(() => sumColumn(days, 'inactiv'), [days])
   return (
     <table className='nvx-tbl' data-testid='nvx-trips-table'>
       <thead>
@@ -807,14 +804,13 @@ function TripsTable({isZone, trackerId}) {
           <th>Départ</th>
           <th>Arrivée</th>
           <th>Temps sur site</th>
-          {!isZone && <th>Temps d&apos;inactivité</th>}
         </tr>
       </thead>
       <tbody>
         {days.map((day) => (
           <React.Fragment key={day.date}>
             <tr className='nvx-tbl-day'>
-              <td colSpan={isZone ? 3 : 4}>
+              <td colSpan={3}>
                 <i className='pi pi-minus' /> {day.date} : {day.rows.length}
               </td>
             </tr>
@@ -823,7 +819,6 @@ function TripsTable({isZone, trackerId}) {
                 <td className='nvx-tbl-dp'>{r.depart}</td>
                 <td className='nvx-tbl-dp'>{r.arrivee}</td>
                 <td className='nvx-tbl-num'>{r.temps}</td>
-                {!isZone && <td className='nvx-tbl-num'>{r.inactiv}</td>}
               </tr>
             ))}
           </React.Fragment>
@@ -832,7 +827,6 @@ function TripsTable({isZone, trackerId}) {
           <td />
           <td style={{textAlign: 'right', fontWeight: 700}}>Au total :</td>
           <td className='nvx-tbl-num'>{totalTemps}</td>
-          {!isZone && <td className='nvx-tbl-num'>{totalInactiv}</td>}
         </tr>
       </tbody>
     </table>
@@ -879,7 +873,6 @@ function ResumeCard({isAlert, trackerId}) {
   const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
   const tripCount = useMemo(() => days.reduce((acc, d) => acc + d.rows.length, 0), [days])
   const totalSite = useMemo(() => sumColumn(days, 'temps'), [days])
-  const totalInactiv = useMemo(() => sumColumn(days, 'inactiv'), [days])
   const lastAddr = useMemo(() => {
     const last = days[days.length - 1]?.rows?.slice(-1)[0]
     if (!last?.arrivee) return '—'
@@ -899,7 +892,6 @@ function ResumeCard({isAlert, trackerId}) {
     : [
         ['Trajets', String(tripCount)],
         ['Temps sur site total', totalSite],
-        ['Temps d\u2019inactivité', totalInactiv],
         ['Dernière adresse', lastAddr],
       ]
   return (
@@ -926,7 +918,7 @@ function SummaryPanel({isAlert, isZone, trackers}) {
             ) : isZone ? (
               <><th>Visites</th><th>Temps total</th><th>Zones</th></>
             ) : (
-              <><th>Trajets</th><th>Temps sur site</th><th>Temps inactivité</th></>
+              <><th>Trajets</th><th>Temps sur site</th></>
             )}
           </tr>
         </thead>
@@ -950,7 +942,6 @@ function SummaryPanel({isAlert, isZone, trackers}) {
                 <>
                   <td className='nvx-tbl-num'>{4 + (i % 3)}</td>
                   <td className='nvx-tbl-num'>{`0${(i % 3) + 4}:${10 + (i * 7) % 50}`}</td>
-                  <td className='nvx-tbl-num'>{`${10 + (i % 3)}:${20 + (i * 3) % 40}`}</td>
                 </>
               )}
             </tr>
