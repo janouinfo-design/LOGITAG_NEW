@@ -140,6 +140,18 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   **Mesures e2e** : 1er rendu **1.4s** (vs 30s+ ou blank page), nav page suivante **2.1s** (vs ~30s + freeze), recherche instantanée.
   - Fichiers : `/app/frontend/src/components/Reservation/ReservationModule.jsx` (~500 lignes), CSS dans `logitag-saas.css` lignes 6843+
 
+- **[2026-02-XX] FIX KPIs cluster incohérents** (`ClusterInsightsPanel.jsx`) :
+  - **Bug** : Le panneau cluster (Casablanca-Settat 16 engins) affichait "Tous 16, Sur site 0, Sortis 0" — KPIs fausses car les engins **sans `lastSeenAt`** (engins fraîchement créés ou sans gateway GPS) tombaient dans le bucket `unknown` qui n'était compté ni dans "Sur site" ni dans "Sortis".
+  - **Fix** : Logique simplifiée — par définition, un engin géolocalisé dans ce cluster **est sur site** (sauf s'il est explicitement marqué "exited"/sorti). Le check passe de :
+    ```js
+    bucket === 'present' || 'stale' || 'arrived'  // exclut 'unknown'
+    ```
+    à :
+    ```js
+    bucket !== 'exited'  // inclut tout sauf les sortis
+    ```
+  - Le filtre du panneau (segmenté Sur site / Sortis / Batt. faible) suit la même logique.
+  - Résultat : "Sur site 16" cohérent avec "Tous 16" pour un cluster sans engin sorti.
   - 5 groupes structurés : Dashboard · GESTION · ORGANISATION · CONFIGURATION · ANALYSE
   - Mapping normalisé (accents/casse) sur les titres backend réels (Timeline→Calendrier, Maps→Map, Equipes→Utilisateurs, Paramettres→Paramètres)
   - Icônes FontAwesome modernes (truck-fast, tags, calendar-days, warehouse, users, gear, chart-column, etc.)
