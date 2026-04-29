@@ -7,25 +7,26 @@ const ACTIONS = [
   {
     group: 'Gestion',
     items: [
-      {label: 'Nouvel engin', icon: 'pi pi-box', route: '/enginlist', color: '#6366F1', desc: 'Ajouter un véhicule/asset'},
-      {label: 'Nouveau tag', icon: 'pi pi-tag', route: '/taglist', color: '#3B82F6', desc: 'Enregistrer un tag BLE'},
-      {label: 'Nouveau client', icon: 'pi pi-briefcase', route: '/customerlist', color: '#10B981', desc: 'Créer un client B2B'},
+      {label: 'Nouvel engin', icon: 'pi pi-box', route: '/view/engin/index', color: '#6366F1', desc: 'Ajouter un véhicule/asset'},
+      {label: 'Nouveau tag', icon: 'pi pi-tag', route: '/tag/index', color: '#3B82F6', desc: 'Enregistrer un tag BLE'},
+      {label: 'Nouveau client', icon: 'pi pi-briefcase', route: '/customer/index', color: '#10B981', desc: 'Créer un client B2B'},
     ],
   },
   {
     group: 'Organisation',
     items: [
-      {label: 'Nouveau site', icon: 'pi pi-map-marker', route: '/sitelist', color: '#F59E0B', desc: 'Déclarer un site'},
-      {label: 'Nouveau dépôt', icon: 'pi pi-home', route: '/depotlist', color: '#EF4444', desc: 'Ajouter un dépôt'},
-      {label: 'Utilisateurs', icon: 'pi pi-users', route: '/teamlist', color: '#8B5CF6', desc: 'Gérer l\'équipe'},
+      {label: 'Nouveau site', icon: 'pi pi-map-marker', route: '/worksite/index', color: '#F59E0B', desc: 'Déclarer un site'},
+      {label: 'Nouveau dépôt', icon: 'pi pi-home', route: '/deposit/index', color: '#EF4444', desc: 'Ajouter un dépôt'},
+      {label: 'Utilisateurs', icon: 'pi pi-users', route: '/view/staff/index', color: '#8B5CF6', desc: 'Gérer l\'équipe'},
     ],
   },
   {
     group: 'Analyse',
     items: [
-      {label: 'Rapports', icon: 'pi pi-file', route: '/rapports', color: '#0EA5E9', desc: 'Générer un rapport'},
-      {label: 'Carte live', icon: 'pi pi-map', route: '/map', color: '#14B8A6', desc: 'Voir la carte temps réel'},
-      {label: 'Inventaire', icon: 'pi pi-list', route: '/inventory', color: '#F97316', desc: 'Campagne inventaire'},
+      {label: 'Rapports', icon: 'pi pi-file', route: '/rapports/index', color: '#0EA5E9', desc: 'Générer un rapport'},
+      {label: 'Carte live', icon: 'pi pi-map', route: '/tour/index', color: '#14B8A6', desc: 'Voir la carte temps réel'},
+      {label: 'Inventaire', icon: 'pi pi-list', route: '/inventory/index', color: '#F97316', desc: 'Campagne inventaire'},
+      {label: 'Réservations', icon: 'pi pi-calendar', route: '/reservations/index', color: '#A855F7', desc: 'Planning Gantt'},
     ],
   },
 ]
