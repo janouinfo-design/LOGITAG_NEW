@@ -1190,10 +1190,32 @@ const MapComponent = ({
   }
 
   const fetchRoute = (date, id) => {
+    // Guard against missing GPS device — common for assets without an active gateway
+    if (!id || !date) {
+      dispatch(
+        setToastParams({
+          severity: 'warn',
+          summary: 'Trajet indisponible',
+          detail: !id
+            ? 'Aucun device GPS associé à cet engin.'
+            : 'Date du dernier signal manquante.',
+          life: 4000,
+        })
+      )
+      return
+    }
     const dateBefore2Hour = moment(date).subtract(2, 'hours').format('YYYY-MM-DD HH:mm:ss')
     const dateAfter2Hour = moment(date).add(2, 'hours').format('YYYY-MM-DD HH:mm:ss')
     const cleanId = typeof id === 'string' ? id.replace(/^gps:/i, '') : id
     setIsFetchingRoute(true)
+    dispatch(
+      setToastParams({
+        severity: 'info',
+        summary: 'Récupération du trajet…',
+        detail: `Recherche des positions GPS autour du ${moment(date).format('DD/MM/YYYY HH:mm')}`,
+        life: 2500,
+      })
+    )
     dispatch(
       fetchVehiculePositionsHistory({label: cleanId, from: dateBefore2Hour, to: dateAfter2Hour})
     ).finally(() => setIsFetchingRoute(false))
@@ -1201,25 +1223,50 @@ const MapComponent = ({
 
   useEffect(() => {
     if (!Array.isArray(vehiculeHistoryRoute)) return
-    const coords = vehiculeHistoryRoute.map((p) => {
-      const lat = p?.satlat || p?.lat
-      const lng = p?.satlng || p?.lng
-      return lat && lng ? [lat, lng] : null
-    })
-    console.log('coords', coords)
-    if (coords?.[0]?.length >= 2) {
+    const coords = vehiculeHistoryRoute
+      .map((p) => {
+        const lat = p?.satlat ?? p?.lat
+        const lng = p?.satlng ?? p?.lng
+        return lat && lng ? [Number(lat), Number(lng)] : null
+      })
+      .filter(Boolean)
+
+    if (coords.length >= 2) {
       const map = mapRef.current
-      console.log('mappppp', map)
       if (map) {
-        map.setView(coords[0], 11)
+        try {
+          // Fit bounds with padding so the route is fully visible
+          map.fitBounds(coords, {padding: [50, 50], maxZoom: 14})
+        } catch {
+          map.setView(coords[0], 12)
+        }
       }
+      dispatch(
+        setToastParams({
+          severity: 'success',
+          summary: 'Trajet affiché',
+          detail: `${coords.length} positions GPS sur la carte`,
+          life: 3000,
+        })
+      )
+    } else if (coords.length === 1) {
+      const map = mapRef.current
+      if (map) map.setView(coords[0], 14)
+      dispatch(
+        setToastParams({
+          severity: 'info',
+          summary: 'Position unique',
+          detail: 'Une seule position GPS trouvée — pas de trajet à dessiner.',
+          life: 3500,
+        })
+      )
     } else if (vehiculeHistoryRoute.length === 0) {
       dispatch(
         setToastParams({
           severity: 'warn',
-          summary: 'No Route Data',
-          detail: 'No route found for this asset in the selected time range.',
-          life: 4000,
+          summary: 'Aucun trajet',
+          detail: 'Aucune position GPS trouvée pour cet engin sur la période ±2h.',
+          life: 4500,
         })
       )
     }
@@ -1977,13 +2024,21 @@ const MapComponent = ({
                                     e.stopPropagation()
                                     fetchRoute(pio?.lastSeenAt, pio?.lastSeenDevice)
                                   }}
-                                  title='Voir le trajet'
+                                  title={
+                                    !pio?.lastSeenDevice
+                                      ? 'Trajet indisponible (aucun device GPS)'
+                                      : 'Voir le trajet'
+                                  }
                                   aria-label='Voir le trajet'
-                                  className='lt-asset-exp-route'
+                                  className={`lt-asset-exp-route ${!pio?.lastSeenDevice ? 'lt-asset-exp-route--disabled' : ''}`}
                                   rounded
+                                  disabled={!pio?.lastSeenDevice || isFetchingRoute}
                                   data-testid={`asset-route-btn-${key}`}
                                 >
-                                  <i className='pi pi-directions' style={{fontSize: 13, color: '#FFF'}} />
+                                  <i
+                                    className={`pi ${isFetchingRoute ? 'pi-spin pi-spinner' : !pio?.lastSeenDevice ? 'pi-ban' : 'pi-directions'}`}
+                                    style={{fontSize: 13, color: '#FFF'}}
+                                  />
                                 </Button>
                               </div>
                               <div className='lt-asset-exp-grid'>

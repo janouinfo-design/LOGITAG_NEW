@@ -123,6 +123,18 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   - **Bug 2** : Le fetch initial chargeait seulement 10 tags du serveur (pagination serveur par défaut) → "Page 1/6 — 53 tags" mais Redux ne contient que 10.
   - **Solution** : Pagination 100% client-side comme EnginList (`gridPage` state local + `slice(start, start+24)`). Fetch initial avec `PageSize: 5000` pour charger les 53 tags d'un coup. Clamp auto sur changement de liste.
   - **Validation e2e** : navigation Page 1→2→3 affiche bien 24 + 24 + 5 = 53 tags distincts.
+- **[2026-02-XX] FIX bouton "Voir le trajet" silencieux** (`MapComponent.js`) :
+  - **Bug** : Le bouton bleu de direction sur les cards d'engins sortis ne déclenchait rien visuellement. La fonction `fetchVehiculePositionsHistory` skipait silencieusement quand `lastSeenDevice` était null (cas fréquent pour les engins inactifs depuis longtemps).
+  - **Fix UX en cascade** :
+    1. **Bouton désactivé** (gris + icône `pi-ban`) si pas de `lastSeenDevice` ou date manquante. Tooltip explicite "Trajet indisponible (aucun device GPS)".
+    2. **Spinner** sur le bouton pendant le fetch (`isFetchingRoute`) avec icône `pi-spin pi-spinner`.
+    3. **3 toasts contextuels** :
+       - INFO : "Récupération du trajet…" au lancement.
+       - SUCCESS : "Trajet affiché — N positions GPS sur la carte" + `fitBounds` automatique.
+       - WARN : "Aucun trajet — pas de positions GPS sur la période ±2h" si réponse vide.
+       - INFO : "Position unique — pas de trajet à dessiner" si 1 seul point.
+    4. **`fitBounds`** au lieu de simple `setView` → la polyline remplit la vue automatiquement (zoom max 14, padding 50px).
+    5. Suppression des `console.log` de debug.
   - **`onPageChange`** : juste un bump du `calendarKey`, plus aucun appel réseau.
   
   **Mesures e2e** : 1er rendu **1.4s** (vs 30s+ ou blank page), nav page suivante **2.1s** (vs ~30s + freeze), recherche instantanée.

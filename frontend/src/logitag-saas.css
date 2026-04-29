@@ -6257,6 +6257,20 @@ input.lt-form-input,
 }
 .lt-asset-exp-route:hover { transform: translateY(-1px); box-shadow: 0 4px 10px rgba(29, 78, 216, 0.45) !important; }
 .lt-asset-exp-route .p-button-label { display: none !important; }
+.lt-asset-exp-route--disabled,
+.lt-asset-exp-route:disabled {
+  background: #94A3B8 !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  box-shadow: none !important;
+}
+.lt-asset-exp-route--disabled:hover,
+.lt-asset-exp-route:disabled:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  background: #94A3B8 !important;
+}
+
 
 .lt-asset-exp-grid {
   display: flex; flex-direction: column; gap: 6px;
