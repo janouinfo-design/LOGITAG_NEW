@@ -179,6 +179,21 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
 - `/app/frontend/src/components/Layout/user-interface/Sidebar/sidebar-menu/SidebarMenuItemWithSub.tsx` (rendu propre accordéon)
 - `/app/frontend/src/logitag-saas.css` (bloc "SIDEBAR PREMIUM" ~200 lignes, lignes ~2446-2660)
 
+- **[2026-04-29] FEAT MAJEURE — Module "Rapports disponibles" + Rapport "Outils immobilisés et sous-utilisés"** (validé e2e 19/19):
+  - **`ReportsHub`** (`/app/frontend/src/components/Repports/user-interface/ReportsHub/`) : catalogue premium B2B. 4 catégories (Activité, Zone, Logitag, Alertes), 10 rapports, recherche live (insensible accents), badges "Recommandé" / "Le plus utilisé", bandeau de suggestion contextuelle. Mappé sur `rapports/index`.
+  - **Panneau detail** (à droite) : titre + catégorie + description + config form (date début/fin via PrimeReact Calendar, dropdown Zone, dropdown Engin/Outil), boutons "Générer rapport" + "Planifier".
+  - **Renderers** (`reportRenderers.js`) : 8 fonctions de calcul réelles depuis Redux engins (stops, zone, poi, underused, lastPosition, timeZone, alerts, undetected). Chaque renderer retourne `{kpis[], columns[], rows[], chart?}`.
+  - **Résultats** : 4 KPIs colorés + chart bar CSS-only (pour les renderers qui en ont) + table sortable + boutons exports (Email mocked / Excel via xlsx / PDF via jsPDF).
+  - **Planification** : panneau dropdown Fréquence (quotidien/hebdo/mensuel) + InputText email, sauvegardée dans `localStorage` clé `lt-scheduled-reports` (MOCKED — pas de backend SMTP).
+  - **Routage** : "Outils immobilisés" et "Rapport engin" cliqués depuis le hub redirigent respectivement vers `/idle-assets/index` (IdleAssetsReport dédié) et `/rapports/legacy` (NavixyReport existant).
+  - **`IdleAssetsReport`** (déjà créé fork précédent, branché ici) : 4 KPIs cliquables (Immobilisés / Sous-utilisés / Actifs / Sans signal), seuil configurable 3/7/14/30j, filtres Zone/Catégorie/Client/Recherche, table 7 colonnes avec statuts colorés, exports PDF + Excel.
+  - **EXTRA_MENU** : ajout `idle-assets/index` et `rapports/legacy` avec flag `hidden:true` pour qu'ils soient registered dans le router sans apparaître dans la sidebar.
+  - **CommandPalette** : entrée "Outils immobilisés" ajoutée (Cmd+K → idle-assets).
+- **[2026-04-29] FIX critique pré-existant — `Sidebar.tsx`** :
+  - **Bug** : Un `setTimeout(3000)` cliquait un `<Link id="default-link">` caché à chaque mount du Sidebar, hijackant tous les deep-links et reload de page non-default vers `/tagdashboard/index` au bout de 3s. Détecté par testing agent lors de la validation du Reports Hub.
+  - **Solution** : gate avec `sessionStorage.getItem('lt_initial_redirect_done')` + check que `localStorage.getItem('next-page')` est défini. Le timer ne se déclenche maintenant qu'une seule fois par session, uniquement si le flow d'auth l'a explicitement armé. Cleanup avec `clearTimeout` + `removeItem('next-page')` après tir.
+  - **Validation** : deep-link direct + F5 reload sur `/rapports/index` et `/idle-assets/index` restent stables (testé en e2e).
+
 ## Roadmap / Backlog
 ### P2
 - (si souhaité) Raccourci clavier `/` pour focus instant sur la recherche
