@@ -403,7 +403,7 @@ const ReportsHub = () => {
                           onChange={(e) => setScheduleEmail(e.target.value)}
                           placeholder='ops@entreprise.com'
                           className='lt-rh-text'
-                          data-testid='reports-hub-email-input'
+                          data-testid='reports-hub-schedule-email'
                         />
                       </div>
                     </div>

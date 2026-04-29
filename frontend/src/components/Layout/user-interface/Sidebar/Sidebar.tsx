@@ -24,11 +24,22 @@ const Sidebar = () => {
   }, [config])
 
   useEffect(() => {
-    setTimeout(() => {
+    // Post-login default redirect: only fire ONCE per session, and only if a
+    // pending 'next-page' has been set (e.g. from auth flow).
+    // Without this guard, every Sidebar mount (any deep-link / refresh) would
+    // be hijacked back to the dashboard 3s later.
+    if (sessionStorage.getItem('lt_initial_redirect_done') === '1') return
+    const pending = localStorage.getItem('next-page')
+    if (!pending) return
+    const t = setTimeout(() => {
+      sessionStorage.setItem('lt_initial_redirect_done', '1')
       let it = document.getElementById('default-link')
-      it?.setAttribute('href', localStorage.getItem('next-page') || '')
+      it?.setAttribute('href', pending)
       if (it?.click) it.click()
+      // clear so subsequent mounts in this session don't re-trigger
+      try { localStorage.removeItem('next-page') } catch {}
     }, 3000)
+    return () => clearTimeout(t)
   }, [linkRef])
 
   useEffect(() => {

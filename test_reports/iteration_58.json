@@ -1,0 +1,25 @@
+{
+  "summary": "Frontend-only validation post Sidebar.tsx fix. ALL 19 critical scenarios PASSED. Sidebar.tsx fix verified working: deep-link to /rapports/index and /idle-assets/index, plus F5 reload on these routes, all stay on the target page (no auto-redirect to dashboard after 3s). The new gate (sessionStorage.getItem('lt_initial_redirect_done') + check for localStorage 'next-page') correctly arms the timer only once per session. ReportsHub: search 'zone' → exactly 3 items (zone-time, poi-visits, time-zone-tools); suggestion banner 'Ouvrir' activates 'Outils immobilisés' detail panel; stops-detail Generate produces 4 KPIs + 12 rows; zone-time Generate produces chart (data-testid=reports-hub-chart) + 4 KPIs + 8 rows; POI Generate → 9 rows; Outils sous-utilisés Generate → 8 rows; idle-assets Generate redirects to /idle-assets/index. Schedule flow: Planifier toggle opens panel, [data-testid=reports-hub-schedule-email] fillable, Enregistrer persists to localStorage 'lt-scheduled-reports' with correct payload (verified email=ops@test.com saved). Email/Excel/PDF buttons present and clickable post-generation. IdleAssetsReport: 4 clickable KPIs (immobilized=2, underutilized=10, active=0, unknown=3 at threshold=30j); 15 rows in table; threshold dropdown changes value (data-dependent: same 2 immobilized at 7j vs 30j because all aged tools are >30 days old — not a bug); KPI Immobilisés click filters table to 2 rows + adds is-active class; idle-reset restores 15 rows; idle-search-input filters correctly (no-match → 0 rows). CommandPalette: Ctrl+K opens, search 'immobilis' shows cmdk-item-idle-assets, click navigates to /idle-assets/index. Login: admin/user@1234 OK, redirect to /tagdashboard/index OK.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": []
+  },
+  "test_report_links": [],
+  "action_items": [],
+  "critical_code_review_comments": [
+    "Sidebar.tsx fix is correct and minimal: gate on sessionStorage flag + early-return when 'next-page' is absent. Effect now correctly fires at most once per session, on the post-login boot only.",
+    "ReportsHub.jsx (538 lines) still on the upper boundary of the 700-line guideline — consider extracting the schedule panel + result/KPI/chart/table renderer into sub-components when next iteration touches this file.",
+    "IdleAssetsReport threshold dropdown change appeared inert in test data because the dataset has no tools aged 7-30 days; logic is correct (computeStatus uses threshold). No fix required.",
+    "Console produces several pre-existing React warnings unrelated to this scope (forwardRef ref param, non-boolean attribute on <button>, missing key prop in PrivateRoutes/ChatMessage). Out of scope but worth tracking."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% — 19/19 scenarios verified end-to-end"},
+  "test_credentials": "admin / user@1234 (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None. Created localStorage key 'lt-scheduled-reports' with one TEST entry (email=ops@test.com) — safe, frontend-only.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "All Reports Hub + IdleAssetsReport flows are stable as of iteration 58. Sidebar deep-link redirect bug (iter 57) is fixed. The only thing to be aware of: localStorage 'lt-scheduled-reports' will accumulate test entries — clear it between manual sessions. Email send and Schedule storage are MOCKED (toast + localStorage only, no SMTP/backend). PrimeReact Dropdown options selection in tests works with text-based selectors like li[aria-label='30 jours'] or .p-dropdown-item:has-text(...).",
+  "rca of the issue": "N/A — bug from iter 57 was fixed correctly. The fix in Sidebar.tsx (lines 26-43) uses sessionStorage('lt_initial_redirect_done') as a one-shot gate AND requires a pending 'next-page' in localStorage to arm the timer. Both conditions ensure the legacy post-login auto-redirect fires at most once per session and only when explicitly requested by the auth flow."
+}
