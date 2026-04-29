@@ -100,6 +100,15 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   2. FullCalendar recevait **les 5000 lignes d'engins** d'un coup → freeze navigateur.
   3. Pagination + recherche faisaient un refetch serveur (30s) à chaque interaction.
   
+- **[2026-02-XX] FIX filtres Calendrier** (`CalendarView.js`) :
+  - `handleMovementFilterChange` utilisait `e.target.value` au lieu de `e.value` (PrimeReact Dropdown). Résultat : sélectionner "Sortie" → state = `undefined` → filtre cassé.
+  - Ajout de `setFirst(0)` + `setCalendarKey(k+1)` dans `handleStatusFilterChange` et `handleMovementFilterChange` pour reset de la pagination + redraw FullCalendar quand on change de filtre.
+  - Validé e2e : filtre "Sortie" passe la liste de 4935 → 12 engins.
+- **[2026-02-XX] CLEANUP Navbar header** (`Navbar.tsx`) :
+  - Suppression de 3 boutons fantômes (cercles sombres vides) qui n'avaient aucun contenu ni handler (`kt_activities_toggle`, `element-plus`, etc.) — restes legacy de Metronic.
+  - Suppression du chat toggle non fonctionnel (icône KTIcon ne rendait pas, drawer vide).
+  - Imports inutilisés retirés (`HeaderNotificationsMenu`, `ThemeModeSwitcher`, `getUserRead`).
+  - Header simplifié à : raccourcis quick + avatar avec menu utilisateur fonctionnel. `console.log` de debug retirés.
   **Solutions** :
   - **Source primaire** : `enginesFromRedux` (cache 60s backend déjà chaud) — fallback sur `dispatch(fetchEngines)` uniquement si vide.
   - **Pagination 100% client-side** : `filteredRessources.slice(first, first+rows)` → FullCalendar ne reçoit jamais plus de 30 lignes (rowsPerPage 10/20/30). 

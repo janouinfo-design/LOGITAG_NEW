@@ -235,6 +235,8 @@ function CalendarView() {
 
   const handleStatusFilterChange = (e) => {
     setStatusFilter(e.value)
+    setFirst(0)
+    setCalendarKey((k) => k + 1)
   }
 
   const handleTypeFilterChange = (e) => {
@@ -242,7 +244,9 @@ function CalendarView() {
   }
 
   const handleMovementFilterChange = (e) => {
-    setMovementFilter(e.target.value)
+    setMovementFilter(e.value)
+    setFirst(0)
+    setCalendarKey((k) => k + 1)
   }
 
   const changeDateTimeline = () => {
