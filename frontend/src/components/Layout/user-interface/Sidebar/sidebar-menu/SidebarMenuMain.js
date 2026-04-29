@@ -163,7 +163,7 @@ const SidebarMenuMain = () => {
     setLinks(
       !Array.isArray(menus)
         ? []
-        : [...menus, ...EXTRA_MENU].map((m) => ({
+        : [...menus, ...EXTRA_MENU].filter((m) => !m.hidden).map((m) => ({
             title: m.Text,
             fontIcon: m.icon,
             icon: '',

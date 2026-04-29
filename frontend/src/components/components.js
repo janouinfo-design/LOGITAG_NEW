@@ -49,6 +49,8 @@ import NewRapportUser from './Repports/user-interface/NewRapport/NewRapportUser'
 import NewRepportComponent from './Repports/user-interface/NewRepportComponent'
 import RapportComponent from './Repports/user-interface/RapportComponent'
 import NavixyReport from './Repports/user-interface/NavixyReport/NavixyReport'
+import ReportsHub from './Repports/user-interface/ReportsHub/ReportsHub'
+import IdleAssetsReport from './Repports/user-interface/IdleAssetsReport/IdleAssetsReport'
 import RapportDisplayed from './Repports/user-interface/RapportDisplayed'
 import ReservationModule from './Reservation/ReservationModule'
 import SetupInfo from './Setup_Info/user-interface/Setup.info'
@@ -99,7 +101,9 @@ const components = {
   'inventory/index': InventoryComponent,
   'vehicule/index': VehComponent,
   'deposit/index': DepotComponent,
-  'rapports/index': NavixyReport,
+  'rapports/index': ReportsHub,
+  'rapports/legacy': NavixyReport,
+  'idle-assets/index': IdleAssetsReport,
   'reservations/index': ReservationModule,
   'EnginNoActive/index': EnginInactive,
   'LOGS/index': LogsTrackingList,

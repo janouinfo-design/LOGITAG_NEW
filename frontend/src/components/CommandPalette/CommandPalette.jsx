@@ -15,6 +15,7 @@ const COMMANDS = [
   {id: 'reservations',  group: 'Navigation', label: 'Réservations · Planning',   icon: 'pi-calendar',       to: '/reservations/index', shortcut: 'G R'},
   {id: 'tags',          group: 'Navigation', label: 'Tags',                      icon: 'pi-tag',            to: '/tag/index'},
   {id: 'rapports',      group: 'Navigation', label: 'Rapports & exports',        icon: 'pi-chart-bar',      to: '/rapports/index'},
+  {id: 'idle-assets',   group: 'Navigation', label: 'Outils immobilisés',         icon: 'pi-clock',          to: '/idle-assets/index'},
   {id: 'depots',        group: 'Navigation', label: 'Dépôts',                    icon: 'pi-warehouse',      to: '/deposit/index'},
   {id: 'inventory',     group: 'Navigation', label: 'Inventaire',                icon: 'pi-list',           to: '/inventory/index'},
   {id: 'utilisateurs',  group: 'Navigation', label: 'Utilisateurs',              icon: 'pi-users',          to: '/view/staff/index'},
