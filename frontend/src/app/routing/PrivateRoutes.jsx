@@ -11,6 +11,7 @@ import { EXTRA_MENU } from '../../cors/config/config'
 const PrivateRoutes = () => {
   const location = useLocation()
   const [links, setLinks] = useState([])
+  const [menusLoaded, setMenusLoaded] = useState(false)
   const menus = useAppSelector(getMenus)
   useEffect(() => {
     if (!Array.isArray(menus)) return
@@ -31,14 +32,14 @@ const PrivateRoutes = () => {
       }
     }
     setLinks(obj)
-    setTimeout(() => {}, 1000)
+    if (menus.length > 0) setMenusLoaded(true)
   }, [menus])
 
   return (
     <Routes>
       <Route element={<MasterLayout />}>
         {links.map((o) => (
-          <Route path={o.link} element={o.component ? <o.component /> : null} />
+          <Route key={o.link} path={o.link} element={o.component ? <o.component /> : null} />
         ))}
         {/* Redirect to Dashboard after success login/registartion */}
         <Route
@@ -60,7 +61,16 @@ const PrivateRoutes = () => {
           path='next-page'
           element={<Navigate to={localStorage.getItem('next-page') == '/next-page' ? configs.defaultRoot : localStorage.getItem('next-page') || configs.defaultRoot} />}
         />
-        <Route path='*' element={<Navigate to={configs.defaultRoot} />} />
+        {/*
+          IMPORTANT: only register the wildcard fallback redirect AFTER the menus
+          have been loaded from the server. On a hard reload, `links` is empty for
+          the few hundred ms it takes for fetchMenus() to resolve — without this
+          guard the '*' route would match immediately and redirect the user back
+          to the dashboard regardless of the URL they refreshed on.
+          While menus are loading we render `null` so the URL is preserved; once
+          the routes are registered, the SPA renders the correct page.
+        */}
+        {menusLoaded && <Route path='*' element={<Navigate to={configs.defaultRoot} />} />}
       </Route>
     </Routes>
   )
