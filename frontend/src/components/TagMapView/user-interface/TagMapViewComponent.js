@@ -340,20 +340,27 @@ const TagMapViewComponent = ({type}) => {
   }
 
   useEffect(() => {
-    dispatch(
-      fetchEngines({
-        page: 1,
-        filterPosition: 1,
-        SortDirection: 'DESC',
-        SortColumn: 'lastSeenAt',
-        PageSize: 5000,
-      })
-    ).then(({payload}) => {
-      setTotalRecords(payload[0]?.TotalEngins || 0)
+    // Skip fetch if Redux cache already has engines (avoids 30s wait when arriving fresh on /tour/index).
+    // Same pattern as CalendarView: stale-while-revalidate via shared backend cache (TTL 60s).
+    if (Array.isArray(list) && list.length > 0) {
+      setTotalRecords(list.length)
       setPage(0)
-      // setIsLastPage(payload)
-    })
+    } else {
+      dispatch(
+        fetchEngines({
+          page: 1,
+          filterPosition: 1,
+          SortDirection: 'DESC',
+          SortColumn: 'lastSeenAt',
+          PageSize: 5000,
+        })
+      ).then(({payload}) => {
+        setTotalRecords(payload?.[0]?.TotalEngins || (Array.isArray(payload) ? payload.length : 0))
+        setPage(0)
+      })
+    }
     dispatch(fetchStatusList())
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

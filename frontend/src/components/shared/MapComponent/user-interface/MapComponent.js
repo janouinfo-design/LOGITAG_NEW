@@ -2015,7 +2015,15 @@ const MapComponent = ({
                     })}
                     {pagedAssets.length === 0 && (
                       <div className='lt-asset-row-empty'>
-                        <i className='pi pi-inbox' /> Aucun engin ne correspond aux filtres
+                        {(!realList || realList.length === 0) ? (
+                          <>
+                            <i className='pi pi-spin pi-spinner' style={{color: '#3B82F6'}} /> Chargement des engins…
+                          </>
+                        ) : (
+                          <>
+                            <i className='pi pi-inbox' /> Aucun engin ne correspond aux filtres
+                          </>
+                        )}
                       </div>
                     )}
                   </div>

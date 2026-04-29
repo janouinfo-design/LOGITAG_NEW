@@ -112,6 +112,11 @@ Gestionnaires de flotte / superviseurs Logistique en entreprise (usage desktop e
   **Solutions** :
   - **Source primaire** : `enginesFromRedux` (cache 60s backend déjà chaud) — fallback sur `dispatch(fetchEngines)` uniquement si vide.
   - **Pagination 100% client-side** : `filteredRessources.slice(first, first+rows)` → FullCalendar ne reçoit jamais plus de 30 lignes (rowsPerPage 10/20/30). 
+- **[2026-02-XX] FIX Map "vide" au cold start** :
+  - **Bug** : Quand l'utilisateur arrivait sur `/tour/index` sans warmup préalable du Redux engines, la liste latérale "Liste des engins" affichait "Aucun engin ne correspond aux filtres" pendant 30s (le temps que `fetchEngines(PageSize:5000)` finisse côté serveur). Trompeur — on dirait que la map est cassée.
+  - **Fix 1 (TagMapViewComponent)** : Skip `dispatch(fetchEngines)` au mount si Redux contient déjà des engines (même pattern que CalendarView). Bénéficie du cache backend 60s.
+  - **Fix 2 (MapComponent UX)** : Quand `realList.length === 0`, afficher un état de chargement explicite (spinner bleu + "Chargement des engins…") au lieu du message d'erreur trompeur "Aucun engin ne correspond aux filtres".
+  - **Validation e2e** : Map list peuplée en **0.75s** quand on arrive du Dashboard (cache hot), 4935 engins / Pagination 1/494 fonctionnelle.
   - **Recherche client-side** : filtre sur `reference/nom/tagname` du cache Redux (instantané, plus de 30s d'attente).
   - **`onPageChange`** : juste un bump du `calendarKey`, plus aucun appel réseau.
   
