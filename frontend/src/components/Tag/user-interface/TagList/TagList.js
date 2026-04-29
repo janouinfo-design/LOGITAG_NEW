@@ -362,9 +362,10 @@ const TagList = ({titleShow, detailView, tags}) => {
 
   // Clamp gridPage when tag list changes (search, refetch)
   useEffect(() => {
-    const maxPage = Math.max(1, Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE))
+    const len = Array.isArray(tags) ? tags.length : 0
+    const maxPage = Math.max(1, Math.ceil(len / GRID_PAGE_SIZE))
     if (gridPage > maxPage) setGridPage(maxPage)
-  }, [tags?.length, gridPage])
+  }, [Array.isArray(tags) ? tags.length : 0, gridPage])
 
   return (
     <>
@@ -461,15 +462,12 @@ const TagList = ({titleShow, detailView, tags}) => {
                 data-testid="tag-grid-search"
               />
               <span style={{fontSize: '0.72rem', color: '#94A3B8', fontWeight: 600, padding: '3px 10px', borderRadius: 6, background: '#F1F5F9'}}>
-                Page {gridPage} / {Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE) || 1}
+                Page {gridPage} / {Math.ceil((Array.isArray(tags) ? tags.length : 0) / GRID_PAGE_SIZE) || 1}
               </span>
             </div>
             {/* Grid */}
             <div className="lt-vignette-grid" data-testid="tag-grid-view">
-              {(() => {
-                const start = (gridPage - 1) * GRID_PAGE_SIZE
-                return (tags || []).slice(start, start + GRID_PAGE_SIZE)
-              })().map((item, i) => {
+              {(Array.isArray(tags) ? tags : []).slice((gridPage - 1) * GRID_PAGE_SIZE, gridPage * GRID_PAGE_SIZE).map((item, i) => {
                 const isActive = item.active == 1
                 const statusColor = item.statusbgColor || '#94A3B8'
                 return (
@@ -523,13 +521,13 @@ const TagList = ({titleShow, detailView, tags}) => {
                 <i className="pi pi-chevron-left"></i>
               </button>
               <span className="lt-grid-page-info">
-                Page <strong>{gridPage}</strong> / <strong>{Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE) || 1}</strong>
-                &nbsp;&mdash;&nbsp;{tags?.length || 0} tags
+                Page <strong>{gridPage}</strong> / <strong>{Math.ceil((Array.isArray(tags) ? tags.length : 0) / GRID_PAGE_SIZE) || 1}</strong>
+                &nbsp;&mdash;&nbsp;{Array.isArray(tags) ? tags.length : 0} tags
               </span>
               <button
                 className="lt-grid-page-btn"
-                disabled={gridPage >= Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE)}
-                onClick={() => setGridPage((p) => Math.min(Math.ceil((tags?.length || 0) / GRID_PAGE_SIZE), p + 1))}
+                disabled={gridPage >= Math.ceil((Array.isArray(tags) ? tags.length : 0) / GRID_PAGE_SIZE)}
+                onClick={() => setGridPage((p) => Math.min(Math.ceil((Array.isArray(tags) ? tags.length : 0) / GRID_PAGE_SIZE), p + 1))}
                 data-testid="tag-grid-next"
               >
                 <i className="pi pi-chevron-right"></i>
