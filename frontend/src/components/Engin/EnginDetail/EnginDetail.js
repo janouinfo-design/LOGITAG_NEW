@@ -22,6 +22,7 @@ import {
   getTagEdit,
   seTagEdit,
   setEditTagEngin,
+  setEditEngine,
   setSelectedEngine,
   setSelectedTag,
   setShow,
@@ -405,7 +406,7 @@ const EnginDetail = () => {
             <div className='lt-engin-actions'>
               <PrimaryActionButton type="communicate" onClick={displayChatDetail} />
               <PrimaryActionButton type="more" onClick={create} disabled={selectedEngin?.relationId != 0} />
-              <PrimaryActionButton type="edit" onClick={onSave} />
+              <PrimaryActionButton type="edit" onClick={() => dispatch(setEditEngine(true))} />
             </div>
           </div>
           {/* Hero stats row */}
