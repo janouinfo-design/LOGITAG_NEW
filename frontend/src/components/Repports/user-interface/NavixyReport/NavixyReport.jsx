@@ -155,11 +155,42 @@ const fmtFrDate = (d) => d
     + ' (' + d.toLocaleDateString('fr-FR', {weekday: 'short'}).replace('.', '') + ')'
   : '—'
 const fmtTime = (d) => d ? d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : '—'
+
+/* Human-friendly duration: "12j 5h 30min", "5h 30min", "30min", "—" */
 const durationHM = (fromMs, toMs) => {
-  const min = Math.max(0, Math.floor((toMs - fromMs) / 60000))
-  const h = Math.floor(min / 60)
-  const m = min % 60
-  return `${String(Math.min(h, 99)).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+  const totalMin = Math.max(0, Math.floor((toMs - fromMs) / 60000))
+  if (totalMin === 0) return '0min'
+  const days = Math.floor(totalMin / 1440)
+  const hours = Math.floor((totalMin % 1440) / 60)
+  const minutes = totalMin % 60
+  const parts = []
+  if (days > 0) parts.push(`${days}j`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0 && days === 0) parts.push(`${minutes}min`) // hide minutes when ≥1 day
+  return parts.length > 0 ? parts.join(' ') : '0min'
+}
+
+/* Sum durations stored as the new human format ("12j 5h 30min") */
+const sumDurations = (rows) => {
+  let totalMin = 0
+  rows.forEach((r) => {
+    if (!r?.temps || r.temps === '—') return
+    const dMatch = r.temps.match(/(\d+)j/)
+    const hMatch = r.temps.match(/(\d+)h/)
+    const mMatch = r.temps.match(/(\d+)min/)
+    if (dMatch) totalMin += parseInt(dMatch[1], 10) * 1440
+    if (hMatch) totalMin += parseInt(hMatch[1], 10) * 60
+    if (mMatch) totalMin += parseInt(mMatch[1], 10)
+  })
+  if (totalMin === 0) return '0min'
+  const days = Math.floor(totalMin / 1440)
+  const hours = Math.floor((totalMin % 1440) / 60)
+  const minutes = totalMin % 60
+  const parts = []
+  if (days > 0) parts.push(`${days}j`)
+  if (hours > 0) parts.push(`${hours}h`)
+  if (minutes > 0 && days === 0) parts.push(`${minutes}min`)
+  return parts.join(' ') || '0min'
 }
 
 /**
@@ -852,7 +883,7 @@ function NavixyReport() {
 // ────────── Sub components ──────────
 function TripsTable({isZone, trackerId, engines}) {
   const days = useMemo(() => buildDaysForTracker(trackerId, engines), [trackerId, engines])
-  const totalTemps = useMemo(() => sumColumn(days, 'temps'), [days])
+  const totalTemps = useMemo(() => sumDurations(days.flatMap((d) => d.rows)), [days])
   return (
     <table className='nvx-tbl' data-testid='nvx-trips-table'>
       <thead>
@@ -928,7 +959,7 @@ function AlertTable({trackerId}) {
 function ResumeCard({isAlert, trackerId, engines}) {
   const days = useMemo(() => buildDaysForTracker(trackerId, engines), [trackerId, engines])
   const tripCount = useMemo(() => days.reduce((acc, d) => acc + d.rows.length, 0), [days])
-  const totalSite = useMemo(() => sumColumn(days, 'temps'), [days])
+  const totalSite = useMemo(() => sumDurations(days.flatMap((d) => d.rows)), [days])
   const lastAddr = useMemo(() => {
     const last = days[days.length - 1]?.rows?.slice(-1)[0]
     if (!last?.arrivee) return '—'
@@ -983,7 +1014,7 @@ function SummaryPanel({isAlert, isZone, trackers, engines}) {
             // Compute real per-tracker values from Redux engines when available
             const days = !isAlert ? buildDaysForTracker(t.id, engines) : null
             const tripCount = days ? days.reduce((s, d) => s + d.rows.length, 0) : 0
-            const totalSite = days ? sumColumn(days, 'temps') : '00:00'
+            const totalSite = days ? sumDurations(days.flatMap((d) => d.rows)) : '0min'
             return (
             <tr key={t.id}>
               <td>{t.label}</td>
