@@ -110,10 +110,24 @@ const IdleAssetsReport = () => {
   }, [engines, threshold])
 
   /* Distinct values for filter dropdowns */
-  const zoneOptions = useMemo(
-    () => Array.from(new Set(rows.map((r) => r.zone).filter((v) => v && v !== '—'))).sort().map((v) => ({label: v, value: v})),
-    [rows]
-  )
+  const zoneOptions = useMemo(() => {
+    const siteSet = new Set()
+    const clientSet = new Set()
+    rows.forEach((r) => {
+      if (r.zone && r.zone !== '—') siteSet.add(r.zone)
+      if (r.client && r.client !== '—') clientSet.add(r.client)
+    })
+    const opts = []
+    if (siteSet.size > 0) {
+      opts.push({label: '── Sites ──', value: '__sep_sites__', disabled: true})
+      ;[...siteSet].sort().forEach((v) => opts.push({label: v, value: v}))
+    }
+    if (clientSet.size > 0) {
+      opts.push({label: '── Clients ──', value: '__sep_clients__', disabled: true})
+      ;[...clientSet].sort().forEach((v) => opts.push({label: `Client: ${v}`, value: `client:${v}`}))
+    }
+    return opts
+  }, [rows])
   const categoryOptions = useMemo(
     () => Array.from(new Set(rows.map((r) => r.category).filter((v) => v && v !== '—'))).sort().map((v) => ({label: v, value: v})),
     [rows]
@@ -126,7 +140,14 @@ const IdleAssetsReport = () => {
   /* Apply filters */
   const filteredRows = useMemo(() => {
     let list = rows
-    if (zoneFilter) list = list.filter((r) => r.zone === zoneFilter)
+    if (zoneFilter) {
+      if (typeof zoneFilter === 'string' && zoneFilter.startsWith('client:')) {
+        const c = zoneFilter.slice(7)
+        list = list.filter((r) => r.client === c)
+      } else {
+        list = list.filter((r) => r.zone === zoneFilter)
+      }
+    }
     if (categoryFilter) list = list.filter((r) => r.category === categoryFilter)
     if (statusFilter) list = list.filter((r) => r.status === statusFilter)
     if (clientFilter) list = list.filter((r) => r.client === clientFilter)

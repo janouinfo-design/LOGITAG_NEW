@@ -80,8 +80,10 @@ const EnginInactive = () => {
   const [perPage, setPerPage] = useState(10)
   const [page, setPage] = useState(1)
   const [filterType, setFilterType] = useState('all')
+  const [selectedIds, setSelectedIds] = useState(new Set())
 
   useEffect(() => { dispatch(fetchObjectsNonActive()) }, [])
+  useEffect(() => { setSelectedIds(new Set()) }, [filterType, search, page, perPage])
 
   const onActivate = (row) => {
     dispatch(setAlertParams({
@@ -99,6 +101,35 @@ const EnginInactive = () => {
       acceptClassName: 'p-button-danger',
       visible: true,
       accept: () => dispatch(deleteEngin({srcId: row.id, srcObject: row.tableName})),
+    }))
+  }
+
+  /* ── Bulk delete ── */
+  const rowKey = (r) => `${r.tableName}-${r.id}`
+  const toggleRow = (r) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      const k = rowKey(r)
+      if (next.has(k)) next.delete(k); else next.add(k)
+      return next
+    })
+  }
+  const onBulkDelete = () => {
+    const keys = [...selectedIds]
+    if (keys.length === 0) return
+    dispatch(setAlertParams({
+      title: 'Suppression multiple',
+      message: `Supprimer définitivement ${keys.length} élément${keys.length > 1 ? 's' : ''} ? Cette action est irréversible.`,
+      acceptClassName: 'p-button-danger',
+      visible: true,
+      accept: async () => {
+        const list = Array.isArray(objectNoActive) ? objectNoActive : []
+        for (const k of keys) {
+          const row = list.find((x) => rowKey(x) === k)
+          if (row) await dispatch(deleteEngin({srcId: row.id, srcObject: row.tableName}))
+        }
+        setSelectedIds(new Set())
+      },
     }))
   }
 
@@ -159,6 +190,24 @@ const EnginInactive = () => {
       )}
 
       <div style={{background: '#FFF', border: '1px solid #E2E8F0', borderRadius: 14, overflow: 'hidden', boxShadow: '0 1px 2px rgba(15, 23, 42, 0.04)'}}>
+        {/* Bulk action bar */}
+        {selectedIds.size > 0 && (
+          <div data-testid='inactive-bulk-bar' style={{padding: '12px 18px', background: '#FEF2F2', borderBottom: '1px solid #FECACA', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12}}>
+            <div style={{display: 'flex', alignItems: 'center', gap: 10, fontSize: '0.86rem', color: '#991B1B', fontWeight: 600}}>
+              <i className='pi pi-check-square' />
+              {selectedIds.size} élément{selectedIds.size > 1 ? 's' : ''} sélectionné{selectedIds.size > 1 ? 's' : ''}
+            </div>
+            <div style={{display: 'flex', gap: 8}}>
+              <button data-testid='inactive-bulk-clear' onClick={() => setSelectedIds(new Set())} style={{padding: '7px 14px', borderRadius: 8, border: '1px solid #FECACA', background: '#FFF', color: '#991B1B', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer'}}>
+                Annuler
+              </button>
+              <button data-testid='inactive-bulk-delete' onClick={onBulkDelete} style={{padding: '7px 14px', borderRadius: 8, border: 'none', background: '#DC2626', color: '#FFF', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6}}>
+                <i className='pi pi-trash' style={{fontSize: '0.78rem'}} /> Supprimer la sélection
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{padding: 16, borderBottom: '1px solid #F1F5F9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap'}}>
           <button style={{display: 'inline-flex', alignItems: 'center', gap: 8, padding: '9px 16px', borderRadius: 10, border: '1px solid #E2E8F0', background: '#FFF', color: '#475569', fontWeight: 600, fontSize: '0.82rem', cursor: 'pointer'}}>
             <i className='pi pi-filter' style={{fontSize: '0.8rem'}}></i>Filtres
@@ -179,6 +228,20 @@ const EnginInactive = () => {
           <table style={{width: '100%', borderCollapse: 'collapse'}}>
             <thead>
               <tr style={{background: '#FAFBFC', borderBottom: '1px solid #F1F5F9'}}>
+                <th style={{...thStyle, width: 44}}>
+                  <input
+                    type='checkbox'
+                    data-testid='inactive-select-all'
+                    checked={pageRows.length > 0 && pageRows.every((r) => selectedIds.has(rowKey(r)))}
+                    onChange={(e) => {
+                      const next = new Set(selectedIds)
+                      if (e.target.checked) pageRows.forEach((r) => next.add(rowKey(r)))
+                      else pageRows.forEach((r) => next.delete(rowKey(r)))
+                      setSelectedIds(next)
+                    }}
+                    style={{width: 16, height: 16, cursor: 'pointer'}}
+                  />
+                </th>
                 <th style={thStyle}>Actions</th>
                 <th style={thStyle}>Image</th>
                 <th style={thStyle}>Nom <SortIcon /></th>
@@ -191,7 +254,7 @@ const EnginInactive = () => {
             <tbody>
               {pageRows.length === 0 && (
                 <tr>
-                  <td colSpan={7} style={{padding: 60, textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem'}}>
+                  <td colSpan={8} style={{padding: 60, textAlign: 'center', color: '#94A3B8', fontSize: '0.85rem'}}>
                     <i className='pi pi-check-circle' style={{fontSize: '1.6rem', color: '#CBD5E1', display: 'block', marginBottom: 8}}></i>
                     Aucun objet inactif — tout est à jour !
                   </td>
@@ -199,11 +262,22 @@ const EnginInactive = () => {
               )}
               {pageRows.map((row) => {
                 const s = getStyle(row.tableName)
+                const k = rowKey(row)
+                const checked = selectedIds.has(k)
                 return (
-                  <tr key={`${row.tableName}-${row.id}`} style={{borderBottom: '1px solid #F8FAFC', transition: 'background 0.12s'}}
-                      onMouseEnter={(e) => e.currentTarget.style.background = '#FAFBFC'}
-                      onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                  <tr key={k} style={{borderBottom: '1px solid #F8FAFC', transition: 'background 0.12s', background: checked ? '#EFF6FF' : 'transparent'}}
+                      onMouseEnter={(e) => { if (!checked) e.currentTarget.style.background = '#FAFBFC' }}
+                      onMouseLeave={(e) => { if (!checked) e.currentTarget.style.background = 'transparent' }}
                       data-testid={`inactive-row-${row.id}`}>
+                    <td style={tdStyle}>
+                      <input
+                        type='checkbox'
+                        data-testid={`inactive-select-${row.id}`}
+                        checked={checked}
+                        onChange={() => toggleRow(row)}
+                        style={{width: 16, height: 16, cursor: 'pointer'}}
+                      />
+                    </td>
                     <td style={tdStyle}><KebabMenu row={row} onActivate={onActivate} onDelete={onDelete} /></td>
                     <td style={tdStyle}>
                       {row.image ? (

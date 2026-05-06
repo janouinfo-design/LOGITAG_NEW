@@ -96,11 +96,11 @@ const HistoryListComponent = (props) => {
               <p><OlangItem olang='No.Data' /></p>
             </div>
           ) : (
-            <div>
+            <div className='lt-timeline-list-wrapper' style={{display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden'}}>
               <Toast ref={toast} />
               <ConfirmDialog />
               {!props.history && props?.allGeo?.length > 1 && (
-                <div style={{padding: '0 16px 12px'}}>
+                <div style={{padding: '0 16px 12px', flexShrink: 0}}>
                   <div className='lt-timeline-search'>
                     <i className='pi pi-search' style={{fontSize: '0.8rem', color: 'var(--lt-text-muted)'}}></i>
                     <input

@@ -471,7 +471,16 @@ const TagList = ({titleShow, detailView, tags}) => {
                 const isActive = item.active == 1
                 const statusColor = item.statusbgColor || '#94A3B8'
                 return (
-                  <div key={item.id || i} className="lt-vcard" data-testid={`tag-vcard-${i}`}>
+                  <div
+                    key={item.id || i}
+                    className="lt-vcard"
+                    data-testid={`tag-vcard-${i}`}
+                    onClick={() => {
+                      dispatch(setSelectedTag(item))
+                      dispatch(setShow(false))
+                    }}
+                    style={{cursor: 'pointer'}}
+                  >
                     <div className="lt-vcard-img-ph" style={{background: item.familleBgcolor || '#1D4ED8', color: '#FFF'}}>
                       <i className={item.familleIcon || 'pi pi-tag'}></i>
                     </div>

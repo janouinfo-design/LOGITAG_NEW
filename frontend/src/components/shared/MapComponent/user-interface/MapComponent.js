@@ -47,6 +47,7 @@ import {
   fetchEngines,
   fetchEnginesMap,
   fetchVehiculePositionsHistory,
+  getEngines,
   getGeoByIdSite,
   getLastEnginsUpdates,
   getSelectedEnginMap,
@@ -342,6 +343,20 @@ const MapComponent = ({
     }, [])
   }, [piosList])
 
+  /* Merge in Redux engines that are NOT yet in the geolocated map list, so the
+     panel always shows the full fleet (geolocated + non-geolocated combined). */
+  const allEnginesRedux = useAppSelector(getEngines)
+  const mergedAssets = useMemo(() => {
+    const base = Array.isArray(flatAssets) ? flatAssets : []
+    const list = Array.isArray(allEnginesRedux) ? allEnginesRedux : []
+    if (list.length === 0) return base
+    const seen = new Set(base.map((a) => String(a?.uid ?? a?.id ?? '')))
+    const extras = list
+      .filter((e) => !seen.has(String(e?.uid ?? e?.id ?? '')))
+      .map((e) => ({...e, _noPosition: true}))
+    return [...base, ...extras]
+  }, [flatAssets, allEnginesRedux])
+
   // ─── Asset List: counts, filter, sort, pagination ───
   const classifyAsset = (pio) => {
     // returns {bucket: 'onsite' | 'arrived' | 'exited' | 'offline', color, label}
@@ -358,8 +373,8 @@ const MapComponent = ({
   }
 
   const listCounts = useMemo(() => {
-    const c = {all: flatAssets.length, onsite: 0, arrived: 0, exited: 0, battery: 0, offline: 0, reserved: 0}
-    flatAssets.forEach((p) => {
+    const c = {all: mergedAssets.length, onsite: 0, arrived: 0, exited: 0, battery: 0, offline: 0, reserved: 0}
+    mergedAssets.forEach((p) => {
       const cl = classifyAsset(p)
       c[cl.bucket]++
       const b = Number(p?.batteries)
@@ -367,10 +382,10 @@ const MapComponent = ({
       if (isAssetReserved(p)) c.reserved++
     })
     return c
-  }, [flatAssets, isAssetReserved])
+  }, [mergedAssets, isAssetReserved])
 
   const visibleAssets = useMemo(() => {
-    let list = flatAssets
+    let list = mergedAssets
     if (listQuickFilter !== 'all') {
       list = list.filter((p) => {
         const cl = classifyAsset(p)
@@ -396,7 +411,7 @@ const MapComponent = ({
       })
     }
     return sorted
-  }, [flatAssets, listQuickFilter, listSort])
+  }, [mergedAssets, listQuickFilter, listSort])
 
   const totalListPages = Math.max(1, Math.ceil(visibleAssets.length / listPageSize))
   const currentListPage = Math.min(listPage, totalListPages)
@@ -1671,7 +1686,7 @@ const MapComponent = ({
                     <div className='lt-asset-panel-title'>
                       <i className='pi pi-bars' />
                       <div>
-                        <strong>Liste des engins <span className='lt-asset-panel-total'>{flatAssets.length}</span></strong>
+                        <strong>Liste des engins <span className='lt-asset-panel-total'>{mergedAssets.length}</span></strong>
                         <span className='lt-asset-panel-sub'>
                           Page {currentListPage} / {totalListPages} · {listPageSize}/page
                         </span>

@@ -87,14 +87,26 @@ const ReportsHub = () => {
       .filter((c) => c.reports.length > 0)
   }, [search])
 
-  /* Available zones for filter dropdown */
+  /* Available zones for filter dropdown — site zones + client/customer names */
   const zoneOptions = useMemo(() => {
-    const set = new Set()
+    const siteSet = new Set()
+    const clientSet = new Set()
     engines.forEach((e) => {
       const z = e.LocationObjectname || e.zoneName
-      if (z && z !== '—') set.add(z)
+      if (z && z !== '—') siteSet.add(z)
+      const c = e.customerName || e.clientName || e.entrepriseName
+      if (c && c !== '—') clientSet.add(c)
     })
-    return [{label: 'Toutes les zones', value: null}, ...[...set].sort().map((v) => ({label: v, value: v}))]
+    const opts = [{label: 'Toutes les zones', value: null}]
+    if (siteSet.size > 0) {
+      opts.push({label: '── Sites ──', value: '__sep_sites__', disabled: true})
+      ;[...siteSet].sort().forEach((v) => opts.push({label: v, value: v}))
+    }
+    if (clientSet.size > 0) {
+      opts.push({label: '── Clients ──', value: '__sep_clients__', disabled: true})
+      ;[...clientSet].sort().forEach((v) => opts.push({label: `Client: ${v}`, value: `client:${v}`}))
+    }
+    return opts
   }, [engines])
 
   const handleSelectReport = (id) => {
