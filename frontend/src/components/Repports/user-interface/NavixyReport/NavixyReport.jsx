@@ -137,9 +137,68 @@ function hashId(id) {
   return Math.abs(h)
 }
 
-function buildDaysForTracker(trackerId) {
+/* ─── Real-data helpers ─── */
+const parseDate = (raw) => {
+  if (!raw) return null
+  if (typeof raw === 'string' && /^\d{2}\/\d{2}\/\d{4}/.test(raw)) {
+    const [d, t] = raw.split(' ')
+    const [dd, mm, yyyy] = d.split('/')
+    const [hh = '0', mi = '0'] = (t || '').split(':')
+    const x = new Date(+yyyy, +mm - 1, +dd, +hh, +mi)
+    return isNaN(x.getTime()) ? null : x
+  }
+  const x = new Date(raw)
+  return isNaN(x.getTime()) || x.getFullYear() < 2000 ? null : x
+}
+const fmtFrDate = (d) => d
+  ? d.toLocaleDateString('fr-FR', {day: '2-digit', month: 'short', year: 'numeric'})
+    + ' (' + d.toLocaleDateString('fr-FR', {weekday: 'short'}).replace('.', '') + ')'
+  : '—'
+const fmtTime = (d) => d ? d.toLocaleTimeString('fr-FR', {hour: '2-digit', minute: '2-digit'}) : '—'
+const durationHM = (fromMs, toMs) => {
+  const min = Math.max(0, Math.floor((toMs - fromMs) / 60000))
+  const h = Math.floor(min / 60)
+  const m = min % 60
+  return `${String(Math.min(h, 99)).padStart(2, '0')}:${String(m).padStart(2, '0')}`
+}
+
+/**
+ * Build a per-engin "trip" report from the real Redux engine data.
+ * Each engin contributes one entry with its last known position + duration on site.
+ * Falls back to mock data only when no engin matches (e.g. demo mode).
+ */
+function buildDaysForTracker(trackerId, engines) {
+  const list = Array.isArray(engines) ? engines : []
+  const engin = list.find((e) => String(e.id || e.uid) === String(trackerId))
+  if (engin) {
+    const lastSeen = parseDate(engin.lastSeenAt) || parseDate(engin.locationDate) || parseDate(engin.tagDate)
+    if (lastSeen) {
+      const now = Date.now()
+      const tempsSurSite = durationHM(lastSeen.getTime(), now)
+      const addr = engin.LocationObjectname || engin.lastSeenAddress || engin.enginAddress || '—'
+      const previousAddr = engin.enginAddress && engin.enginAddress !== addr ? engin.enginAddress : addr
+      return [{
+        date: fmtFrDate(lastSeen),
+        rows: [{
+          depart: `${fmtTime(lastSeen)} — ${previousAddr}`,
+          arrivee: `${fmtTime(lastSeen)} — ${addr}`,
+          temps: tempsSurSite,
+        }],
+      }]
+    }
+    // engin found but no lastSeenAt — return empty meaningful entry
+    return [{
+      date: fmtFrDate(new Date()),
+      rows: [{
+        depart: '— Aucune position détectée',
+        arrivee: engin.LocationObjectname || engin.enginAddress || '—',
+        temps: '—',
+      }],
+    }]
+  }
+  // Fallback: deterministic mock for demo trackers (no real engin)
   const seed = hashId(trackerId)
-  const dayCount = 1 + (seed % 2)            // 1 or 2 days
+  const dayCount = 1 + (seed % 2)
   const days = []
   for (let d = 0; d < dayCount; d++) {
     const routeIdx = (seed + d * 3) % TRIP_ROUTES_POOL.length
@@ -147,12 +206,7 @@ function buildDaysForTracker(trackerId) {
     const dateIdx = (seed + d) % DATE_VARIATIONS.length
     days.push({
       date: DATE_VARIATIONS[dateIdx],
-      rows: route.map((r, i) => ({
-        depart: r.depart,
-        arrivee: r.arrivee,
-        temps: r.temps,
-        inactiv: r.inactiv,
-      })),
+      rows: route.map((r) => ({depart: r.depart, arrivee: r.arrivee, temps: r.temps})),
     })
   }
   return days
@@ -304,14 +358,15 @@ function NavixyReport() {
         rows: MOCK_ALERT_ROWS.map((r) => [r.time, r.address, r.status, r.duration]),
       }
     }
-    const headers = isZoneReport
-      ? ['Départ', 'Arrivée', 'Temps sur site']
-      : ['Départ', 'Arrivée', 'Temps sur site']
+    const headers = ['Engin', 'Date', 'Départ', 'Arrivée', 'Temps sur site']
     const rows = []
-    MOCK_RESULT_DAYS.forEach((day) => {
-      rows.push([`── ${day.date} ──`, '', ''])
-      day.rows.forEach((r) => {
-        rows.push([r.depart, r.arrivee, r.temps])
+    /* Build export from the actual selected trackers + real engin data */
+    selectedTrackerLabels.forEach((t) => {
+      const days = buildDaysForTracker(t.id, engines)
+      days.forEach((day) => {
+        day.rows.forEach((r) => {
+          rows.push([t.label, day.date, r.depart, r.arrivee, r.temps])
+        })
       })
     })
     return {headers, rows}
@@ -760,6 +815,7 @@ function NavixyReport() {
                 isAlert={isAlertReport}
                 isZone={isZoneReport}
                 trackers={selectedTrackerLabels}
+                engines={engines}
               />
             ) : (
               <>
@@ -772,7 +828,7 @@ function NavixyReport() {
                       {selectedTrackerLabels.find((t) => t.id === activeTab)?.label || activeTab}
                     </span>
                   </div>
-                  {isAlertReport ? <AlertTable trackerId={activeTab} /> : <TripsTable isZone={isZoneReport} trackerId={activeTab} />}
+                  {isAlertReport ? <AlertTable trackerId={activeTab} /> : <TripsTable isZone={isZoneReport} trackerId={activeTab} engines={engines} />}
                 </div>
                 {showResume && (
                   <div className='nvx-sect nvx-sect-resume'>
@@ -780,7 +836,7 @@ function NavixyReport() {
                       <i className='pi pi-chevron-down' />
                       <span>Résumé</span>
                     </div>
-                    <ResumeCard isAlert={isAlertReport} trackerId={activeTab} />
+                    <ResumeCard isAlert={isAlertReport} trackerId={activeTab} engines={engines} />
                   </div>
                 )}
                 <div className='nvx-sect-note'>Données basées sur la période sélectionnée.</div>
@@ -794,8 +850,8 @@ function NavixyReport() {
 }
 
 // ────────── Sub components ──────────
-function TripsTable({isZone, trackerId}) {
-  const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
+function TripsTable({isZone, trackerId, engines}) {
+  const days = useMemo(() => buildDaysForTracker(trackerId, engines), [trackerId, engines])
   const totalTemps = useMemo(() => sumColumn(days, 'temps'), [days])
   return (
     <table className='nvx-tbl' data-testid='nvx-trips-table'>
@@ -869,8 +925,8 @@ function AlertTable({trackerId}) {
   )
 }
 
-function ResumeCard({isAlert, trackerId}) {
-  const days = useMemo(() => buildDaysForTracker(trackerId), [trackerId])
+function ResumeCard({isAlert, trackerId, engines}) {
+  const days = useMemo(() => buildDaysForTracker(trackerId, engines), [trackerId, engines])
   const tripCount = useMemo(() => days.reduce((acc, d) => acc + d.rows.length, 0), [days])
   const totalSite = useMemo(() => sumColumn(days, 'temps'), [days])
   const lastAddr = useMemo(() => {
@@ -905,7 +961,7 @@ function ResumeCard({isAlert, trackerId}) {
   )
 }
 
-function SummaryPanel({isAlert, isZone, trackers}) {
+function SummaryPanel({isAlert, isZone, trackers, engines}) {
   return (
     <div className='nvx-sect'>
       <div className='nvx-sect-head'><i className='pi pi-chevron-down' /><span>Résumé</span></div>
@@ -923,7 +979,12 @@ function SummaryPanel({isAlert, isZone, trackers}) {
           </tr>
         </thead>
         <tbody>
-          {trackers.map((t, i) => (
+          {trackers.map((t, i) => {
+            // Compute real per-tracker values from Redux engines when available
+            const days = !isAlert ? buildDaysForTracker(t.id, engines) : null
+            const tripCount = days ? days.reduce((s, d) => s + d.rows.length, 0) : 0
+            const totalSite = days ? sumColumn(days, 'temps') : '00:00'
+            return (
             <tr key={t.id}>
               <td>{t.label}</td>
               {isAlert ? (
@@ -934,18 +995,18 @@ function SummaryPanel({isAlert, isZone, trackers}) {
                 </>
               ) : isZone ? (
                 <>
-                  <td className='nvx-tbl-num'>{5 + i}</td>
-                  <td className='nvx-tbl-num'>{`0${2 + i}:4${i % 6}`}</td>
-                  <td>Zone Est, Zone Ouest</td>
+                  <td className='nvx-tbl-num'>{tripCount}</td>
+                  <td className='nvx-tbl-num'>{totalSite}</td>
+                  <td>{(days && days[0]?.rows?.[0]?.arrivee?.split(' — ')?.[1]) || '—'}</td>
                 </>
               ) : (
                 <>
-                  <td className='nvx-tbl-num'>{4 + (i % 3)}</td>
-                  <td className='nvx-tbl-num'>{`0${(i % 3) + 4}:${10 + (i * 7) % 50}`}</td>
+                  <td className='nvx-tbl-num'>{tripCount}</td>
+                  <td className='nvx-tbl-num'>{totalSite}</td>
                 </>
               )}
             </tr>
-          ))}
+          )})}
         </tbody>
       </table>
     </div>
