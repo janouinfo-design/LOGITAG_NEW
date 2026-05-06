@@ -12,6 +12,7 @@ import {getEngines, fetchEngines} from '../../../Engin/slice/engin.slice'
 import {useAppDispatch} from '../../../../hooks'
 import {REPORT_CATALOG, FLAT_REPORTS, BADGE_LABELS, BADGE_COLORS} from './reportCatalog'
 import {renderers} from './reportRenderers'
+import ScheduledReportsLibrary from './ScheduledReportsLibrary'
 import './ReportsHub.css'
 
 const norm = (s) => (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '')
@@ -46,6 +47,23 @@ const ReportsHub = () => {
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [scheduleFreq, setScheduleFreq] = useState('weekly')
   const [scheduleEmail, setScheduleEmail] = useState('')
+  const [topTab, setTopTab] = useState('available') // 'available' | 'scheduled'
+
+  /* Compute scheduled count for badge */
+  const [scheduledCount, setScheduledCount] = useState(0)
+  useEffect(() => {
+    const update = () => {
+      try {
+        const list = JSON.parse(localStorage.getItem('lt-scheduled-reports') || '[]')
+        setScheduledCount(Array.isArray(list) ? list.length : 0)
+      } catch { setScheduledCount(0) }
+    }
+    update()
+    const onStorage = (e) => { if (e.key === 'lt-scheduled-reports') update() }
+    window.addEventListener('storage', onStorage)
+    /* Re-read whenever we toggle to scheduled tab or save a new schedule */
+    return () => window.removeEventListener('storage', onStorage)
+  }, [topTab, scheduleOpen])
 
   /* Lazy fetch engines if needed */
   useEffect(() => {
@@ -205,6 +223,31 @@ const ReportsHub = () => {
         </div>
       </div>
 
+      {/* Top tabs (Available / Scheduled) */}
+      <div className='lt-rh-toptabs' role='tablist' data-testid='reports-hub-tabs'>
+        <button
+          role='tab'
+          className={`lt-rh-toptab ${topTab === 'available' ? 'is-active' : ''}`}
+          onClick={() => setTopTab('available')}
+          data-testid='reports-hub-tab-available'
+        >
+          <i className='fa-solid fa-list-ul' /> Rapports disponibles
+        </button>
+        <button
+          role='tab'
+          className={`lt-rh-toptab ${topTab === 'scheduled' ? 'is-active' : ''}`}
+          onClick={() => setTopTab('scheduled')}
+          data-testid='reports-hub-tab-scheduled'
+        >
+          <i className='fa-solid fa-clock-rotate-left' /> Mes rapports planifiés
+          {scheduledCount > 0 && <span className='lt-rh-toptab-badge'>{scheduledCount}</span>}
+        </button>
+      </div>
+
+      {topTab === 'scheduled' ? (
+        <ScheduledReportsLibrary />
+      ) : (
+        <>
       {/* Suggestion banner */}
       <div className='lt-rh-suggest' data-testid='reports-hub-suggestion'>
         <i className={`fa-solid ${SUGGESTIONS[0].icon}`} />
@@ -546,6 +589,8 @@ const ReportsHub = () => {
           )}
         </div>
       </div>
+        </>
+      )}
     </div>
   )
 }
